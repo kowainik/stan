@@ -1,0 +1,43 @@
+name:                stan
+version:             0.0.0
+description:         Haskell static analyser
+synopsis:            Haskell static analyser
+homepage:            https://github.com/kowainik/stan
+bug-reports:         https://github.com/kowainik/stan/issues
+license:             MPL-2.0
+license-file:        LICENSE
+author:              Kowainik
+maintainer:          xrom.xkov@gmail.com
+copyright:           2018 Kowainik
+category:            Static Analysis
+build-type:          Simple
+extra-doc-files:     README.md
+                   , CHANGELOG.md
+cabal-version:       1.24
+tested-with:         GHC == 8.4.3
+
+source-repository head
+  type:                git
+  location:            https://github.com/kowainik/stan.git
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Stan
+                       
+  ghc-options:         -Wall
+  build-depends:       base
+                     
+  default-language:    Haskell2010
+  
+
+test-suite stan-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , stan
+                     
+  ghc-options:         -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+  
+
