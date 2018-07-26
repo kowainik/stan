@@ -27,11 +27,12 @@ library
                          Stan.Partial
                          Stan.Warning
 
-  ghc-options:         -Wall -O0
+  ghc-options:         -Wall
   build-depends:       base >= 4.9 && < 5
                      , ghc  >= 8.6.0
                      , syb  >= 0.7
 
+  default-extensions:  ScopedTypeVariables
   default-language:    Haskell2010
 
 
