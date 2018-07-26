@@ -1,3 +1,4 @@
-main :: IO ()
-main = putStrLn ("Test suite not yet implemented" :: String)
+module Main where
 
+main :: IO ()
+main = print $ head ["Hello"]

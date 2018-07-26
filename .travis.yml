@@ -1,13 +1,13 @@
 sudo: true
-language: haskell
+language: generic
 
 git:
   depth: 5
 
 cache:
   directories:
-  - "$HOME/.stack"
-  - "$TRAVIS_BUILD_DIR/.stack-work"
+  - "$HOME/.cabal"
+  - "$HOME/.ghc"
 
 matrix:
   include:
@@ -22,8 +22,8 @@ matrix:
         packages:
         - ghc-8.6.1
         - cabal-install-head
-  
-  
+
+
 
 install:
   - export PATH="/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH"
@@ -36,4 +36,3 @@ script:
 
 notifications:
   email: false
-
