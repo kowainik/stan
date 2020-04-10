@@ -10,8 +10,13 @@ module Stan
        ( runStan
        ) where
 
-import Stan.Cli (runStanCli)
+import Stan.Analysis (runAnalysis)
+import Stan.Cli (CliArgs (..), runStanCli)
+import Stan.Hie (readHieFiles)
 
 
 runStan :: IO ()
-runStan = runStanCli >>= \_ -> pass
+runStan = runStanCli >>= \CliArgs{..} -> do
+    hieFiles <- readHieFiles cliArgsHiedir
+    let _analysis = runAnalysis hieFiles
+    pass
