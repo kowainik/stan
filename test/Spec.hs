@@ -1,4 +1,5 @@
-module Main where
+module Main (main) where
+
 
 main :: IO ()
-main = print $ head ["Hello"]
+main = print $ head [True]
