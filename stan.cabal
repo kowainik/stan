@@ -62,19 +62,23 @@ common common-options
 common common-relude
   build-depends:       relude ^>= 0.6.0.0
   mixins:              base hiding (Prelude)
-                     , relude (Relude as Prelude)
+                     , relude (Relude as Prelude
+                              , Relude.Extra.Lens
+                              )
 
 library
   import:              common-options
                      , common-relude
   hs-source-dirs:      src
   exposed-modules:     Stan
+                         Stan.Analysis
                          Stan.Cli
 
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
 
   build-depends:       colourista ^>= 0.0.0.0
+                     , ghc ^>= 8.8
                      , gitrev ^>= 1.3.1
                      , optparse-applicative ^>= 0.15
 
