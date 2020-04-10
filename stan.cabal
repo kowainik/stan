@@ -62,7 +62,9 @@ common common-options
 common common-relude
   build-depends:       relude ^>= 0.6.0.0
   mixins:              base hiding (Prelude)
-                     , relude (Relude as Prelude)
+                     , relude (Relude as Prelude
+                              , Relude.Extra.Lens
+                              )
 
 library
   import:              common-options

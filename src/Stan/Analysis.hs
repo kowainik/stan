@@ -12,6 +12,7 @@ module Stan.Analysis
     ) where
 
 import HieTypes (HieFile)
+import Relude.Extra.Lens (Lens', lens, over)
 
 
 {- | This data type stores all information collected during static analysis.
@@ -23,6 +24,11 @@ data Analysis = Analysis
     , analysisObservations   :: !()  -- TODO: use Observation type later
     }
 
+moduleCountL :: Lens' Analysis Int
+moduleCountL = lens
+    analysisModuleCount
+    (\analysis new -> analysis { analysisModuleCount = new })
+
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModuleCount    = 0
@@ -31,20 +37,15 @@ initialAnalysis = Analysis
     , analysisObservations   = ()
     }
 
--- QUESTION: is it better to create a newtype? Also, help with the name...
-type AnalyseM a = State Analysis a
-
-incModuleCount :: AnalyseM ()
-incModuleCount = modify' $
-    \analysis -> analysis { analysisModuleCount = analysisModuleCount analysis + 1 }
-    -- we probably will use lenses for this kind of stuff in the future...
+incModuleCount :: State Analysis ()
+incModuleCount = modify' $ over moduleCountL (+ 1)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
 runAnalysis :: [HieFile] -> Analysis
 runAnalysis = executingState initialAnalysis . analyse
 
-analyse :: [HieFile] -> AnalyseM ()
+analyse :: [HieFile] -> State Analysis ()
 analyse [] = pass
 analyse (_hieFile:hieFiles) = do
     incModuleCount
