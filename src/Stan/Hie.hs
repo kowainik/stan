@@ -15,6 +15,7 @@ import HieTypes (HieFile)
 import NameCache (NameCache, initNameCache)
 import System.Directory (doesFileExist)
 import System.Directory.Recursive (getDirRecursive)
+import System.FilePath (takeExtension)
 import UniqSupply (mkSplitUniqSupply)
 
 
@@ -25,7 +26,8 @@ readHieFiles :: FilePath -> IO [HieFile]
 readHieFiles hieDir = do
     nameCache <- createNameCache
     hieContent <- getDirRecursive hieDir
-    hieFiles <- filterM doesFileExist hieContent
+    let isHieFile f = (&&) (takeExtension f == ".hie") <$> doesFileExist f
+    hieFiles <- filterM isHieFile hieContent
     forM hieFiles $ \hiePath -> do
         (hieFileResult, _newCache) <- readHieFile nameCache hiePath
         pure $ hie_file_result hieFileResult

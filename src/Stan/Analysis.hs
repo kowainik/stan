@@ -22,7 +22,7 @@ data Analysis = Analysis
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !Int
     , analysisObservations   :: !()  -- TODO: use Observation type later
-    }
+    } deriving stock (Show)
 
 moduleCountL :: Lens' Analysis Int
 moduleCountL = lens

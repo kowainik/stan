@@ -18,5 +18,5 @@ import Stan.Hie (readHieFiles)
 runStan :: IO ()
 runStan = runStanCli >>= \CliArgs{..} -> do
     hieFiles <- readHieFiles cliArgsHiedir
-    let _analysis = runAnalysis hieFiles
-    pass
+    let analysis = runAnalysis hieFiles
+    print analysis
