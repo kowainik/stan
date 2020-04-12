@@ -72,6 +72,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Stan
                          Stan.Analysis
+                           Stan.Analysis.Partial
                          Stan.Cli
                          Stan.Core.Id
                          Stan.Hie
@@ -84,6 +85,7 @@ library
 
   build-depends:       bytestring ^>= 0.10
                      , colourista ^>= 0.0.0.0
+                     , containers ^>= 0.6
                      , dir-traverse ^>= 0.2.2.2
                      , directory ^>= 1.3
                      , filepath ^>= 1.4
@@ -91,9 +93,7 @@ library
                      , ghc-paths ^>= 0.1.0.12
                      , gitrev ^>= 1.3.1
                      , optparse-applicative ^>= 0.15
-
---                       Uncomment for debugging
---                     , pretty-simple ^>= 3.2
+                     , pretty-simple ^>= 3.2
 
 executable stan
   import:              common-options

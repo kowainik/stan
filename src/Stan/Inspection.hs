@@ -11,11 +11,13 @@ module Stan.Inspection
     , Category (..)
     , Severity (..)
 
+    , inspections
+
       -- * Pretty print
     , prettyShowInspection
     ) where
 
-import Stan.Core.Id (Id)
+import Stan.Core.Id (Id (..))
 
 
 {- | Data type that represents a check/test, or how we call it
@@ -45,3 +47,21 @@ data Severity
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
 prettyShowInspection = show
+
+{- | List of all inspections.
+-}
+inspections :: [Inspection]
+inspections =
+    [ Inspection
+        { inspectionId = Id "HEAD"  -- TODO: we need to come up with naming scheme for inspection ids
+        , inspectionName = "Partial 'head'"  -- TODO: does it make sense?
+        , inspectionDescription = "Usage of partial function 'head' for lists"
+        , inspectionSolution = unlines
+            [ "* Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
+            , "* Use explicit pattern-matching over lists"
+            ]
+        , inspectionCategory =
+            one $ Category "Partial"  -- TODO: should we convert this to values to avoid typos?
+        , inspectionSeverity = Severe
+        }
+    ]

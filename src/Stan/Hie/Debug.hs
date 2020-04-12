@@ -19,7 +19,8 @@ package to dependencies and use the @pPrint@ function from the
 -}
 
 module Stan.Hie.Debug
-    ( printHieAsts
+    ( debugHieFile
+    , printHieAsts
     ) where
 
 import Avail (AvailInfo (..))
@@ -36,9 +37,16 @@ import Module (Module, ModuleName, moduleNameString, moduleStableString)
 import Name (Name, nameStableString)
 import Outputable (CodeStyle (CStyle), mkCodeStyle, printSDocLn)
 import Pretty (Mode (PageMode))
+import Text.Pretty.Simple (pPrint)
 import Var (ArgFlag (..))
 
 import qualified Text.Show
+
+
+debugHieFile :: FilePath -> [HieFile] -> IO ()
+debugHieFile path hieFiles = do
+    let mHieFile = find (\HieFile{..} -> hie_hs_file == path) hieFiles
+    whenJust mHieFile pPrint
 
 {- | Prints 'HieASTs' part of 'HieFile' using @ghc@ pretty-printing.
 -}
