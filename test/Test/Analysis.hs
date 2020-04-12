@@ -1,20 +1,15 @@
 module Test.Analysis
-    ( linesOfCodeSpec
-    , modulesNumSpec
+    ( analysisSpec
     ) where
 
-import HieTypes (HieFile (..))
-import Test.Hspec (Spec, describe, it, shouldBe)
+import HieTypes (HieFile)
+import Test.Hspec (Spec, describe)
 
-import Stan.Hie (countLinesOfCode)
+import Stan.Analysis (runAnalysis)
+import Test.Analysis.Partial (analysisHeadSpec)
 
 
-linesOfCodeSpec :: HieFile -> Spec
-linesOfCodeSpec hieFile = describe "LoC tests" $
-    it "should count lines of code in the example file" $
-        countLinesOfCode hieFile `shouldBe` 7
-
-modulesNumSpec :: Int -> Spec
-modulesNumSpec num = describe "Modules number tests" $
-    it "should count correct number of modules" $
-        num `shouldBe` 13
+analysisSpec :: [HieFile] -> Spec
+analysisSpec hieFiles = describe "Static Analysis" $ do
+    let analysis = runAnalysis hieFiles
+    analysisHeadSpec analysis

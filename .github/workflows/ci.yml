@@ -36,8 +36,8 @@ jobs:
     - name: Build
       run: |
         cabal update
-        cabal build --enable-tests --enable-benchmarks
+        cabal build --enable-tests --enable-benchmarks all
 
     - name: Test
       run: |
-        cabal test --enable-tests
+        cabal test --enable-tests --test-show-details=direct all

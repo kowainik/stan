@@ -28,6 +28,7 @@ structures by using a phantom parameter.
 newtype Id a = Id
     { unId :: Text
     } deriving stock (Show)
+      deriving newtype (Eq)
 
 {- | A type alias for the situations when we don't care about the parameter of
 'Id' but don't want to deal with type variables.
