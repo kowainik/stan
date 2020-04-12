@@ -14,6 +14,8 @@ module Stan.Analysis
 import HieTypes (HieFile)
 import Relude.Extra.Lens (Lens', lens, over)
 
+import Stan.Hie (countLinesOfCode)
+
 
 {- | This data type stores all information collected during static analysis.
 -}
@@ -29,6 +31,12 @@ moduleCountL = lens
     analysisModuleCount
     (\analysis new -> analysis { analysisModuleCount = new })
 
+linesOfCodeL :: Lens' Analysis Int
+linesOfCodeL = lens
+    analysisLinesOfCode
+    (\analysis new -> analysis { analysisLinesOfCode = new })
+
+
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModuleCount    = 0
@@ -40,6 +48,12 @@ initialAnalysis = Analysis
 incModuleCount :: State Analysis ()
 incModuleCount = modify' $ over moduleCountL (+ 1)
 
+{- | Increase the total loc ('analysisLinesOfCode') by the given number of
+analised lines of code.
+-}
+incLinesCount :: Int -> State Analysis ()
+incLinesCount num = modify' $ over linesOfCodeL (+ num)
+
 {- | Perform static analysis of given 'HieFile'.
 -}
 runAnalysis :: [HieFile] -> Analysis
@@ -47,6 +61,7 @@ runAnalysis = executingState initialAnalysis . analyse
 
 analyse :: [HieFile] -> State Analysis ()
 analyse [] = pass
-analyse (_hieFile:hieFiles) = do
+analyse (hieFile:hieFiles) = do
     incModuleCount
+    incLinesCount $ countLinesOfCode hieFile
     analyse hieFiles
