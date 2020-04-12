@@ -7,8 +7,8 @@ Main running module.
 -}
 
 module Stan
-       ( runStan
-       ) where
+    ( runStan
+    ) where
 
 -- import Text.Pretty.Simple (pPrint)
 
@@ -23,5 +23,4 @@ runStan = runStanCli >>= \CliArgs{..} -> do
     let analysis = runAnalysis hieFiles
     print analysis
 
-    -- for debugging
-    -- whenNotNull hieFiles $ pPrint . head
+    -- debugHieFile "app/Main.hs" hieFiles

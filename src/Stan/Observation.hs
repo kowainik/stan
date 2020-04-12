@@ -13,7 +13,7 @@ module Stan.Observation
     , prettyShowObservation
     ) where
 
-import GHC (SrcSpan)
+import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
 import Stan.Inspection (Inspection)
@@ -24,7 +24,8 @@ import Stan.Inspection (Inspection)
 data Observation = Observation
     { observationId           :: !(Id Observation)
     , observationInspectionId :: !(Id Inspection)
-    , observationLoc          :: !SrcSpan
+    , observationLoc          :: !RealSrcSpan
+    , observationFile         :: !FilePath
     } deriving stock (Show)
 
 -- | Show 'Observation' in a human-friendly format.

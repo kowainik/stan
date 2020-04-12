@@ -18,8 +18,8 @@ import Colourista (blue, bold, formatWith)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
 import Options.Applicative (Parser, ParserInfo, execParser, fullDesc, help, helper, info,
-                            infoOption, long, long, metavar, progDesc, short, showDefault,
-                            strOption, value)
+                            infoOption, long, metavar, progDesc, short, showDefault, strOption,
+                            value)
 
 import qualified Paths_stan as Meta (version)
 
@@ -27,7 +27,6 @@ import qualified Paths_stan as Meta (version)
 newtype CliArgs = CliArgs
     { cliArgsHiedir :: FilePath  -- ^ Directory with HIE files
     }
-
 
 -- | Run main parser of the @stan@ command line tool.
 runStanCli :: IO CliArgs

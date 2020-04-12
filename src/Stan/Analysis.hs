@@ -14,7 +14,9 @@ module Stan.Analysis
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
+import Stan.Analysis.Partial (analyseForHeadObservations)
 import Stan.Hie (countLinesOfCode)
+import Stan.Observation (Observation)
 
 
 {- | This data type stores all information collected during static analysis.
@@ -23,7 +25,7 @@ data Analysis = Analysis
     { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !Int
-    , analysisObservations   :: !()  -- TODO: use Observation type later
+    , analysisObservations   :: ![Observation]
     } deriving stock (Show)
 
 modulesNumL :: Lens' Analysis Int
@@ -36,13 +38,17 @@ linesOfCodeL = lens
     analysisLinesOfCode
     (\analysis new -> analysis { analysisLinesOfCode = new })
 
+observationsL :: Lens' Analysis [Observation]
+observationsL = lens
+    analysisObservations
+    (\analysis new -> analysis { analysisObservations = new })
 
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
     , analysisUsedExtensions = 0
-    , analysisObservations   = ()
+    , analysisObservations   = []
     }
 
 incModulesNum :: State Analysis ()
@@ -54,6 +60,10 @@ analised lines of code.
 incLinesOfCode :: Int -> State Analysis ()
 incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 
+-- | Add list of 'Observation's to the beginning of the existing list
+addObservations :: [Observation] -> State Analysis ()
+addObservations observations = modify' $ over observationsL (observations ++)
+
 {- | Perform static analysis of given 'HieFile'.
 -}
 runAnalysis :: [HieFile] -> Analysis
@@ -62,7 +72,8 @@ runAnalysis = executingState initialAnalysis . analyse
 analyse :: [HieFile] -> State Analysis ()
 analyse [] = pass
 analyse (hieFile:hieFiles) = do
-    incModulesNum
     -- traceM (hie_hs_file hieFile)
+    incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
+    addObservations $ analyseForHeadObservations hieFile
     analyse hieFiles

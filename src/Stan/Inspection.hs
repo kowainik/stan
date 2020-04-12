@@ -11,11 +11,13 @@ module Stan.Inspection
     , Category (..)
     , Severity (..)
 
+    , inspections
+
       -- * Pretty print
     , prettyShowInspection
     ) where
 
-import Stan.Core.Id (Id)
+import Stan.Core.Id (Id (..))
 
 
 {- | Data type that represents a check/test, or how we call it
@@ -45,3 +47,23 @@ data Severity
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
 prettyShowInspection = show
+
+{- | List of all inspections.
+-}
+inspections :: [Inspection]
+inspections =
+    [ Inspection
+        -- TODO: See issue #26: https://github.com/kowainik/stan/issues/26
+        { inspectionId = Id "STAN-0001-HEAD"
+        , inspectionName = "Partial: base/head"
+        , inspectionDescription = "Usage of partial function 'head' for lists"
+        , inspectionSolution = unlines
+            [ "* Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
+            , "* Use explicit pattern-matching over lists"
+            ]
+        , inspectionCategory =
+            -- TODO: See issue #25: https://github.com/kowainik/stan/issues/25
+            one $ Category "Partial"
+        , inspectionSeverity = Severe
+        }
+    ]
