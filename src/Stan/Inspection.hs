@@ -53,15 +53,17 @@ prettyShowInspection = show
 inspections :: [Inspection]
 inspections =
     [ Inspection
-        { inspectionId = Id "HEAD"  -- TODO: we need to come up with naming scheme for inspection ids
-        , inspectionName = "Partial 'head'"  -- TODO: does it make sense?
+        -- TODO: See issue #26: https://github.com/kowainik/stan/issues/26
+        { inspectionId = Id "STAN-0001-HEAD"
+        , inspectionName = "Partial: base/head"
         , inspectionDescription = "Usage of partial function 'head' for lists"
         , inspectionSolution = unlines
             [ "* Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
             , "* Use explicit pattern-matching over lists"
             ]
         , inspectionCategory =
-            one $ Category "Partial"  -- TODO: should we convert this to values to avoid typos?
+            -- TODO: See issue #25: https://github.com/kowainik/stan/issues/25
+            one $ Category "Partial"
         , inspectionSeverity = Severe
         }
     ]

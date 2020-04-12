@@ -27,7 +27,9 @@ import qualified Data.Map.Strict as Map
 -}
 analyseForHeadObservations :: HieFile -> [Observation]
 analyseForHeadObservations HieFile{..} =
-    map mkPartialObservation $ findHeads hie_asts
+    map (uncurry mkPartialObservation)
+    $ zip [1..]
+    $ findHeads hie_asts
   where
     findHeads :: HieASTs TypeIndex -> [RealSrcSpan]
     findHeads =
@@ -63,10 +65,11 @@ analyseForHeadObservations HieFile{..} =
 
         pure srcSpan
 
-    mkPartialObservation :: RealSrcSpan -> Observation
-    mkPartialObservation srcSpan = Observation
-        { observationId = Id ""  -- TODO: how to create observation id?
-        , observationInspectionId = Id "HEAD"
+    mkPartialObservation :: Int -> RealSrcSpan -> Observation
+    mkPartialObservation num srcSpan = Observation
+        -- TODO: See issue #26: https://github.com/kowainik/stan/issues/26
+        { observationId = Id $ show num <> "-STAN-0001-HEAD"
+        , observationInspectionId = Id "STAN-0001-HEAD"
         , observationLoc = srcSpan
         , observationFile = hie_hs_file
         }
