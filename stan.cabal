@@ -101,16 +101,25 @@ executable stan
   main-is:             Main.hs
   build-depends:       stan
 
+library test-examples
+  import:              common-options
+  hs-source-dirs:      target
+  exposed-modules:     Target.HEAD
+
 test-suite stan-test
   import:              common-options
+                     , common-relude
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       Test.Analysis
-                       Test.Example
+                         Test.Analysis.Partial
+                       Test.Number
+
   build-depends:       stan
                      , hspec ^>= 2.7
                      , ghc
+
   ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
 
-module Test.Example where
+module Target.HEAD where
 
 
 stanHead :: [a] -> a

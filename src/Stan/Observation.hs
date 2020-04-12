@@ -26,7 +26,7 @@ data Observation = Observation
     , observationInspectionId :: !(Id Inspection)
     , observationLoc          :: !RealSrcSpan
     , observationFile         :: !FilePath
-    } deriving stock (Show)
+    } deriving stock (Show, Eq)
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: Observation -> Text

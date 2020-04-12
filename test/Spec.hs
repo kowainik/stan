@@ -1,21 +1,21 @@
 module Main (main) where
 
-import Data.List (find)
 import HieTypes (HieFile (..))
-import System.Exit (exitFailure)
 import Test.Hspec (hspec)
 
 import Stan.Hie (readHieFiles)
-import Test.Analysis (linesOfCodeSpec, modulesNumSpec)
+import Test.Analysis (analysisSpec)
+import Test.Number (linesOfCodeSpec, modulesNumSpec)
 
 
 main :: IO ()
 main = do
     hieFiles <- readHieFiles ".hie"
-    case find ((==) "test/Test/Example.hs" . hie_hs_file) hieFiles of
+    case find ((==) "target/Target/HEAD.hs" . hie_hs_file) hieFiles of
         Just testHie -> hspec $ do
             linesOfCodeSpec testHie
             modulesNumSpec $ length hieFiles
+            analysisSpec [testHie]
         Nothing -> do
-            putStrLn "FAILED: Example.hie not found"
-            () <$ exitFailure
+            putStrLn "FAILED: Target.HEAD.hie not found"
+            exitFailure
