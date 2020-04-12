@@ -10,6 +10,8 @@ module Stan
        ( runStan
        ) where
 
+-- import Text.Pretty.Simple (pPrint)
+
 import Stan.Analysis (runAnalysis)
 import Stan.Cli (CliArgs (..), runStanCli)
 import Stan.Hie (readHieFiles)

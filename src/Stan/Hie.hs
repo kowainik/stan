@@ -19,6 +19,8 @@ import System.Directory.Recursive (getDirRecursive)
 import System.FilePath (takeExtension)
 import UniqSupply (mkSplitUniqSupply)
 
+import Stan.Hie.Debug ()
+
 import qualified Data.ByteString.Char8 as BS
 
 
