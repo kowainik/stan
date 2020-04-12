@@ -26,7 +26,7 @@ data Inspection = Inspection
     , inspectionName        :: !Text
     , inspectionDescription :: !Text
     , inspectionSolution    :: !Text
-    , inspectionCategory    :: ![Category]
+    , inspectionCategory    :: !(NonEmpty Category)
     , inspectionSeverity    :: !Severity
     } deriving stock (Show)
 
