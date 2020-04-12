@@ -73,8 +73,11 @@ library
   exposed-modules:     Stan
                          Stan.Analysis
                          Stan.Cli
+                         Stan.Core.Id
                          Stan.Hie
                            Stan.Hie.Debug
+                         Stan.Inspection
+                         Stan.Observation
 
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan

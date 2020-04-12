@@ -1,5 +1,6 @@
-{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
+{-# LANGUAGE StandaloneDeriving #-}
 
 {- |
 Copyright: (c) 2020 Kowainik
