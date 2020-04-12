@@ -106,7 +106,11 @@ test-suite stan-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:       Test.Analysis
+                       Test.Example
   build-depends:       stan
+                     , hspec ^>= 2.7
+                     , ghc
   ghc-options:         -threaded
                        -rtsopts
                        -with-rtsopts=-N

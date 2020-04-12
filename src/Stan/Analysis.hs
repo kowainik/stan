@@ -11,7 +11,7 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
-import HieTypes (HieFile)
+import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Hie (countLinesOfCode)
@@ -63,5 +63,6 @@ analyse :: [HieFile] -> State Analysis ()
 analyse [] = pass
 analyse (hieFile:hieFiles) = do
     incModuleCount
+    -- traceM (hie_hs_file hieFile)
     incLinesCount $ countLinesOfCode hieFile
     analyse hieFiles
