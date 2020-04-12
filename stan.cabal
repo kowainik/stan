@@ -82,7 +82,8 @@ library
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
 
-  build-depends:       colourista ^>= 0.0.0.0
+  build-depends:       bytestring ^>= 0.10
+                     , colourista ^>= 0.0.0.0
                      , dir-traverse ^>= 0.2.2.2
                      , directory ^>= 1.3
                      , filepath ^>= 1.4

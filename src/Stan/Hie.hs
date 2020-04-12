@@ -8,15 +8,18 @@ Functions to work with @hie@ specific parts.
 
 module Stan.Hie
     ( readHieFiles
+    , countLinesOfCode
     ) where
 
 import HieBin (HieFileResult (hie_file_result), readHieFile)
-import HieTypes (HieFile)
+import HieTypes (HieFile (..))
 import NameCache (NameCache, initNameCache)
 import System.Directory (doesFileExist)
 import System.Directory.Recursive (getDirRecursive)
 import System.FilePath (takeExtension)
 import UniqSupply (mkSplitUniqSupply)
+
+import qualified Data.ByteString.Char8 as BS
 
 
 {- | Returns contents of all @.hie@ files recursively in the given
@@ -36,3 +39,7 @@ createNameCache :: IO NameCache
 createNameCache = do
     uniqSupply <- mkSplitUniqSupply 'z'
     pure $ initNameCache uniqSupply []
+
+-- | Get the number of lines of code in the file by analising 'HieFile'.
+countLinesOfCode :: HieFile -> Int
+countLinesOfCode HieFile{..} = length $ BS.lines hie_hs_src
