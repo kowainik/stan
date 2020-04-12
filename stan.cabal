@@ -104,7 +104,7 @@ executable stan
 library test-examples
   import:              common-options
   hs-source-dirs:      target
-  exposed-modules:     Target.HEAD
+  exposed-modules:     Target.Example
 
 test-suite stan-test
   import:              common-options

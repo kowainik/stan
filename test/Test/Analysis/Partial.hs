@@ -25,7 +25,7 @@ analysisHeadSpec analysis = describe "STAN-0001-HEAD" $ do
         { observationId = Id "1-STAN-0001-HEAD"
         , observationInspectionId = Id "STAN-0001-HEAD"
         , observationLoc = mkRealSrcSpan
-            (mkRealSrcLoc "target/Target/HEAD.hs" 7 12)
-            (mkRealSrcLoc "target/Target/HEAD.hs" 7 16)
-        , observationFile = "target/Target/HEAD.hs"
+            (mkRealSrcLoc "target/Target/Example.hs" 7 12)
+            (mkRealSrcLoc "target/Target/Example.hs" 7 16)
+        , observationFile = "target/Target/Example.hs"
         }

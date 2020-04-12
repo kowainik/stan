@@ -11,11 +11,11 @@ import Test.Number (linesOfCodeSpec, modulesNumSpec)
 main :: IO ()
 main = do
     hieFiles <- readHieFiles ".hie"
-    case find ((==) "target/Target/HEAD.hs" . hie_hs_file) hieFiles of
+    case find ((==) "target/Target/Example.hs" . hie_hs_file) hieFiles of
         Just testHie -> hspec $ do
             linesOfCodeSpec testHie
             modulesNumSpec $ length hieFiles
             analysisSpec [testHie]
         Nothing -> do
-            putStrLn "FAILED: Target.HEAD.hie not found"
+            putStrLn "FAILED: Target.Example.hie not found"
             exitFailure
