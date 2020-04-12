@@ -20,3 +20,6 @@ runStan = runStanCli >>= \CliArgs{..} -> do
     hieFiles <- readHieFiles cliArgsHiedir
     let analysis = runAnalysis hieFiles
     print analysis
+
+    -- for debugging
+    -- whenNotNull hieFiles $ pPrint . head
