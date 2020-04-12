@@ -20,16 +20,16 @@ import Stan.Hie (countLinesOfCode)
 {- | This data type stores all information collected during static analysis.
 -}
 data Analysis = Analysis
-    { analysisModuleCount    :: !Int
+    { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !Int
     , analysisObservations   :: !()  -- TODO: use Observation type later
     } deriving stock (Show)
 
-moduleCountL :: Lens' Analysis Int
-moduleCountL = lens
-    analysisModuleCount
-    (\analysis new -> analysis { analysisModuleCount = new })
+modulesNumL :: Lens' Analysis Int
+modulesNumL = lens
+    analysisModulesNum
+    (\analysis new -> analysis { analysisModulesNum = new })
 
 linesOfCodeL :: Lens' Analysis Int
 linesOfCodeL = lens
@@ -39,20 +39,20 @@ linesOfCodeL = lens
 
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
-    { analysisModuleCount    = 0
+    { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
     , analysisUsedExtensions = 0
     , analysisObservations   = ()
     }
 
-incModuleCount :: State Analysis ()
-incModuleCount = modify' $ over moduleCountL (+ 1)
+incModulesNum :: State Analysis ()
+incModulesNum = modify' $ over modulesNumL (+ 1)
 
 {- | Increase the total loc ('analysisLinesOfCode') by the given number of
 analised lines of code.
 -}
-incLinesCount :: Int -> State Analysis ()
-incLinesCount num = modify' $ over linesOfCodeL (+ num)
+incLinesOfCode :: Int -> State Analysis ()
+incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
@@ -62,7 +62,7 @@ runAnalysis = executingState initialAnalysis . analyse
 analyse :: [HieFile] -> State Analysis ()
 analyse [] = pass
 analyse (hieFile:hieFiles) = do
-    incModuleCount
+    incModulesNum
     -- traceM (hie_hs_file hieFile)
-    incLinesCount $ countLinesOfCode hieFile
+    incLinesOfCode $ countLinesOfCode hieFile
     analyse hieFiles
