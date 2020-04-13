@@ -37,7 +37,7 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
     summary = unlines
         [ ""
         , formatWith [bold] "           Stan's Summary:"
-        , separator "┏" "┳" "┓"
+        , top
         , alignText "Analysed modules" <> alignNum analysisModulesNum
         , mid
         , alignText "Analysed Lines of Code" <> alignNum analysisLinesOfCode
@@ -45,7 +45,7 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
         , alignText "Total extensions" <> alignNum analysisUsedExtensions
         , mid
         , alignText "Total found observations" <> alignNum (length analysisObservations)
-        , separator "┗" "┻" "┛"
+        , bot
         ]
       where
         alignNum :: Int -> Text
@@ -56,26 +56,25 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
 
         separator :: Text -> Text -> Text -> Text
         separator l c r = l <> Text.replicate 29 "━" <> c <> Text.replicate 8 "━" <> r
-        mid :: Text
+        top, mid, bot :: Text
+        top = separator "┏" "┳" "┓"
         mid = separator "┣" "╋" "┫"
-
+        bot = separator "┗" "┻" "┛"
 
 showByFile :: (FilePath, NonEmpty Observation) -> Text
 showByFile (file, o :| obs) = unlines
-    [ format "  File:         " <> formatWith [bold] (toText file)
-    , format "  Module:       " <> showModule
-    , format "  Observations: " <> formatWith [bold] (show $ 1 + length obs)
+    [ i "  File:         " <> b (toText file)
+    , i "  Module:       " <> b (observationModuleName o)
+    , i "  Observations: " <> b (show $ 1 + length obs)
     , " ┏" <> Text.replicate 78 "━"
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 20 " ~ " <> "\n ┃\n")
         (map prettyShowObservation $ o : obs)
   where
-    format :: Text -> Text
-    format = formatWith [italic]
-
-    showModule :: Text
-    showModule = formatWith [bold] $ observationModuleName o
+    i, b :: Text -> Text
+    i = formatWith [italic]
+    b = formatWith [bold]
 
 groupObservationsByFile
     :: [Observation]
