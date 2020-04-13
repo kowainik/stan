@@ -29,5 +29,5 @@ analysisHeadSpec analysis = describe "STAN-0001-HEAD" $ do
             (mkRealSrcLoc "target/Target/Example.hs" 7 16)
         , observationFile = "target/Target/Example.hs"
         , observationModuleName = "Target.Example"
-        , observationFileContent = fromMaybe "" (observationFileContent <$> foundHeadObservation)
+        , observationFileContent = maybe "" observationFileContent foundHeadObservation
         }
