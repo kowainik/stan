@@ -8,7 +8,6 @@ __Inspection__ — check or test provided by Stan.
 
 module Stan.Inspection
     ( Inspection (..)
-    , Category (..)
     , Severity (..)
 
       -- * Stan inspections
@@ -17,13 +16,13 @@ module Stan.Inspection
 
       -- * Pretty print
     , prettyShowInspection
-    , prettyShowCategory
     , prettyShowSeverity
     , severityColour
     ) where
 
-import Colourista (bold, formatWith, magentaBg, red, yellow)
+import Colourista (bold, formatWith, red, yellow)
 
+import Stan.Category (Category, partial)
 import Stan.Core.Id (Id (..))
 
 
@@ -39,11 +38,6 @@ data Inspection = Inspection
     , inspectionSeverity    :: !Severity
     } deriving stock (Show)
 
--- | A type of the inspection.
-newtype Category = Category
-    { unCategory :: Text
-    } deriving newtype (Show)
-
 -- | Severity level of the inspection.
 data Severity
     = Severe
@@ -54,10 +48,6 @@ data Severity
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
 prettyShowInspection = show
-
--- | Show 'Category' in a human-friendly format.
-prettyShowCategory :: Category -> Text
-prettyShowCategory cat = formatWith [magentaBg] $ "#" <> unCategory cat
 
 -- | Get the colour of the severity level.
 severityColour :: Severity -> Text
@@ -82,9 +72,7 @@ inspections =
             [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
             , "Use explicit pattern-matching over lists"
             ]
-        , inspectionCategory =
-            -- TODO: See issue #25: https://github.com/kowainik/stan/issues/25
-            one $ Category "Partial"
+        , inspectionCategory = one partial
         , inspectionSeverity = Severe
         }
     ]

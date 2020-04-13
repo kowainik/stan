@@ -17,10 +17,10 @@ import Colourista (bold, formatWith, green, italic, reset)
 import Relude.Unsafe ((!!))
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
+import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Hie.Debug ()
-import Stan.Inspection (Inspection (..), getInspectionById, prettyShowCategory, prettyShowSeverity,
-                        severityColour)
+import Stan.Inspection (Inspection (..), getInspectionById, prettyShowSeverity, severityColour)
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.List.NonEmpty as NE
