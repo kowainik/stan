@@ -27,8 +27,11 @@ prettyShowAnalysis :: Analysis -> Text
 prettyShowAnalysis Analysis{..} = groupedObservations <> summary
   where
     groupedObservations :: Text
-    groupedObservations = Text.intercalate "\n\n" $ map showByFile $
-        toPairs $ groupObservationsByFile analysisObservations
+    groupedObservations =
+        Text.intercalate "\n\n"
+        $ map showByFile
+        $ toPairs
+        $ groupObservationsByFile analysisObservations
 
     summary :: Text
     summary = unlines

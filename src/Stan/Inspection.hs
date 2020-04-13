@@ -89,7 +89,7 @@ inspections =
         }
     ]
 
--- | Get the 'Inspection' by the given inspection 'Id'.
+-- | Get the 'Inspection' by the given known inspection 'Id'.
 getInspectionById :: Id Inspection -> Inspection
 getInspectionById insId = case find ((==) insId . inspectionId) inspections of
     Just ins -> ins

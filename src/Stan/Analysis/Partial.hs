@@ -55,7 +55,8 @@ analyseForHeadObservations HieFile{..} =
         let modul = moduleNameString $ moduleName $ nameModule name
         let package = show @String $ moduleUnitId $ nameModule name
 
-        guard $ occName == "head"
+        guard
+             $ occName == "head"
             && modul   == "GHC.List"
             && package == "base"
 
