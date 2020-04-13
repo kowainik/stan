@@ -27,9 +27,7 @@ import qualified Data.Map.Strict as Map
 -}
 analyseForHeadObservations :: HieFile -> [Observation]
 analyseForHeadObservations HieFile{..} =
-    map (uncurry mkPartialObservation)
-    $ zip [1..]
-    $ findHeads hie_asts
+    zipWith mkPartialObservation [1..] $ findHeads hie_asts
   where
     findHeads :: HieASTs TypeIndex -> [RealSrcSpan]
     findHeads =
@@ -57,11 +55,9 @@ analyseForHeadObservations HieFile{..} =
         let modul = moduleNameString $ moduleName $ nameModule name
         let package = show @String $ moduleUnitId $ nameModule name
 
-        guard $ and
-            [ occName == "head"
-            , modul   == "GHC.List"
-            , package == "base"
-            ]
+        guard $ occName == "head"
+            && modul   == "GHC.List"
+            && package == "base"
 
         pure srcSpan
 
@@ -72,4 +68,6 @@ analyseForHeadObservations HieFile{..} =
         , observationInspectionId = Id "STAN-0001-HEAD"
         , observationLoc = srcSpan
         , observationFile = hie_hs_file
+        , observationModuleName = toText $ moduleNameString $ moduleName hie_module
+        , observationFileContent = hie_hs_src
         }
