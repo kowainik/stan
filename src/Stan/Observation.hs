@@ -13,10 +13,18 @@ module Stan.Observation
     , prettyShowObservation
     ) where
 
-import SrcLoc (RealSrcSpan)
+import Colourista (bold, formatWith, green, italic, reset)
+import Relude.Unsafe ((!!))
+import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
-import Stan.Core.Id (Id)
-import Stan.Inspection (Inspection)
+import Stan.Core.Id (Id (..))
+import Stan.Hie.Debug ()
+import Stan.Inspection (Inspection (..), getInspectionById, prettyShowCategory, prettyShowSeverity,
+                        severityColour)
+
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Text as Text
 
 
 {- | Data type to represent discovered by Stan vulnerabilities.
@@ -26,8 +34,68 @@ data Observation = Observation
     , observationInspectionId :: !(Id Inspection)
     , observationLoc          :: !RealSrcSpan
     , observationFile         :: !FilePath
+    , observationModuleName   :: !Text
+    , observationFileContent  :: !ByteString
     } deriving stock (Show, Eq)
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: Observation -> Text
-prettyShowObservation = show
+prettyShowObservation Observation{..} = unlines $
+    map (" ┃  " <>)
+        $  observationTable
+        <> ("" : source)
+        <> ("" : solution)
+  where
+    observationTable :: [Text]
+    observationTable =
+        [ element "ID:            " <> b (unId observationId)
+        , element "Severity:      " <> prettyShowSeverity (inspectionSeverity inspection)
+        , element "Description:   " <> inspectionDescription inspection
+        , element "Inspection ID: " <> unId observationInspectionId
+        , element "Category:      " <> categories
+        ]
+      where
+        element :: Text -> Text
+        element = formatWith [italic] . ("✦ " <>)
+
+        b :: Text -> Text
+        b = formatWith [bold]
+
+    inspection :: Inspection
+    inspection = getInspectionById observationInspectionId
+
+    categories :: Text
+    categories = Text.intercalate " "
+        $ map prettyShowCategory $ NE.toList $ inspectionCategory inspection
+
+    source :: [Text]
+    source =
+        [ alignLine (n - 1)
+        , alignLine n <> getSourceLine
+        , alignLine (n + 1) <> arrows
+        ]
+      where
+        n :: Int
+        n = srcSpanStartLine observationLoc
+
+        alignLine :: Int -> Text
+        alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
+
+        getSourceLine :: Text
+        getSourceLine = decodeUtf8 $
+            BS.lines observationFileContent !! (n - 1)
+
+        arrows :: Text
+        arrows = severityColour (inspectionSeverity inspection)
+            <> Text.replicate start " "
+            <> Text.replicate arrow "^"
+            <> reset
+          where
+            start = srcSpanStartCol observationLoc - 1
+            arrow = srcSpanEndCol observationLoc - start - 1
+
+    solution :: [Text]
+    solution = case inspectionSolution inspection of
+        []   -> []
+        sols -> formatWith [italic, green] "Possible solution:" :
+            map (" ⍟ " <>) sols
