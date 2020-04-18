@@ -14,6 +14,10 @@ module Stan.Inspection
     , inspections
     , getInspectionById
 
+      -- ** Inspections by ID
+    , stan0001
+    , stan0001Inspection
+
       -- * Pretty print
     , prettyShowInspection
     , prettyShowSeverity
@@ -36,13 +40,13 @@ data Inspection = Inspection
     , inspectionSolution    :: ![Text]
     , inspectionCategory    :: !(NonEmpty Category)
     , inspectionSeverity    :: !Severity
-    } deriving stock (Show)
+    } deriving stock (Show, Eq)
 
 -- | Severity level of the inspection.
 data Severity
     = Severe
     | NotReallySevere
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 
 -- | Show 'Inspection' in a human-friendly format.
@@ -63,19 +67,26 @@ prettyShowSeverity s = formatWith [severityColour s, bold] $ show s
 -}
 inspections :: [Inspection]
 inspections =
-    [ Inspection
-        -- TODO: See issue #26: https://github.com/kowainik/stan/issues/26
-        { inspectionId = Id "STAN-0001-HEAD"
-        , inspectionName = "Partial: base/head"
-        , inspectionDescription = "Usage of partial function 'head' for lists"
-        , inspectionSolution =
-            [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
-            , "Use explicit pattern-matching over lists"
-            ]
-        , inspectionCategory = one partial
-        , inspectionSeverity = Severe
-        }
+    [ stan0001Inspection
     ]
+
+-- | 'Id' fo the partial 'head' 'Inspection' — @STAN-0001@.
+stan0001 :: Id Inspection
+stan0001 = Id "STAN-0001"
+
+-- | Corresponding 'Inspection' for 'stan0001' — partial 'head' @STAN-0001@.
+stan0001Inspection :: Inspection
+stan0001Inspection =Inspection
+    { inspectionId = stan0001
+    , inspectionName = "Partial: base/head"
+    , inspectionDescription = "Usage of partial function 'head' for lists"
+    , inspectionSolution =
+        [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
+        , "Use explicit pattern-matching over lists"
+        ]
+    , inspectionCategory = one partial
+    , inspectionSeverity = Severe
+    }
 
 -- | Get the 'Inspection' by the given known inspection 'Id'.
 getInspectionById :: Id Inspection -> Inspection

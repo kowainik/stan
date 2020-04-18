@@ -1,4 +1,4 @@
-module Test.Analysis
+module Test.Stan.Analysis
     ( analysisSpec
     ) where
 
@@ -6,7 +6,7 @@ import HieTypes (HieFile)
 import Test.Hspec (Spec, describe)
 
 import Stan.Analysis (runAnalysis)
-import Test.Analysis.Partial (analysisHeadSpec)
+import Test.Stan.Analysis.Partial (analysisHeadSpec)
 
 
 analysisSpec :: [HieFile] -> Spec
