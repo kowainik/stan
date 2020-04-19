@@ -14,7 +14,8 @@ module Stan.Analysis
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
-import Stan.Analysis.Partial (analyseForHeadObservations)
+import Stan.Analysis.Analyser (Analyser (..))
+import Stan.Analysis.Partial (partialAnalysers)
 import Stan.Hie (countLinesOfCode)
 import Stan.Observation (Observation)
 
@@ -75,5 +76,5 @@ analyse (hieFile:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
     incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
-    addObservations $ analyseForHeadObservations hieFile
+    addObservations $ concatMap (\Analyser{..} -> analyserFunction hieFile) partialAnalysers
     analyse hieFiles

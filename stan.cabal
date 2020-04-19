@@ -75,6 +75,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Stan
                          Stan.Analysis
+                           Stan.Analysis.Analyser
                            Stan.Analysis.Partial
                            Stan.Analysis.Pretty
                          Stan.Category
