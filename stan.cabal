@@ -84,8 +84,8 @@ library
                            Stan.Hie.Debug
                          Stan.Inspection
                            Stan.Inspection.All
-                           Stan.Inspection.Partial
                            Stan.Inspection.Infinite
+                           Stan.Inspection.Partial
                          Stan.Observation
 
   autogen-modules:     Paths_stan
