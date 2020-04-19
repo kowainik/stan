@@ -11,8 +11,8 @@ module Stan.Analysis.Analyser
     , mkNameMetaAnalyser
     ) where
 
-import HieTypes (HieAST (..), HieASTs (..), HieFile (..), Identifier, IdentifierDetails (..),
-                 NodeInfo (..), TypeIndex)
+import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IEType (..), Identifier,
+                 IdentifierDetails (..), NodeInfo (..), TypeIndex)
 import Module (moduleName, moduleNameString, moduleUnitId)
 import Name (nameModule, nameOccName)
 import OccName (occNameString)
@@ -24,6 +24,7 @@ import Stan.NameMeta (NameMeta (..))
 import Stan.Observation (Observation, mkObservation)
 
 import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 
 
 {- | Contains analyser function to run on 'HieFile's.
@@ -69,8 +70,9 @@ analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
         :: RealSrcSpan
         -> (Identifier, IdentifierDetails TypeIndex)
         -> Maybe RealSrcSpan
-    findHeadUsage srcSpan (identifier, _details) = do
+    findHeadUsage srcSpan (identifier, details) = do
         Right name <- Just identifier
+        guard $ Set.notMember (IEThing Import) $ identInfo details
 
         let occName = occNameString $ nameOccName name
         let modul = moduleNameString $ moduleName $ nameModule name
