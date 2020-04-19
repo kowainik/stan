@@ -10,6 +10,7 @@ module Stan.Observation
     ( Observation (..)
 
       -- * Smart constructors
+    , mkObservation
     , mkObservationId
 
       -- * Pretty print
@@ -17,6 +18,8 @@ module Stan.Observation
     ) where
 
 import Colourista (bold, formatWith, green, italic, reset)
+import HieTypes (HieFile (..))
+import Module (moduleName, moduleNameString)
 import Relude.Unsafe ((!!))
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
@@ -42,6 +45,22 @@ data Observation = Observation
     , observationModuleName   :: !Text
     , observationFileContent  :: !ByteString
     } deriving stock (Show, Eq)
+
+-- | Smart constructor for 'Observation's from 'HieFile's.
+mkObservation
+    :: Id Inspection  -- ^ Corresponding 'Inspection's 'Id'.
+    -> HieFile
+    -> Int  -- ^ Ordinal number of the 'Observation'.
+    -> RealSrcSpan  -- ^ Position.
+    -> Observation
+mkObservation insId HieFile{..} num srcSpan = Observation
+    { observationId = mkObservationId num insId
+    , observationInspectionId = insId
+    , observationLoc = srcSpan
+    , observationFile = hie_hs_file
+    , observationModuleName = toText $ moduleNameString $ moduleName hie_module
+    , observationFileContent = hie_hs_src
+    }
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: Observation -> Text
