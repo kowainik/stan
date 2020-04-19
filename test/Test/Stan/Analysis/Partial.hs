@@ -7,12 +7,12 @@ import Test.Hspec (Spec, describe, it, shouldBe)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (stan0001)
+import Stan.Inspection.Partial (stan0001)
 import Stan.Observation (Observation (..), mkObservationId)
 
 
 analysisHeadSpec :: Analysis -> Spec
-analysisHeadSpec analysis = describe "STAN-0001" $ do
+analysisHeadSpec analysis = describe "STAN-0001" $
     it "finds usage of 'base/head'" $
         foundHeadObservation `shouldBe` Just expectedHeadObservation
   where

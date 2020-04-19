@@ -17,17 +17,35 @@ import Name (nameModule, nameOccName)
 import OccName (occNameString)
 import SrcLoc (RealSrcSpan)
 
-import Stan.Inspection (stan0001)
+import Stan.Core.Id (Id)
+import Stan.Inspection (Inspection)
+import Stan.Inspection.Partial (stan0001)
 import Stan.Observation (Observation (..), mkObservationId)
 
 import qualified Data.Map.Strict as Map
 
 
+-- | Smart constructor for partial 'Observation's.
+mkPartialObservation
+    :: Id Inspection  -- ^ Corresponding 'Inspection's 'Id'.
+    -> HieFile
+    -> Int  -- ^ Ordinal number of the 'Observation'.
+    -> RealSrcSpan  -- ^ Position.
+    -> Observation
+mkPartialObservation insId HieFile{..} num srcSpan = Observation
+    { observationId = mkObservationId num insId
+    , observationInspectionId = insId
+    , observationLoc = srcSpan
+    , observationFile = hie_hs_file
+    , observationModuleName = toText $ moduleNameString $ moduleName hie_module
+    , observationFileContent = hie_hs_src
+    }
+
 {- | Check for occurrences of the partial @head@ function.
 -}
 analyseForHeadObservations :: HieFile -> [Observation]
-analyseForHeadObservations HieFile{..} =
-    zipWith mkPartialObservation [1..] $ findHeads hie_asts
+analyseForHeadObservations hie@HieFile{..} =
+    zipWith (mkPartialObservation stan0001 hie) [1..] $ findHeads hie_asts
   where
     findHeads :: HieASTs TypeIndex -> [RealSrcSpan]
     findHeads =
@@ -61,13 +79,3 @@ analyseForHeadObservations HieFile{..} =
             && package == "base"
 
         pure srcSpan
-
-    mkPartialObservation :: Int -> RealSrcSpan -> Observation
-    mkPartialObservation num srcSpan = Observation
-        { observationId = mkObservationId num stan0001
-        , observationInspectionId = stan0001
-        , observationLoc = srcSpan
-        , observationFile = hie_hs_file
-        , observationModuleName = toText $ moduleNameString $ moduleName hie_module
-        , observationFileContent = hie_hs_src
-        }
