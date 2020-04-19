@@ -9,14 +9,7 @@ __Inspection__ — check or test provided by Stan.
 module Stan.Inspection
     ( Inspection (..)
     , Severity (..)
-
-      -- * Stan inspections
-    , inspections
-    , getInspectionById
-
-      -- ** Inspections by ID
-    , stan0001
-    , stan0001Inspection
+    , NameMeta (..)
 
       -- * Pretty print
     , prettyShowInspection
@@ -26,8 +19,8 @@ module Stan.Inspection
 
 import Colourista (bold, formatWith, red, yellow)
 
-import Stan.Category (Category, partial)
-import Stan.Core.Id (Id (..))
+import Stan.Category (Category)
+import Stan.Core.Id (Id)
 
 
 {- | Data type that represents a check/test, or how we call it
@@ -48,6 +41,13 @@ data Severity
     | NotReallySevere
     deriving stock (Show, Eq)
 
+-- | Meta information about function/type.
+data NameMeta = NameMeta
+    { nameMetaPackage    :: !Text
+    , nameMetaModuleName :: !Text
+    , nameMetaName       :: !Text
+    } deriving stock (Show, Eq)
+
 
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
@@ -62,35 +62,3 @@ severityColour = \case
 -- | Show 'Severity' in a human-friendly format.
 prettyShowSeverity :: Severity -> Text
 prettyShowSeverity s = formatWith [severityColour s, bold] $ show s
-
-{- | List of all inspections.
--}
-inspections :: [Inspection]
-inspections =
-    [ stan0001Inspection
-    ]
-
--- | 'Id' fo the partial 'head' 'Inspection' — @STAN-0001@.
-stan0001 :: Id Inspection
-stan0001 = Id "STAN-0001"
-
--- | Corresponding 'Inspection' for 'stan0001' — partial 'head' @STAN-0001@.
-stan0001Inspection :: Inspection
-stan0001Inspection =Inspection
-    { inspectionId = stan0001
-    , inspectionName = "Partial: base/head"
-    , inspectionDescription = "Usage of partial function 'head' for lists"
-    , inspectionSolution =
-        [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
-        , "Use explicit pattern-matching over lists"
-        ]
-    , inspectionCategory = one partial
-    , inspectionSeverity = Severe
-    }
-
--- | Get the 'Inspection' by the given known inspection 'Id'.
-getInspectionById :: Id Inspection -> Inspection
-getInspectionById insId = case find ((==) insId . inspectionId) inspections of
-    Just ins -> ins
-    -- TODO: how to handle unknown ids better?
-    Nothing  -> error "Unknown Inspection ID"

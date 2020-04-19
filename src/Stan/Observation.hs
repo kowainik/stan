@@ -23,7 +23,8 @@ import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Hie.Debug ()
-import Stan.Inspection (Inspection (..), getInspectionById, prettyShowSeverity, severityColour)
+import Stan.Inspection (Inspection (..), prettyShowSeverity, severityColour)
+import Stan.Inspection.All (getInspectionById)
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.List.NonEmpty as NE
