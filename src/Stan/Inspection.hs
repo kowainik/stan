@@ -8,18 +8,14 @@ __Inspection__ — check or test provided by Stan.
 
 module Stan.Inspection
     ( Inspection (..)
-    , Severity (..)
 
       -- * Pretty print
     , prettyShowInspection
-    , prettyShowSeverity
-    , severityColour
     ) where
-
-import Colourista (bold, formatWith, red, yellow)
 
 import Stan.Category (Category)
 import Stan.Core.Id (Id)
+import Stan.Severity (Severity)
 
 
 {- | Data type that represents a check/test, or how we call it
@@ -34,22 +30,6 @@ data Inspection = Inspection
     , inspectionSeverity    :: !Severity
     } deriving stock (Show, Eq)
 
--- | Severity level of the inspection.
-data Severity
-    = Severe
-    | NotReallySevere
-    deriving stock (Show, Eq)
-
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
 prettyShowInspection = show
-
--- | Get the colour of the severity level.
-severityColour :: Severity -> Text
-severityColour = \case
-    Severe -> red
-    NotReallySevere -> yellow
-
--- | Show 'Severity' in a human-friendly format.
-prettyShowSeverity :: Severity -> Text
-prettyShowSeverity s = formatWith [severityColour s, bold] $ show s
