@@ -24,7 +24,7 @@ import Colourista (formatWith, magentaBg)
 -- | A type of the inspection.
 newtype Category = Category
     { unCategory :: Text
-    } deriving newtype (Show)
+    } deriving newtype (Show, Eq)
 
 -- | Show 'Category' in a human-friendly format.
 prettyShowCategory :: Category -> Text

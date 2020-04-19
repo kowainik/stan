@@ -9,6 +9,9 @@ __Observation__ — a vulnerability found in the target project by @Stan@.
 module Stan.Observation
     ( Observation (..)
 
+      -- * Smart constructors
+    , mkObservationId
+
       -- * Pretty print
     , prettyShowObservation
     ) where
@@ -99,3 +102,17 @@ prettyShowObservation Observation{..} = unlines $
         []   -> []
         sols -> formatWith [italic, green] "Possible solution:" :
             map (" ⍟ " <>) sols
+
+{- | Create a 'Observation' 'Id' from the numerical order and 'Inspection' 'Id'.
+
+The 'Observation' should look like this:
+
+@
+NUM-STAN-000X-XXXX
+@
+
+where @NUM@ is the ordinal number of the 'Observation'
+followed by the 'Id' of the 'Inspection'.
+-}
+mkObservationId :: Int -> Id Inspection -> Id Observation
+mkObservationId n insId = Id $ show n <> "-" <> unId insId

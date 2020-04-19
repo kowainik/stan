@@ -17,8 +17,8 @@ import Name (nameModule, nameOccName)
 import OccName (occNameString)
 import SrcLoc (RealSrcSpan)
 
-import Stan.Core.Id (Id (..))
-import Stan.Observation (Observation (..))
+import Stan.Inspection (stan0001)
+import Stan.Observation (Observation (..), mkObservationId)
 
 import qualified Data.Map.Strict as Map
 
@@ -64,9 +64,8 @@ analyseForHeadObservations HieFile{..} =
 
     mkPartialObservation :: Int -> RealSrcSpan -> Observation
     mkPartialObservation num srcSpan = Observation
-        -- TODO: See issue #26: https://github.com/kowainik/stan/issues/26
-        { observationId = Id $ show num <> "-STAN-0001-HEAD"
-        , observationInspectionId = Id "STAN-0001-HEAD"
+        { observationId = mkObservationId num stan0001
+        , observationInspectionId = stan0001
         , observationLoc = srcSpan
         , observationFile = hie_hs_file
         , observationModuleName = toText $ moduleNameString $ moduleName hie_module

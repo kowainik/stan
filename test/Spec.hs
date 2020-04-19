@@ -4,8 +4,9 @@ import HieTypes (HieFile (..))
 import Test.Hspec (hspec)
 
 import Stan.Hie (readHieFiles)
-import Test.Analysis (analysisSpec)
-import Test.Number (linesOfCodeSpec, modulesNumSpec)
+import Test.Stan.Analysis (analysisSpec)
+import Test.Stan.Inspection (inspectionsSpec)
+import Test.Stan.Number (linesOfCodeSpec, modulesNumSpec)
 
 
 main :: IO ()
@@ -16,6 +17,7 @@ main = do
             linesOfCodeSpec testHie
             modulesNumSpec $ length hieFiles
             analysisSpec [testHie]
+            inspectionsSpec
         Nothing -> do
             putStrLn "FAILED: Target.Example.hie not found"
             exitFailure
