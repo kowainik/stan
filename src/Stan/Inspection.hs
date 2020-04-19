@@ -9,7 +9,6 @@ __Inspection__ — check or test provided by Stan.
 module Stan.Inspection
     ( Inspection (..)
     , Severity (..)
-    , NameMeta (..)
 
       -- * Pretty print
     , prettyShowInspection
@@ -40,14 +39,6 @@ data Severity
     = Severe
     | NotReallySevere
     deriving stock (Show, Eq)
-
--- | Meta information about function/type.
-data NameMeta = NameMeta
-    { nameMetaPackage    :: !Text
-    , nameMetaModuleName :: !Text
-    , nameMetaName       :: !Text
-    } deriving stock (Show, Eq)
-
 
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text

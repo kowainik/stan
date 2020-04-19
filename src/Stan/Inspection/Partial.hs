@@ -32,7 +32,8 @@ module Stan.Inspection.Partial
 
 import Stan.Category (partial)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), NameMeta (..), Severity (..))
+import Stan.Inspection (Inspection (..), Severity (..))
+import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
 
 
 -- | All partial 'Inspection's.
@@ -70,12 +71,6 @@ mkPartialInspectionList insId nameMeta = (mkPartialInspection insId nameMeta)
         ]
     }
 
-mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta funName = NameMeta
-    { nameMetaName       = funName
-    , nameMetaPackage    = "base"
-    , nameMetaModuleName = "GHC.List"
-    }
 -- | 'Id' for the partial 'GHC.List.head' 'Inspection' — @STAN-0001@.
 stan0001 :: Id Inspection
 stan0001 = Id "STAN-0001"

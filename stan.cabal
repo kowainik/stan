@@ -87,6 +87,7 @@ library
                            Stan.Inspection.All
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
+                         Stan.NameMeta
                          Stan.Observation
 
   autogen-modules:     Paths_stan

@@ -25,9 +25,10 @@ import SrcLoc (RealSrcSpan)
 
 import Stan.Analysis.Analyser (Analyser (..))
 import Stan.Core.Id (Id)
-import Stan.Inspection (Inspection, NameMeta (..))
+import Stan.Inspection (Inspection)
 import Stan.Inspection.Partial (stan0001, stan0001Meta, stan0002, stan0002Meta, stan0003,
                                 stan0003Meta, stan0004, stan0004Meta)
+import Stan.NameMeta (NameMeta (..))
 import Stan.Observation (Observation (..), mkObservationId)
 
 import qualified Data.Map.Strict as Map
