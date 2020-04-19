@@ -75,6 +75,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Stan
                          Stan.Analysis
+                           Stan.Analysis.Analyser
                            Stan.Analysis.Partial
                            Stan.Analysis.Pretty
                          Stan.Category
@@ -86,6 +87,7 @@ library
                            Stan.Inspection.All
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
+                         Stan.NameMeta
                          Stan.Observation
 
   autogen-modules:     Paths_stan

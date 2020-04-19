@@ -2,19 +2,23 @@ module Test.Stan.Inspection
     ( inspectionsSpec
     ) where
 
-import Test.Hspec (Spec, describe, it, shouldBe)
+import Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it, shouldBe)
 
+import Stan.Core.Id (Id (..))
+import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
-
-import qualified Stan.Inspection.Infinite as Stan
-import qualified Stan.Inspection.Partial as Stan
+import Stan.Inspection.Infinite (infiniteInspections, infiniteInspectionsIds)
+import Stan.Inspection.Partial (partialInspections, partialInspectionsIds)
 
 
 inspectionsSpec :: Spec
 inspectionsSpec = describe "Inspections by ID" $ do
     describe "Partial" $
-        it "STAN-0001 should be partial head" $
-            getInspectionById Stan.stan0001 `shouldBe` Stan.stan0001Inspection
+        check partialInspections partialInspectionsIds
     describe "Infinite" $
-        it "STAN-0101 should be infinite reverse" $
-            getInspectionById Stan.stan0101 `shouldBe` Stan.stan0101Inspection
+        check infiniteInspections infiniteInspectionsIds
+  where
+    check :: [Inspection] -> [Id Inspection] -> SpecWith (Arg Expectation)
+    check inss insIds = forM_ (zip inss insIds) $ \(ins, insId) ->
+        it (toString $ unId insId <> ": " <> inspectionName ins) $
+            getInspectionById insId `shouldBe` ins

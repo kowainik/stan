@@ -19,7 +19,8 @@ module Stan.Inspection.Infinite
 
 import Stan.Category (infinite)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), NameMeta (..), Severity (..))
+import Stan.Inspection (Inspection (..), Severity (..))
+import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
 
 
 -- | All infinite 'Inspection's.
@@ -54,8 +55,4 @@ stan0101Inspection = mkInfiniteInspection stan0101 stan0101Meta
 
 -- | Corresponding 'NameMeta' for 'stan0001' — infinite 'reverse' @STAN-0101@.
 stan0101Meta :: NameMeta
-stan0101Meta = NameMeta
-    { nameMetaName       = "reverse"
-    , nameMetaModuleName = "GHC.List"
-    , nameMetaPackage    = "base"
-    }
+stan0101Meta = mkBaseListMeta "reverse"
