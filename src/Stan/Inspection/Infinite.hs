@@ -12,7 +12,7 @@ module Stan.Inspection.Infinite
       stan0101
     , stan0101Inspection
     , stan0101Meta
-      -- *** Infinite 'GHC.List.isSuffixOf'
+      -- *** Infinite 'Data.OldList.isSuffixOf'
     , stan0102
     , stan0102Inspection
     , stan0102Meta
@@ -69,15 +69,15 @@ stan0101Inspection = mkInfiniteInspection stan0101 stan0101Meta
 stan0101Meta :: NameMeta
 stan0101Meta = mkBaseListMeta "reverse"
 
--- | 'Id' for the infinite 'GHC.List.isSuffixOf' 'Inspection' — @STAN-0102@.
+-- | 'Id' for the infinite 'Data.OldList.isSuffixOf' 'Inspection' — @STAN-0102@.
 stan0102 :: Id Inspection
 stan0102 = Id "STAN-0102"
 
--- | Corresponding 'Inspection' for 'stan0102' — infinite 'GHC.List.isSuffixOf' @STAN-0102@.
+-- | Corresponding 'Inspection' for 'stan0102' — infinite 'Data.OldList.isSuffixOf' @STAN-0102@.
 stan0102Inspection :: Inspection
 stan0102Inspection = mkInfiniteInspection stan0102 stan0102Meta
 
--- | Corresponding 'NameMeta' for 'stan0102' — infinite 'GHC.List.isSuffixOf' @STAN-0102@.
+-- | Corresponding 'NameMeta' for 'stan0102' — infinite 'Data.OldList.isSuffixOf' @STAN-0102@.
 stan0102Meta :: NameMeta
 stan0102Meta = (mkBaseListMeta "isSuffixOf")
     { nameMetaModuleName = "Data.OldList"
