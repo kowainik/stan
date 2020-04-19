@@ -29,9 +29,7 @@ partialInspections =
 
 -- | All partial 'Inspection's 'Id's.
 partialInspectionsIds :: [Id Inspection]
-partialInspectionsIds =
-    [ stan0001
-    ]
+partialInspectionsIds = map inspectionId partialInspections
 
 -- | Smart constructor to create partial 'Inspection'.
 mkPartialInspection :: Id Inspection -> Text -> Text -> Inspection
