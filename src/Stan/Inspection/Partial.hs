@@ -10,6 +10,7 @@ module Stan.Inspection.Partial
     ( -- * Partial 'Inspection's
       stan0001
     , stan0001Inspection
+    , stan0001Meta
 
       -- * List of all partial 'Inspection's
     , partialInspections
@@ -18,7 +19,7 @@ module Stan.Inspection.Partial
 
 import Stan.Category (partial)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), Severity (..))
+import Stan.Inspection (Inspection (..), NameMeta (..), Severity (..))
 
 
 -- | All partial 'Inspection's.
@@ -32,11 +33,11 @@ partialInspectionsIds :: [Id Inspection]
 partialInspectionsIds = map inspectionId partialInspections
 
 -- | Smart constructor to create partial 'Inspection'.
-mkPartialInspection :: Id Inspection -> Text -> Text -> Inspection
-mkPartialInspection insId package funName = Inspection
+mkPartialInspection :: Id Inspection -> NameMeta -> Inspection
+mkPartialInspection insId NameMeta{..} = Inspection
     { inspectionId = insId
-    , inspectionName = "Partial: " <> package <> "/" <> funName
-    , inspectionDescription = "Usage of partial function '" <> funName <> "' for lists"
+    , inspectionName = "Partial: " <> nameMetaPackage <> "/" <> nameMetaName
+    , inspectionDescription = "Usage of partial function '" <> nameMetaName <> "' for lists"
     , inspectionSolution = []
     , inspectionCategory = one partial
     , inspectionSeverity = Severe
@@ -46,11 +47,19 @@ mkPartialInspection insId package funName = Inspection
 stan0001 :: Id Inspection
 stan0001 = Id "STAN-0001"
 
--- | Corresponding 'Inspection' for 'stan0001' — partial 'head' @STAN-0001@.
+-- | Corresponding 'Inspection' for 'stan0001' — partial 'GHC.List.head' @STAN-0001@.
 stan0001Inspection :: Inspection
-stan0001Inspection = (mkPartialInspection stan0001 "base" "head")
+stan0001Inspection = (mkPartialInspection stan0001 stan0001Meta)
     { inspectionSolution =
         [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
         , "Use explicit pattern-matching over lists"
         ]
+    }
+
+-- | Corresponding 'NameMeta' for 'stan0001' — partial 'GHC.List.head' @STAN-0001@.
+stan0001Meta :: NameMeta
+stan0001Meta = NameMeta
+    { nameMetaName       = "head"
+    , nameMetaPackage    = "base"
+    , nameMetaModuleName = "GHC.List"
     }

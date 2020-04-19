@@ -18,8 +18,8 @@ import OccName (occNameString)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
-import Stan.Inspection (Inspection)
-import Stan.Inspection.Partial (stan0001)
+import Stan.Inspection (Inspection, NameMeta (..))
+import Stan.Inspection.Partial (stan0001, stan0001Meta)
 import Stan.Observation (Observation (..), mkObservationId)
 
 import qualified Data.Map.Strict as Map
@@ -72,10 +72,11 @@ analyseForHeadObservations hie@HieFile{..} =
         let occName = occNameString $ nameOccName name
         let modul = moduleNameString $ moduleName $ nameModule name
         let package = show @String $ moduleUnitId $ nameModule name
+        let NameMeta{..} = stan0001Meta
 
         guard
-             $ occName == "head"
-            && modul   == "GHC.List"
-            && package == "base"
+             $ occName == toString nameMetaName
+            && modul   == toString nameMetaModuleName
+            && package == toString nameMetaPackage
 
         pure srcSpan
