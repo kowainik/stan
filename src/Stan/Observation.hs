@@ -77,6 +77,7 @@ prettyShowObservation Observation{..} = unlines $
         , element "Description:   " <> inspectionDescription inspection
         , element "Inspection ID: " <> unId observationInspectionId
         , element "Category:      " <> categories
+        , element "File:          " <> toText observationFile
         ]
       where
         element :: Text -> Text

@@ -69,8 +69,8 @@ showByFile (file, o :| obs) = unlines
     , " ┏" <> Text.replicate 78 "━"
     ]
 
-    <> Text.intercalate (" ┃\n ┃" <> Text.replicate 20 " ~ " <> "\n ┃\n")
-        (map prettyShowObservation $ o : obs)
+    <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
+        (map prettyShowObservation $ sortWith observationLoc $ o : obs)
   where
     i, b :: Text -> Text
     i = formatWith [italic]
