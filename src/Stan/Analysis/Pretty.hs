@@ -15,6 +15,7 @@ import Relude.Extra.Group (groupBy)
 import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
+import Stan.Inspection.All (inspections)
 import Stan.Observation (Observation (..), prettyShowObservation)
 
 import qualified Data.Text as Text
@@ -43,6 +44,8 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
         , alignText "Analysed Lines of Code" <> alignNum analysisLinesOfCode
         , mid
         , alignText "Total extensions" <> alignNum analysisUsedExtensions
+        , mid
+        , alignText "Total checked inspections" <> alignNum (length inspections)
         , mid
         , alignText "Total found observations" <> alignNum (length analysisObservations)
         , bot
