@@ -43,7 +43,7 @@ mkPartialInspection insId NameMeta{..} = Inspection
     , inspectionSeverity = Severe
     }
 
--- | 'Id' fo the partial 'head' 'Inspection' — @STAN-0001@.
+-- | 'Id' for the partial 'head' 'Inspection' — @STAN-0001@.
 stan0001 :: Id Inspection
 stan0001 = Id "STAN-0001"
 

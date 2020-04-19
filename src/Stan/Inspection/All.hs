@@ -12,23 +12,27 @@ module Stan.Inspection.All
 
       -- * Stan inspections search
     , getInspectionById
-
     ) where
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..))
+import Stan.Inspection.Infinite (infiniteInspections, infiniteInspectionsIds)
 import Stan.Inspection.Partial (partialInspections, partialInspectionsIds)
 
 
 {- | List of all inspections.
 -}
 inspections :: [Inspection]
-inspections =
-    partialInspections
+inspections = concat
+    [ partialInspections
+    , infiniteInspections
+    ]
 
 inspectionsIds :: [Id Inspection]
-inspectionsIds =
-    partialInspectionsIds
+inspectionsIds = concat
+    [ partialInspectionsIds
+    , infiniteInspectionsIds
+    ]
 
 -- | Get the 'Inspection' by the given known inspection 'Id'.
 getInspectionById :: Id Inspection -> Inspection

@@ -5,10 +5,16 @@ module Test.Stan.Inspection
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import Stan.Inspection.All (getInspectionById)
-import Stan.Inspection.Partial (stan0001, stan0001Inspection)
+
+import qualified Stan.Inspection.Infinite as Stan
+import qualified Stan.Inspection.Partial as Stan
 
 
 inspectionsSpec :: Spec
-inspectionsSpec = describe "Inspections by ID" $
-    it "STAN-0001 should be partial head" $
-        getInspectionById stan0001 `shouldBe` stan0001Inspection
+inspectionsSpec = describe "Inspections by ID" $ do
+    describe "Partial" $
+        it "STAN-0001 should be partial head" $
+            getInspectionById Stan.stan0001 `shouldBe` Stan.stan0001Inspection
+    describe "Infinite" $
+        it "STAN-0101 should be infinite reverse" $
+            getInspectionById Stan.stan0101 `shouldBe` Stan.stan0101Inspection

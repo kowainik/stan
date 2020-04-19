@@ -84,6 +84,7 @@ library
                            Stan.Hie.Debug
                          Stan.Inspection
                            Stan.Inspection.All
+                           Stan.Inspection.Infinite
                            Stan.Inspection.Partial
                          Stan.Observation
 
