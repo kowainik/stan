@@ -10,12 +10,11 @@ module Stan
     ( runStan
     ) where
 
--- import Text.Pretty.Simple (pPrint)
-
 import Stan.Analysis (runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cli (CliArgs (..), runStanCli)
 import Stan.Hie (readHieFiles)
+-- import Stan.Hie.Debug (debugHieFile)
 
 
 runStan :: IO ()
@@ -24,4 +23,4 @@ runStan = runStanCli >>= \CliArgs{..} -> do
     let analysis = runAnalysis hieFiles
     putTextLn $ prettyShowAnalysis analysis
 
-    -- debugHieFile "app/Main.hs" hieFiles
+--    debugHieFile "target/Target/Infinite.hs" hieFiles

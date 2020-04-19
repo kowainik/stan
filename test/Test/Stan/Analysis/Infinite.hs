@@ -19,9 +19,7 @@ analysisInfiniteSpec analysis = describe "Partial functions" $ do
 
     it "STAN-0101: finds usage of 'base/reverse'" $
         checkObservation analysis Infinite.stan0101 9 15 22
-    -- TODO: this is incorrect, it finds in import
     it "STAN-0102: finds usage of 'base/isSuffixOf'" $
-        checkObservation analysis Infinite.stan0102 5 34 44
-    -- TODO: this is incorrect, it finds in import
+        checkObservation analysis Infinite.stan0102 12 18 28
     it "STAN-0103: finds usage of 'base/genericLength'" $
-        checkObservation analysis Infinite.stan0103 5 19 32
+        checkObservation analysis Infinite.stan0103 15 21 34
