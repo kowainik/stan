@@ -32,8 +32,9 @@ module Stan.Inspection.Partial
 
 import Stan.Category (partial)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), Severity (..))
+import Stan.Inspection (Inspection (..))
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
+import Stan.Severity (Severity (..))
 
 
 -- | All partial 'Inspection's.
@@ -57,7 +58,7 @@ mkPartialInspection insId NameMeta{..} = Inspection
     , inspectionDescription = "Usage of partial function '" <> nameMetaName <> "' for lists"
     , inspectionSolution = []
     , inspectionCategory = one partial
-    , inspectionSeverity = Severe
+    , inspectionSeverity = Warning
     }
 
 {- | Smart constructor to create partial 'Inspection' for functions

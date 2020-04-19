@@ -19,8 +19,9 @@ module Stan.Inspection.Infinite
 
 import Stan.Category (infinite)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), Severity (..))
+import Stan.Inspection (Inspection (..))
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
+import Stan.Severity (Severity (..))
 
 
 -- | All infinite 'Inspection's.
@@ -42,7 +43,7 @@ mkInfiniteInspection insId NameMeta{..} = Inspection
         "Usage of the '" <> nameMetaName <> "' function that hangs on infinite lists"
     , inspectionSolution = []
     , inspectionCategory = one infinite
-    , inspectionSeverity = Severe
+    , inspectionSeverity = Warning
     }
 
 -- | 'Id' for the infinite 'reverse' 'Inspection' — @STAN-0101@.
