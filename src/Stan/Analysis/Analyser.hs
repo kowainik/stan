@@ -3,6 +3,7 @@ Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
+Analysing function with an 'Id' of the corresponding 'Inspection'.
 -}
 
 module Stan.Analysis.Analyser
