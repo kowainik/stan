@@ -26,29 +26,23 @@ module Stan.Inspection.Partial
     , stan0004Meta
 
       -- * List of all partial 'Inspection's
-    , partialInspections
-    , partialInspectionsIds
+    , partialInspectionsMap
     ) where
 
 import Stan.Category (partial)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..))
+import Stan.Inspection (Inspection (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
 import Stan.Severity (Severity (..))
 
-
 -- | All partial 'Inspection's.
-partialInspections :: [Inspection]
-partialInspections =
+partialInspectionsMap :: InspectionsMap
+partialInspectionsMap = fromList $ map (\i -> (inspectionId i, i))
     [ stan0001Inspection
     , stan0002Inspection
     , stan0003Inspection
     , stan0004Inspection
     ]
-
--- | All partial 'Inspection's 'Id's.
-partialInspectionsIds :: [Id Inspection]
-partialInspectionsIds = map inspectionId partialInspections
 
 -- | Smart constructor to create partial 'Inspection'.
 mkPartialInspection :: Id Inspection -> NameMeta -> Inspection

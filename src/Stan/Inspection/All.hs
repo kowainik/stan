@@ -7,36 +7,45 @@ Contains lists of all 'Inspection's and 'Inspection' 'Id's provided by @Stan@.
 -}
 
 module Stan.Inspection.All
-    ( inspections
+    ( inspectionsMap
+    , inspections
     , inspectionsIds
 
       -- * Stan inspections search
+    , lookupInspectionById
     , getInspectionById
     ) where
 
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..))
-import Stan.Inspection.Infinite (infiniteInspections, infiniteInspectionsIds)
-import Stan.Inspection.Partial (partialInspections, partialInspectionsIds)
+import Stan.Inspection (Inspection (..), InspectionsMap)
+import Stan.Inspection.Infinite (infiniteInspectionsMap)
+import Stan.Inspection.Partial (partialInspectionsMap)
 
+import qualified Data.HashMap.Strict as HM
+
+
+-- | All 'Inspection's map from 'Id's.
+inspectionsMap :: InspectionsMap
+inspectionsMap =
+    partialInspectionsMap
+    <> infiniteInspectionsMap
 
 {- | List of all inspections.
 -}
 inspections :: [Inspection]
-inspections = concat
-    [ partialInspections
-    , infiniteInspections
-    ]
+inspections = HM.elems inspectionsMap
 
+-- | List of all inspection 'Id's.
 inspectionsIds :: [Id Inspection]
-inspectionsIds = concat
-    [ partialInspectionsIds
-    , infiniteInspectionsIds
-    ]
+inspectionsIds = HM.keys inspectionsMap
+
+-- | Look up 'Inspection' by the given inspection 'Id'.
+lookupInspectionById :: Id Inspection -> Maybe Inspection
+lookupInspectionById insId = HM.lookup insId inspectionsMap
+{-# INLINE lookupInspectionById #-}
 
 -- | Get the 'Inspection' by the given known inspection 'Id'.
 getInspectionById :: Id Inspection -> Inspection
-getInspectionById insId = case find ((==) insId . inspectionId) inspections of
+getInspectionById insId = case lookupInspectionById insId of
     Just ins -> ins
-    -- TODO: how to handle unknown ids better?
     Nothing  -> error $ "Unknown Inspection ID: " <> unId insId
