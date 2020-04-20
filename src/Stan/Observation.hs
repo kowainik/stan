@@ -30,6 +30,8 @@ import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
 import Stan.Severity (prettyShowSeverity, severityColour)
 
+import qualified Crypto.Hash.SHA1 as SHA1
+import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as Text
@@ -127,22 +129,33 @@ prettyShowObservation Observation{..} = unlines $
         sols -> formatWith [italic, green] "Possible solution:" :
             map (" ⍟ " <>) sols
 
-{- | Create a 'Observation' 'Id' in a such way that:
+{- | Create a stable 'Observation' 'Id' in a such way that:
 
-1. 'Id' is stable across multiple runs of @stan@ and doesn't depend on
-other inspections in this file.
+1. 'Id' doesn't depend on other inspections in this file.
 2. 'Id' uniquely identifies 'Observation' location.
+3. 'Id's are guaranteed to be the same if the module content didn't
+change between different @stan@ runs.
 
 The 'Observation' 'Id' should look like this:
 
 @
-STAN-XXXX-Some.Module.Name-line10-column45
+OBS-STAN-XXXX-<module-name-hash>-10:42
 @
 -}
 mkObservationId :: Id Inspection -> Text -> RealSrcSpan -> Id Observation
 mkObservationId insId modName srcSpan = Id $ Text.intercalate "-"
-    [ unId insId
-    , modName
-    , "line" <> show (srcSpanStartLine srcSpan)
-    , "column" <> show (srcSpanStartCol srcSpan)
+    [ "OBS"
+    , unId insId
+    , hashModuleName modName
+    , show (srcSpanStartLine srcSpan) <> ":" <> show (srcSpanStartCol srcSpan)
     ]
+
+{- | Hash module name to a short string of length @6@. Hashing
+algorithm is the following:
+
+1. First, run SHA-1.
+2. Then, encode with @base64@.
+3. Last, take first @6@ characters.
+-}
+hashModuleName :: Text -> Text
+hashModuleName = Text.take 6 . Base64.encodeBase64 . SHA1.hash . encodeUtf8

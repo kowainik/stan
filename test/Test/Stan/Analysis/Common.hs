@@ -1,5 +1,5 @@
 module Test.Stan.Analysis.Common
-    ( observationSpec
+    ( observationAssert
     ) where
 
 import FastString (FastString, mkFastString)
@@ -13,7 +13,7 @@ import Stan.Inspection (Inspection)
 import Stan.Observation (Observation (..), mkObservationId)
 
 
-observationSpec
+observationAssert
     :: FilePath  -- ^ Path to module
     -> Text  -- ^ Module name
     -> Analysis
@@ -22,7 +22,7 @@ observationSpec
     -> Int  -- ^ Span start
     -> Int  -- ^ Span end
     -> Expectation
-observationSpec modulePath moduleName analysis insId line start end =
+observationAssert modulePath moduleName analysis insId line start end =
     foundPartialObservation `shouldBe` Just expectedHeadObservation
   where
     foundPartialObservation :: Maybe Observation

@@ -95,9 +95,11 @@ library
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
 
-  build-depends:       bytestring ^>= 0.10
+  build-depends:       base64 ^>= 0.4.1
+                     , bytestring ^>= 0.10
                      , colourista ^>= 0.0.0.0
                      , containers ^>= 0.6
+                     , cryptohash-sha1 ^>= 0.11
                      , dir-traverse ^>= 0.2.2.2
                      , directory ^>= 1.3
                      , filepath ^>= 1.4
@@ -132,6 +134,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Partial
                        Test.Stan.Inspection
                        Test.Stan.Number
+                       Test.Stan.Observation
 
   build-depends:       stan
                      , filepath ^>= 1.4
