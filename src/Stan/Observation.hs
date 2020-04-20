@@ -50,17 +50,19 @@ data Observation = Observation
 mkObservation
     :: Id Inspection  -- ^ Corresponding 'Inspection's 'Id'.
     -> HieFile
-    -> Int  -- ^ Ordinal number of the 'Observation'.
     -> RealSrcSpan  -- ^ Position.
     -> Observation
-mkObservation insId HieFile{..} num srcSpan = Observation
-    { observationId = mkObservationId num insId
+mkObservation insId HieFile{..} srcSpan = Observation
+    { observationId = mkObservationId insId modName srcSpan
     , observationInspectionId = insId
     , observationLoc = srcSpan
     , observationFile = hie_hs_file
-    , observationModuleName = toText $ moduleNameString $ moduleName hie_module
+    , observationModuleName = modName
     , observationFileContent = hie_hs_src
     }
+  where
+    modName :: Text
+    modName = toText $ moduleNameString $ moduleName hie_module
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: Observation -> Text
@@ -125,16 +127,22 @@ prettyShowObservation Observation{..} = unlines $
         sols -> formatWith [italic, green] "Possible solution:" :
             map (" ⍟ " <>) sols
 
-{- | Create a 'Observation' 'Id' from the numerical order and 'Inspection' 'Id'.
+{- | Create a 'Observation' 'Id' in a such way that:
 
-The 'Observation' should look like this:
+1. 'Id' is stable across multiple runs of @stan@ and doesn't depend on
+other inspections in this file.
+2. 'Id' uniquely identifies 'Observation' location.
+
+The 'Observation' 'Id' should look like this:
 
 @
-NUM-STAN-000X-XXXX
+STAN-XXXX-Some.Module.Name-line10-column45
 @
-
-where @NUM@ is the ordinal number of the 'Observation'
-followed by the 'Id' of the 'Inspection'.
 -}
-mkObservationId :: Int -> Id Inspection -> Id Observation
-mkObservationId n insId = Id $ show n <> "-" <> unId insId
+mkObservationId :: Id Inspection -> Text -> RealSrcSpan -> Id Observation
+mkObservationId insId modName srcSpan = Id $ Text.intercalate "-"
+    [ unId insId
+    , modName
+    , "line" <> show (srcSpanStartLine srcSpan)
+    , "column" <> show (srcSpanStartCol srcSpan)
+    ]

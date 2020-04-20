@@ -3,7 +3,7 @@ module Test.Stan.Analysis.Common
     ) where
 
 import FastString (FastString, mkFastString)
-import SrcLoc (mkRealSrcLoc, mkRealSrcSpan)
+import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan)
 import System.FilePath ((</>))
 import Test.Hspec (Expectation, shouldBe)
 
@@ -16,14 +16,13 @@ import Stan.Observation (Observation (..), mkObservationId)
 observationSpec
     :: FilePath  -- ^ Path to module
     -> Text  -- ^ Module name
-    -> Int  -- ^ 'Observation' number
     -> Analysis
     -> Id Inspection
     -> Int  -- ^ Line number
     -> Int  -- ^ Span start
     -> Int  -- ^ Span end
     -> Expectation
-observationSpec modulePath moduleName num analysis insId line start end =
+observationSpec modulePath moduleName analysis insId line start end =
     foundPartialObservation `shouldBe` Just expectedHeadObservation
   where
     foundPartialObservation :: Maybe Observation
@@ -35,16 +34,19 @@ observationSpec modulePath moduleName num analysis insId line start end =
     expectedHeadObservation = Observation
         { observationId = obsId
         , observationInspectionId = insId
-        , observationLoc = mkRealSrcSpan
-            (mkRealSrcLoc pathFS line start)
-            (mkRealSrcLoc pathFS line end)
+        , observationLoc = span
         , observationFile = path
         , observationModuleName = moduleName
         , observationFileContent = maybe "" observationFileContent foundPartialObservation
         }
 
     obsId :: Id Observation
-    obsId = mkObservationId num insId
+    obsId = mkObservationId insId moduleName span
+
+    span :: RealSrcSpan
+    span = mkRealSrcSpan
+        (mkRealSrcLoc pathFS line start)
+        (mkRealSrcLoc pathFS line end)
 
     path :: FilePath
     path = "target" </> modulePath

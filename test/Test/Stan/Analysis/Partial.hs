@@ -15,7 +15,6 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
     let checkObservation = observationSpec
             "Target/Partial.hs"
             "Target.Partial"
-            1
 
     it "STAN-0001: finds usage of 'base/head'" $
         checkObservation analysis Partial.stan0001 7 12 16

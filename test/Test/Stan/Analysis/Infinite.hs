@@ -15,7 +15,6 @@ analysisInfiniteSpec analysis = describe "Partial functions" $ do
     let checkObservation = observationSpec
             "Target/Infinite.hs"
             "Target.Infinite"
-            1
 
     it "STAN-0101: finds usage of 'base/reverse'" $
         checkObservation analysis Infinite.stan0101 9 15 22
