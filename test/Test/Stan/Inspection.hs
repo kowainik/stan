@@ -5,20 +5,22 @@ module Test.Stan.Inspection
 import Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it, shouldBe)
 
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..))
+import Stan.Inspection (Inspection (..), InspectionsMap)
 import Stan.Inspection.All (getInspectionById)
-import Stan.Inspection.Infinite (infiniteInspections, infiniteInspectionsIds)
-import Stan.Inspection.Partial (partialInspections, partialInspectionsIds)
+import Stan.Inspection.Infinite (infiniteInspectionsMap)
+import Stan.Inspection.Partial (partialInspectionsMap)
+
+import qualified Data.HashMap.Strict as HM
 
 
 inspectionsSpec :: Spec
 inspectionsSpec = describe "Inspections by ID" $ do
     describe "Partial" $
-        check partialInspections partialInspectionsIds
+        check partialInspectionsMap
     describe "Infinite" $
-        check infiniteInspections infiniteInspectionsIds
+        check infiniteInspectionsMap
   where
-    check :: [Inspection] -> [Id Inspection] -> SpecWith (Arg Expectation)
-    check inss insIds = forM_ (zip inss insIds) $ \(ins, insId) ->
+    check :: InspectionsMap -> SpecWith (Arg Expectation)
+    check insMap = forM_ (HM.toList insMap) $ \(insId, ins) ->
         it (toString $ unId insId <> ": " <> inspectionName ins) $
             getInspectionById insId `shouldBe` ins

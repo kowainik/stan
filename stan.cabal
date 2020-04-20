@@ -66,6 +66,7 @@ common common-relude
                               , Relude.Extra.Group
                               , Relude.Extra.Lens
                               , Relude.Extra.Map
+                              , Relude.Extra.Tuple
                               , Relude.Unsafe
                               )
 
@@ -109,6 +110,7 @@ library
                      , optparse-applicative ^>= 0.15
                      , pretty-simple ^>= 3.2
                      , text ^>= 1.2
+                     , unordered-containers ^>= 0.2
 
 executable stan
   import:              common-options
@@ -140,6 +142,7 @@ test-suite stan-test
                      , filepath ^>= 1.4
                      , ghc
                      , hspec ^>= 2.7
+                     , unordered-containers
 
   ghc-options:         -threaded
                        -rtsopts

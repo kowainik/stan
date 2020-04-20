@@ -22,28 +22,25 @@ module Stan.Inspection.Infinite
     , stan0103Meta
 
       -- * All inspections
-    , infiniteInspections
-    , infiniteInspectionsIds
+    , infiniteInspectionsMap
     ) where
+
+import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Category (infinite)
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..))
+import Stan.Inspection (Inspection (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
 import Stan.Severity (Severity (..))
 
 
--- | All infinite 'Inspection's.
-infiniteInspections :: [Inspection]
-infiniteInspections =
+-- | All infinite 'Inspection's map from 'Id's.
+infiniteInspectionsMap :: InspectionsMap
+infiniteInspectionsMap = fromList $ map (mapToFst inspectionId)
     [ stan0101Inspection
     , stan0102Inspection
     , stan0103Inspection
     ]
-
--- | All infinite 'Inspection's 'Id's.
-infiniteInspectionsIds :: [Id Inspection]
-infiniteInspectionsIds = map inspectionId infiniteInspections
 
 -- | Smart constructor to create infinite 'Inspection'.
 mkInfiniteInspection :: Id Inspection -> NameMeta -> Inspection
