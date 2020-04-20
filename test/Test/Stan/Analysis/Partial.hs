@@ -5,17 +5,16 @@ module Test.Stan.Analysis.Partial
 import Test.Hspec (Spec, describe, it)
 
 import Stan.Analysis (Analysis)
-import Test.Stan.Analysis.Common (observationSpec)
+import Test.Stan.Analysis.Common (observationAssert)
 
 import qualified Stan.Inspection.Partial as Partial
 
 
 analysisPartialSpec :: Analysis -> Spec
 analysisPartialSpec analysis = describe "Partial functions" $ do
-    let checkObservation = observationSpec
+    let checkObservation = observationAssert
             "Target/Partial.hs"
             "Target.Partial"
-            1
 
     it "STAN-0001: finds usage of 'base/head'" $
         checkObservation analysis Partial.stan0001 7 12 16

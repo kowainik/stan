@@ -5,17 +5,16 @@ module Test.Stan.Analysis.Infinite
 import Test.Hspec (Spec, describe, it)
 
 import Stan.Analysis (Analysis)
-import Test.Stan.Analysis.Common (observationSpec)
+import Test.Stan.Analysis.Common (observationAssert)
 
 import qualified Stan.Inspection.Infinite as Infinite
 
 
 analysisInfiniteSpec :: Analysis -> Spec
 analysisInfiniteSpec analysis = describe "Partial functions" $ do
-    let checkObservation = observationSpec
+    let checkObservation = observationAssert
             "Target/Infinite.hs"
             "Target.Infinite"
-            1
 
     it "STAN-0101: finds usage of 'base/reverse'" $
         checkObservation analysis Infinite.stan0101 9 15 22

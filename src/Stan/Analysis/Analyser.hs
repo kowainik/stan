@@ -49,7 +49,7 @@ analyseNameMeta
   -> HieFile
   -> [Observation]
 analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
-    zipWith (mkObservation insId hie) [1..] $ findHeads hie_asts
+    map (mkObservation insId hie) $ findHeads hie_asts
   where
     findHeads :: HieASTs TypeIndex -> [RealSrcSpan]
     findHeads =
