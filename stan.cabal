@@ -66,6 +66,7 @@ common common-relude
                               , Relude.Extra.Group
                               , Relude.Extra.Lens
                               , Relude.Extra.Map
+                              , Relude.Extra.Tuple
                               , Relude.Unsafe
                               )
 

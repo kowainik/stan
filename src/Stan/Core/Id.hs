@@ -2,7 +2,6 @@
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -28,9 +27,8 @@ structures by using a phantom parameter.
 -}
 newtype Id a = Id
     { unId :: Text
-    } deriving stock (Show, Generic)
-      deriving newtype (Eq)
-      deriving anyclass (Hashable)
+    } deriving stock (Show)
+      deriving newtype (Eq, Hashable)
 
 {- | A type alias for the situations when we don't care about the parameter of
 'Id' but don't want to deal with type variables.
