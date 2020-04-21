@@ -18,7 +18,9 @@ import Stan.Analysis.Analyser (Analyser (..))
 import Stan.Analysis.Infinite (infiniteAnalysers)
 import Stan.Analysis.Partial (partialAnalysers)
 import Stan.Hie (countLinesOfCode)
-import Stan.Observation (Observation)
+import Stan.Observation (Observations)
+
+import qualified Slist as S
 
 
 {- | This data type stores all information collected during static analysis.
@@ -27,7 +29,7 @@ data Analysis = Analysis
     { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !Int
-    , analysisObservations   :: ![Observation]
+    , analysisObservations   :: !Observations
     } deriving stock (Show)
 
 modulesNumL :: Lens' Analysis Int
@@ -40,7 +42,7 @@ linesOfCodeL = lens
     analysisLinesOfCode
     (\analysis new -> analysis { analysisLinesOfCode = new })
 
-observationsL :: Lens' Analysis [Observation]
+observationsL :: Lens' Analysis Observations
 observationsL = lens
     analysisObservations
     (\analysis new -> analysis { analysisObservations = new })
@@ -50,7 +52,7 @@ initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
     , analysisUsedExtensions = 0
-    , analysisObservations   = []
+    , analysisObservations   = mempty
     }
 
 incModulesNum :: State Analysis ()
@@ -63,8 +65,8 @@ incLinesOfCode :: Int -> State Analysis ()
 incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 
 -- | Add list of 'Observation's to the beginning of the existing list
-addObservations :: [Observation] -> State Analysis ()
-addObservations observations = modify' $ over observationsL (observations ++)
+addObservations :: Observations -> State Analysis ()
+addObservations observations = modify' $ over observationsL (observations <>)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
@@ -77,7 +79,7 @@ analyse (hieFile:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
     incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
-    addObservations $ concatMap (\Analyser{..} -> analyserFunction hieFile) allAnalysers
+    addObservations $ S.concatMap (\Analyser{..} -> analyserFunction hieFile) allAnalysers
     analyse hieFiles
 
 allAnalysers :: [Analyser]
