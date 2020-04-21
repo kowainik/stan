@@ -13,11 +13,13 @@ module Stan.NameMeta
     , mkBaseListMeta
     ) where
 
+import Stan.Core.ModuleName (ModuleName)
+
 
 -- | Meta information about function/type.
 data NameMeta = NameMeta
     { nameMetaPackage    :: !Text
-    , nameMetaModuleName :: !Text
+    , nameMetaModuleName :: !ModuleName
     , nameMetaName       :: !Text
     } deriving stock (Show, Eq)
 

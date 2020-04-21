@@ -15,6 +15,7 @@ import Relude.Extra.Group (groupBy)
 import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
+import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection.All (inspectionsMap)
 import Stan.Observation (Observation (..), prettyShowObservation)
 
@@ -68,7 +69,7 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
 showByFile :: (FilePath, NonEmpty Observation) -> Text
 showByFile (file, o :| obs) = unlines
     [ i "  File:         " <> b (toText file)
-    , i "  Module:       " <> b (observationModuleName o)
+    , i "  Module:       " <> b (unModuleName $ observationModuleName o)
     , i "  Observations: " <> b (show $ 1 + length obs)
     , " ┏" <> Text.replicate 78 "━"
     ]
