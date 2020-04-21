@@ -83,6 +83,7 @@ library
                          Stan.Category
                          Stan.Cli
                          Stan.Core.Id
+                         Stan.Core.ModuleName
                          Stan.Hie
                            Stan.Hie.Debug
                          Stan.Inspection

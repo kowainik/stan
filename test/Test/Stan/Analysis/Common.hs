@@ -9,13 +9,14 @@ import Test.Hspec (Expectation, shouldBe)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.Id (Id (..))
+import Stan.Core.ModuleName (ModuleName)
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation (..), mkObservationId)
 
 
 observationAssert
     :: FilePath  -- ^ Path to module
-    -> Text  -- ^ Module name
+    -> ModuleName  -- ^ Module name
     -> Analysis
     -> Id Inspection
     -> Int  -- ^ Line number

@@ -19,12 +19,12 @@ module Stan.Observation
 
 import Colourista (bold, formatWith, green, italic, reset)
 import HieTypes (HieFile (..))
-import Module (moduleName, moduleNameString)
 import Relude.Unsafe ((!!))
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
+import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
 import Stan.Hie.Debug ()
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
@@ -44,7 +44,7 @@ data Observation = Observation
     , observationInspectionId :: !(Id Inspection)
     , observationLoc          :: !RealSrcSpan
     , observationFile         :: !FilePath
-    , observationModuleName   :: !Text
+    , observationModuleName   :: !ModuleName
     , observationFileContent  :: !ByteString
     } deriving stock (Show, Eq)
 
@@ -55,16 +55,16 @@ mkObservation
     -> RealSrcSpan  -- ^ Position.
     -> Observation
 mkObservation insId HieFile{..} srcSpan = Observation
-    { observationId = mkObservationId insId modName srcSpan
+    { observationId = mkObservationId insId moduleName srcSpan
     , observationInspectionId = insId
     , observationLoc = srcSpan
     , observationFile = hie_hs_file
-    , observationModuleName = modName
+    , observationModuleName = moduleName
     , observationFileContent = hie_hs_src
     }
   where
-    modName :: Text
-    modName = toText $ moduleNameString $ moduleName hie_module
+    moduleName :: ModuleName
+    moduleName = fromGhcModule hie_module
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: Observation -> Text
@@ -142,11 +142,11 @@ The 'Observation' 'Id' should look like this:
 OBS-STAN-XXXX-<module-name-hash>-10:42
 @
 -}
-mkObservationId :: Id Inspection -> Text -> RealSrcSpan -> Id Observation
-mkObservationId insId modName srcSpan = Id $ Text.intercalate "-"
+mkObservationId :: Id Inspection -> ModuleName -> RealSrcSpan -> Id Observation
+mkObservationId insId moduleName srcSpan = Id $ Text.intercalate "-"
     [ "OBS"
     , unId insId
-    , hashModuleName modName
+    , hashModuleName moduleName
     , show (srcSpanStartLine srcSpan) <> ":" <> show (srcSpanStartCol srcSpan)
     ]
 
@@ -157,5 +157,10 @@ algorithm is the following:
 2. Then, encode with @base64@.
 3. Last, take first @6@ characters.
 -}
-hashModuleName :: Text -> Text
-hashModuleName = Text.take 6 . Base64.encodeBase64 . SHA1.hash . encodeUtf8
+hashModuleName :: ModuleName -> Text
+hashModuleName =
+    Text.take 6
+    . Base64.encodeBase64
+    . SHA1.hash
+    . encodeUtf8
+    . unModuleName

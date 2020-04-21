@@ -13,12 +13,13 @@ module Stan.Analysis.Analyser
 
 import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IEType (..), Identifier,
                  IdentifierDetails (..), NodeInfo (..), TypeIndex)
-import Module (moduleName, moduleNameString, moduleUnitId)
+import Module (moduleUnitId)
 import Name (nameModule, nameOccName)
 import OccName (occNameString)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
+import Stan.Core.ModuleName (fromGhcModule)
 import Stan.Inspection (Inspection)
 import Stan.NameMeta (NameMeta (..))
 import Stan.Observation (Observation, mkObservation)
@@ -74,13 +75,13 @@ analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
         Right name <- Just identifier
         guard $ Set.notMember (IEThing Import) $ identInfo details
 
-        let occName = occNameString $ nameOccName name
-        let modul = moduleNameString $ moduleName $ nameModule name
-        let package = show @String $ moduleUnitId $ nameModule name
+        let occName = toText $ occNameString $ nameOccName name
+        let moduleName = fromGhcModule $ nameModule name
+        let package = show @Text $ moduleUnitId $ nameModule name
 
         guard
-             $ occName == toString nameMetaName
-            && modul   == toString nameMetaModuleName
-            && package == toString nameMetaPackage
+             $ occName    == nameMetaName
+            && moduleName == nameMetaModuleName
+            && package    == nameMetaPackage
 
         pure srcSpan
