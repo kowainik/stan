@@ -3,12 +3,12 @@ Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
-Analysing function with an 'Id' of the corresponding 'Inspection'.
+Analysing functions by 'InspectionAnalysis' for the corresponding
+'Inspection'.
 -}
 
 module Stan.Analysis.Analyser
-    ( Analyser (..)
-    , mkNameMetaAnalyser
+    ( analysisByInspection
     ) where
 
 import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IEType (..), Identifier,
@@ -21,7 +21,7 @@ import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
 import Stan.Core.ModuleName (fromGhcModule)
-import Stan.Inspection (Inspection)
+import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta (..))
 import Stan.Observation (Observations, mkObservation)
 
@@ -30,19 +30,13 @@ import qualified Data.Set as Set
 import qualified Slist as S
 
 
-{- | Contains analyser function to run on 'HieFile's.
+{- | Create analysing function for 'Inspection' by pattern-matching
+over 'InspectionAnalysis'.
 -}
-data Analyser = Analyser
-    { analyserInspectionId :: !(Id Inspection)
-    , analyserFunction     :: !(HieFile -> Observations)
-    }
-
--- | Smart constructor for 'Analyser' creation of partial functions.
-mkNameMetaAnalyser :: Id Inspection -> NameMeta -> Analyser
-mkNameMetaAnalyser insId nameMeta = Analyser
-    { analyserInspectionId = insId
-    , analyserFunction = analyseNameMeta insId nameMeta
-    }
+analysisByInspection :: Inspection -> HieFile -> Observations
+analysisByInspection Inspection{..} = case inspectionAnalysis of
+    FindName nameMeta -> analyseNameMeta inspectionId nameMeta
+    Infix             -> const mempty  -- TODO: not yet implemented
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}

@@ -5,7 +5,6 @@ import Test.Hspec (hspec)
 
 import Stan.Hie (readHieFiles)
 import Test.Stan.Analysis (analysisSpec)
-import Test.Stan.Inspection (inspectionsSpec)
 import Test.Stan.Number (linesOfCodeSpec, modulesNumSpec)
 import Test.Stan.Observation (observationSpec)
 
@@ -23,7 +22,6 @@ main = do
             hspec $ do
                 linesOfCodeSpec exampleHie
                 modulesNumSpec $ length hieFiles
-                inspectionsSpec
                 observationSpec
                 analysisSpec testHies
 

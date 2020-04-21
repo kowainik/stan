@@ -6,6 +6,7 @@ import SrcLoc (mkRealSrcLoc, mkRealSrcSpan)
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import Stan.Core.Id (Id (..))
+import Stan.Inspection (inspectionId)
 import Stan.Inspection.Partial (stan0001)
 import Stan.Observation (Observation, mkObservationId)
 
@@ -17,7 +18,7 @@ observationSpec = describe "Observation" $
   where
     testObservationId :: Id Observation
     testObservationId = mkObservationId
-        stan0001
+        (inspectionId stan0001)
         "Test.Module.Name"
         $ mkRealSrcSpan
             (mkRealSrcLoc "src/Test/Module/Name.hs" 10 42)
