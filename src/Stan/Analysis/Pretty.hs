@@ -17,7 +17,7 @@ import Relude.Extra.Map (toPairs)
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection.All (inspectionsMap)
-import Stan.Observation (Observation (..), prettyShowObservation)
+import Stan.Observation (Observation (..), Observations, prettyShowObservation)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as Text
@@ -82,6 +82,6 @@ showByFile (file, o :| obs) = unlines
     b = formatWith [bold]
 
 groupObservationsByFile
-    :: [Observation]
+    :: Observations
     -> HashMap FilePath (NonEmpty Observation)
 groupObservationsByFile = groupBy observationFile

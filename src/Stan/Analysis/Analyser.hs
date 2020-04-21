@@ -16,23 +16,25 @@ import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IETy
 import Module (moduleUnitId)
 import Name (nameModule, nameOccName)
 import OccName (occNameString)
+import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
 import Stan.Core.ModuleName (fromGhcModule)
 import Stan.Inspection (Inspection)
 import Stan.NameMeta (NameMeta (..))
-import Stan.Observation (Observation, mkObservation)
+import Stan.Observation (Observations, mkObservation)
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
+import qualified Slist as S
 
 
 {- | Contains analyser function to run on 'HieFile's.
 -}
 data Analyser = Analyser
     { analyserInspectionId :: !(Id Inspection)
-    , analyserFunction     :: !(HieFile -> [Observation])
+    , analyserFunction     :: !(HieFile -> Observations)
     }
 
 -- | Smart constructor for 'Analyser' creation of partial functions.
@@ -48,23 +50,23 @@ analyseNameMeta
   :: Id Inspection
   -> NameMeta
   -> HieFile
-  -> [Observation]
+  -> Observations
 analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
-    map (mkObservation insId hie) $ findHeads hie_asts
+    mkObservation insId hie <$> findHeads hie_asts
   where
-    findHeads :: HieASTs TypeIndex -> [RealSrcSpan]
+    findHeads :: HieASTs TypeIndex -> Slist RealSrcSpan
     findHeads =
-        concatMap findInAst
+        S.concatMap findInAst
         . Map.elems
         . getAsts
 
-    findInAst :: HieAST TypeIndex -> [RealSrcSpan]
+    findInAst :: HieAST TypeIndex -> Slist RealSrcSpan
     findInAst Node{..} =
-        findInNode nodeSpan nodeInfo ++ concatMap findInAst nodeChildren
+        findInNode nodeSpan nodeInfo <> S.concatMap findInAst nodeChildren
 
-    findInNode :: RealSrcSpan -> NodeInfo TypeIndex -> [RealSrcSpan]
-    findInNode srcSpan NodeInfo{..} =
-        mapMaybe (findHeadUsage srcSpan)
+    findInNode :: RealSrcSpan -> NodeInfo TypeIndex -> Slist RealSrcSpan
+    findInNode srcSpan NodeInfo{..} = slist
+        $ mapMaybe (findHeadUsage srcSpan)
         $ Map.assocs nodeIdentifiers
 
     findHeadUsage

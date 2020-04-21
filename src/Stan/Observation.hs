@@ -8,6 +8,7 @@ __Observation__ — a vulnerability found in the target project by @Stan@.
 
 module Stan.Observation
     ( Observation (..)
+    , Observations
 
       -- * Smart constructors
     , mkObservation
@@ -20,6 +21,7 @@ module Stan.Observation
 import Colourista (bold, formatWith, green, italic, reset)
 import HieTypes (HieFile (..))
 import Relude.Unsafe ((!!))
+import Slist (Slist)
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Category (prettyShowCategory)
@@ -47,6 +49,9 @@ data Observation = Observation
     , observationModuleName   :: !ModuleName
     , observationFileContent  :: !ByteString
     } deriving stock (Show, Eq)
+
+-- | Type alias for the sized list of 'Observation's.
+type Observations = Slist Observation
 
 -- | Smart constructor for 'Observation's from 'HieFile's.
 mkObservation
