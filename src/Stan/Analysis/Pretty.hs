@@ -11,7 +11,6 @@ module Stan.Analysis.Pretty
     ) where
 
 import Colourista (bold, formatWith, italic)
-import Relude.Extra.Group (groupBy)
 import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
@@ -21,6 +20,7 @@ import Stan.Observation (Observation (..), Observations, prettyShowObservation)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as Text
+import qualified Slist as S
 
 
 {- | Shows analysed output of Stan work.
@@ -66,22 +66,33 @@ prettyShowAnalysis Analysis{..} = groupedObservations <> summary
         mid = separator "┣" "╋" "┫"
         bot = separator "┗" "┻" "┛"
 
-showByFile :: (FilePath, NonEmpty Observation) -> Text
-showByFile (file, o :| obs) = unlines
+showByFile :: (FilePath, Observations) -> Text
+showByFile (file, obs) = unlines
     [ i "  File:         " <> b (toText file)
-    , i "  Module:       " <> b (unModuleName $ observationModuleName o)
-    , i "  Observations: " <> b (show $ 1 + length obs)
+    , i "  Module:       " <> b (maybe "" (unModuleName . observationModuleName) $ S.safeHead obs)
+    , i "  Observations: " <> b (show $ length obs)
     , " ┏" <> Text.replicate 78 "━"
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
-        (map prettyShowObservation $ sortWith observationLoc $ o : obs)
+        (toList $ prettyShowObservation <$> S.sortOn observationLoc obs)
   where
     i, b :: Text -> Text
     i = formatWith [italic]
     b = formatWith [bold]
 
+-- | Groups 'Observation's by the filepath.
 groupObservationsByFile
     :: Observations
-    -> HashMap FilePath (NonEmpty Observation)
-groupObservationsByFile = groupBy observationFile
+    -> HashMap FilePath Observations
+groupObservationsByFile = flipfoldl' hmGroup mempty
+  where
+    hmGroup
+        :: Observation
+        -> HashMap FilePath Observations
+        -> HashMap FilePath Observations
+    hmGroup obs =
+        let newObservations :: Maybe Observations -> Observations
+            newObservations Nothing     = S.one obs
+            newObservations (Just obss) = S.one obs <> obss
+        in HM.alter (Just . newObservations) (observationFile obs)
