@@ -14,3 +14,9 @@ stanInit = init
 
 stanLast :: [a] -> a
 stanLast = last
+
+stanAt :: [a] -> a
+stanAt xs = xs !! 42
+
+stanCycle :: [a] -> [a]
+stanCycle = cycle

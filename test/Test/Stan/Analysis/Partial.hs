@@ -24,3 +24,7 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         checkObservation analysis Partial.stan0003 13 12 16
     it "STAN-0004: finds usage of 'base/last'" $
         checkObservation analysis Partial.stan0004 16 12 16
+    it "STAN-0005: finds usage of 'base/!!'" $
+        checkObservation analysis Partial.stan0005 19 16 18
+    it "STAN-0006: finds usage of 'base/cycle'" $
+        checkObservation analysis Partial.stan0006 22 13 18
