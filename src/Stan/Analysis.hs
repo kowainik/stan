@@ -78,7 +78,5 @@ analyse (hieFile:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
     incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
-    addObservations $ S.concatMap
-        (\inspection -> analysisByInspection inspection hieFile)
-        inspections
+    addObservations $ S.concatMap (`analysisByInspection` hieFile) inspections
     analyse hieFiles
