@@ -10,36 +10,71 @@ CLI commands and options for @stan@.
 -}
 
 module Stan.Cli
-    ( CliArgs (..)
+    ( StanCommand (..)
+    , StanArgs (..)
+    , InspectionArgs (..)
     , runStanCli
     ) where
 
 import Colourista (blue, bold, formatWith)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
-import Options.Applicative (Parser, ParserInfo, execParser, fullDesc, help, helper, info,
-                            infoOption, long, metavar, progDesc, short, showDefault, strOption,
-                            value)
+import Options.Applicative (Parser, ParserInfo, command, execParser, fullDesc, help, helper,
+                            hsubparser, info, infoOption, long, metavar, progDesc, short,
+                            showDefault, strArgument, strOption, value)
+
+import Stan.Core.Id (Id (..))
+import Stan.Inspection (Inspection)
 
 import qualified Paths_stan as Meta (version)
 
 
-newtype CliArgs = CliArgs
-    { cliArgsHiedir :: FilePath  -- ^ Directory with HIE files
+-- | Commands used in Stan CLI.
+data StanCommand
+    = Stan StanArgs  -- ^ Just @stan@ with its options.
+    | StanInspection InspectionArgs  -- ^ @stan inspection@.
+
+-- | Options used for the main @stan@ command.
+newtype StanArgs = StanArgs
+    { stanArgsHiedir :: FilePath  -- ^ Directory with HIE files
+    }
+
+-- | Options used for the @stan inspection@ command.
+newtype InspectionArgs = InspectionArgs
+    { inspectionArgsId :: Maybe (Id Inspection)
     }
 
 -- | Run main parser of the @stan@ command line tool.
-runStanCli :: IO CliArgs
+-- TODO: use customExecParser
+runStanCli :: IO StanCommand
 runStanCli = execParser stanCliParser
 
-stanCliParser :: ParserInfo CliArgs
-stanCliParser = info (helper <*> versionP <*> stanP) $
+stanCliParser :: ParserInfo StanCommand
+stanCliParser = info (helper <*> versionP <*> stan) $
     fullDesc <> progDesc "Haskell Static Analyser"
 
-stanP :: Parser CliArgs
+{- | Stan tool parser. It either uses the named commands or the main @stan@
+command.
+-}
+stan :: Parser StanCommand
+stan = stanInspectionP <|> stanP
+
+-- | @stan@ command parser.
+stanP :: Parser StanCommand
 stanP = do
-    cliArgsHiedir <- hiedirP
-    pure CliArgs{..}
+    stanArgsHiedir <- hiedirP
+    pure $ Stan StanArgs{..}
+
+-- | @stan inspection@ command parser.
+stanInspectionP :: Parser StanCommand
+stanInspectionP = hsubparser $
+    command "inspection" (info inspectionP (progDesc "Show all Inspections"))
+  where
+    inspectionP :: Parser StanCommand
+    inspectionP = do
+        inspectionArgsId <- Id <<$>> optional ( strArgument
+            (metavar "INSPECTION_ID" <> help "Show specific Inspection information"))
+        pure $ StanInspection InspectionArgs{..}
 
 hiedirP :: Parser FilePath
 hiedirP = strOption $ mconcat

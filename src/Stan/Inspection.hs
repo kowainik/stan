@@ -13,12 +13,17 @@ module Stan.Inspection
 
       -- * Pretty print
     , prettyShowInspection
+    , prettyShowInspectionShort
     ) where
 
-import Stan.Category (Category)
-import Stan.Core.Id (Id)
+import Stan.Category (Category, prettyShowCategory)
+import Stan.Core.Id (Id (..))
 import Stan.NameMeta (NameMeta)
-import Stan.Severity (Severity)
+import Stan.Severity (Severity, prettyShowSeverity)
+
+import Colourista (blue, bold, formatWith, green, italic)
+
+import qualified Data.Text as T
 
 
 {- | Data type that represents a check/test, or how we call it
@@ -51,4 +56,25 @@ data InspectionAnalysis
 
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text
-prettyShowInspection = show
+prettyShowInspection Inspection{..} = unlines $
+    [ b "~~~STAN INSPECTION~~~"
+    , ""
+    , i " ✲ ID:          " <> b (unId inspectionId)
+    , i " ✲ Name:        " <> inspectionName
+    , i " ✲ Description: " <> inspectionDescription
+    , i " ✲ Severity:    " <> prettyShowSeverity inspectionSeverity
+    , i " ✲ Category:    " <> T.intercalate " " (map prettyShowCategory $ toList inspectionCategory)
+    , ""
+    ,  formatWith [green] "Possible solutions:"
+    ] <> map ("  - " <>) inspectionSolution
+  where
+    i, b :: Text -> Text
+    i = formatWith [italic]
+    b = formatWith [bold]
+
+-- | Show the short view of a given 'Inspection'.
+prettyShowInspectionShort :: Inspection -> Text
+prettyShowInspectionShort Inspection{..} =
+    " ❋ "
+    <> formatWith [bold, blue] ("[" <> unId inspectionId <> "] ")
+    <> formatWith [italic] inspectionName

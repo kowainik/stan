@@ -33,7 +33,7 @@ inspectionsMap =
 {- | List of all inspections.
 -}
 inspections :: [Inspection]
-inspections = HM.elems inspectionsMap
+inspections = sortWith inspectionId $ HM.elems inspectionsMap
 
 -- | List of all inspection 'Id's.
 inspectionsIds :: [Id Inspection]
