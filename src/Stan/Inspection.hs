@@ -8,6 +8,7 @@ __Inspection__ — check or test provided by Stan.
 
 module Stan.Inspection
     ( Inspection (..)
+    , InspectionAnalysis (..)
     , InspectionsMap
 
       -- * Pretty print
@@ -16,6 +17,7 @@ module Stan.Inspection
 
 import Stan.Category (Category)
 import Stan.Core.Id (Id)
+import Stan.NameMeta (NameMeta)
 import Stan.Severity (Severity)
 
 
@@ -29,12 +31,23 @@ data Inspection = Inspection
     , inspectionSolution    :: ![Text]
     , inspectionCategory    :: !(NonEmpty Category)
     , inspectionSeverity    :: !Severity
+    , inspectionAnalysis    :: !InspectionAnalysis
     } deriving stock (Show, Eq)
 
 {- | Type alias for the 'HashMap' that contains pairs of inspections 'Id's and
 corresponding 'Inspection's.
 -}
 type InspectionsMap = HashMap (Id Inspection) Inspection
+
+{- | Data type that represents all possible types of @stan@
+inspections in a uniformed way.
+-}
+data InspectionAnalysis
+    -- | Find specific function name.
+    = FindName NameMeta
+    -- | Missing @infix@ declaration for operator.
+    | Infix
+    deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.
 prettyShowInspection :: Inspection -> Text

@@ -10,7 +10,7 @@ import Test.Hspec (Expectation, shouldBe)
 import Stan.Analysis (Analysis (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName)
-import Stan.Inspection (Inspection)
+import Stan.Inspection (Inspection (..))
 import Stan.Observation (Observation (..), mkObservationId)
 
 
@@ -18,12 +18,12 @@ observationAssert
     :: FilePath  -- ^ Path to module
     -> ModuleName  -- ^ Module name
     -> Analysis
-    -> Id Inspection
+    -> Inspection
     -> Int  -- ^ Line number
     -> Int  -- ^ Span start
     -> Int  -- ^ Span end
     -> Expectation
-observationAssert modulePath moduleName analysis insId line start end =
+observationAssert modulePath moduleName analysis Inspection{..} line start end =
     foundPartialObservation `shouldBe` Just expectedHeadObservation
   where
     foundPartialObservation :: Maybe Observation
@@ -34,7 +34,7 @@ observationAssert modulePath moduleName analysis insId line start end =
     expectedHeadObservation :: Observation
     expectedHeadObservation = Observation
         { observationId = obsId
-        , observationInspectionId = insId
+        , observationInspectionId = inspectionId
         , observationLoc = span
         , observationFile = path
         , observationModuleName = moduleName
@@ -42,7 +42,7 @@ observationAssert modulePath moduleName analysis insId line start end =
         }
 
     obsId :: Id Observation
-    obsId = mkObservationId insId moduleName span
+    obsId = mkObservationId inspectionId moduleName span
 
     span :: RealSrcSpan
     span = mkRealSrcSpan

@@ -14,10 +14,9 @@ module Stan.Analysis
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
-import Stan.Analysis.Analyser (Analyser (..))
-import Stan.Analysis.Infinite (infiniteAnalysers)
-import Stan.Analysis.Partial (partialAnalysers)
+import Stan.Analysis.Analyser (analysisByInspection)
 import Stan.Hie (countLinesOfCode)
+import Stan.Inspection.All (inspections)
 import Stan.Observation (Observations)
 
 import qualified Slist as S
@@ -79,11 +78,5 @@ analyse (hieFile:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
     incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
-    addObservations $ S.concatMap (\Analyser{..} -> analyserFunction hieFile) allAnalysers
+    addObservations $ S.concatMap (`analysisByInspection` hieFile) inspections
     analyse hieFiles
-
-allAnalysers :: [Analyser]
-allAnalysers = concat
-    [ partialAnalysers
-    , infiniteAnalysers
-    ]
