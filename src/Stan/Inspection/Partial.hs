@@ -16,6 +16,10 @@ module Stan.Inspection.Partial
     , stan0003
       -- *** Partial 'GHC.List.last'
     , stan0004
+      -- *** Partial 'GHC.List.!!'
+    , stan0005
+      -- *** Partial 'GHC.List.cycle'
+    , stan0006
 
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
@@ -37,6 +41,8 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
     , stan0002
     , stan0003
     , stan0004
+    , stan0005
+    , stan0006
     ]
 
 -- | Smart constructor to create partial 'Inspection'.
@@ -77,3 +83,11 @@ stan0003 = mkPartialInspectionList (Id "STAN-0003") (mkBaseListMeta "init")
 -- | 'Inspection' for 'stan0004' — partial 'GHC.List.last' @STAN-0004@.
 stan0004 :: Inspection
 stan0004 = mkPartialInspectionList (Id "STAN-0004") (mkBaseListMeta "last")
+
+-- | 'Inspection' for 'stan0005' — partial 'GHC.List.!!' @STAN-0005@.
+stan0005 :: Inspection
+stan0005 = mkPartialInspection (Id "STAN-0005") (mkBaseListMeta "!!")
+
+-- | 'Inspection' for 'stan0006' — partial 'GHC.List.cycle' @STAN-0006@.
+stan0006 :: Inspection
+stan0006 = mkPartialInspectionList (Id "STAN-0006") (mkBaseListMeta "cycle")
