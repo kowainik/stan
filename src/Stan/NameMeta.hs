@@ -11,6 +11,7 @@ module Stan.NameMeta
 
       -- * Smart constructors
     , mkBaseListMeta
+    , mkBaseOldListMeta
     ) where
 
 import Stan.Core.ModuleName (ModuleName)
@@ -27,6 +28,11 @@ data NameMeta = NameMeta
 mkBaseListMeta :: Text -> NameMeta
 mkBaseListMeta funName = NameMeta
     { nameMetaName       = funName
-    , nameMetaPackage    = "base"
     , nameMetaModuleName = "GHC.List"
+    , nameMetaPackage    = "base"
+    }
+
+mkBaseOldListMeta :: Text -> NameMeta
+mkBaseOldListMeta funName = (mkBaseListMeta funName)
+    { nameMetaModuleName = "Data.OldList"
     }

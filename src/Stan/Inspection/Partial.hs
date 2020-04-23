@@ -20,6 +20,8 @@ module Stan.Inspection.Partial
     , stan0005
       -- *** Partial 'GHC.List.cycle'
     , stan0006
+      -- *** Partial 'Data.OldList.genericIndex'
+    , stan0007
 
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
@@ -30,7 +32,7 @@ import Relude.Extra.Tuple (mapToFst)
 import Stan.Category (partial)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
-import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
+import Stan.NameMeta (NameMeta (..), mkBaseListMeta, mkBaseOldListMeta)
 import Stan.Severity (Severity (..))
 
 
@@ -43,6 +45,7 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
     , stan0004
     , stan0005
     , stan0006
+    , stan0007
     ]
 
 -- | Smart constructor to create partial 'Inspection'.
@@ -91,3 +94,7 @@ stan0005 = mkPartialInspection (Id "STAN-0005") (mkBaseListMeta "!!")
 -- | 'Inspection' for 'stan0006' — partial 'GHC.List.cycle' @STAN-0006@.
 stan0006 :: Inspection
 stan0006 = mkPartialInspectionList (Id "STAN-0006") (mkBaseListMeta "cycle")
+
+-- | 'Inspection' for 'stan0007' — partial 'Data.OldList.genericIndex' @STAN-0007@.
+stan0007 :: Inspection
+stan0007 = mkPartialInspection (Id "STAN-0007") (mkBaseOldListMeta "genericIndex")

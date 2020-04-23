@@ -140,6 +140,7 @@ test-suite stan-test
                      , filepath ^>= 1.4
                      , ghc
                      , hspec ^>= 2.7
+                     , text
                      , unordered-containers
 
   ghc-options:         -threaded
