@@ -2,6 +2,8 @@
 
 module Target.Partial where
 
+import Data.List (genericIndex)
+
 
 stanHead :: [a] -> a
 stanHead = head
@@ -20,3 +22,6 @@ stanAt xs = xs !! 42
 
 stanCycle :: [a] -> [a]
 stanCycle = cycle
+
+stanGenericIndex :: [a] -> Int -> a
+stanGenericIndex = genericIndex

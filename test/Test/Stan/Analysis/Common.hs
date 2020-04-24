@@ -13,6 +13,8 @@ import Stan.Core.ModuleName (ModuleName)
 import Stan.Inspection (Inspection (..))
 import Stan.Observation (Observation (..), mkObservationId)
 
+import qualified Data.Text as Text
+
 
 observationAssert
     :: FilePath  -- ^ Path to module
@@ -28,7 +30,7 @@ observationAssert modulePath moduleName analysis Inspection{..} line start end =
   where
     foundPartialObservation :: Maybe Observation
     foundPartialObservation = find
-        (\Observation{..} -> observationId == obsId)
+        (\Observation{..} -> obsIdShort `Text.isPrefixOf` unId observationId)
         (analysisObservations analysis)
 
     expectedHeadObservation :: Observation
@@ -43,6 +45,10 @@ observationAssert modulePath moduleName analysis Inspection{..} line start end =
 
     obsId :: Id Observation
     obsId = mkObservationId inspectionId moduleName span
+
+    -- Prefix of Observation Id without column number, for easier testing
+    obsIdShort :: Text
+    obsIdShort = Text.takeWhile (/= ':') $ unId obsId
 
     span :: RealSrcSpan
     span = mkRealSrcSpan

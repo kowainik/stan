@@ -24,7 +24,7 @@ import Relude.Extra.Tuple (mapToFst)
 import Stan.Category (infinite)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
-import Stan.NameMeta (NameMeta (..), mkBaseListMeta)
+import Stan.NameMeta (NameMeta (..), mkBaseListMeta, mkBaseOldListMeta)
 import Stan.Severity (Severity (..))
 
 
@@ -55,12 +55,8 @@ stan0101 = mkInfiniteInspection (Id "STAN-0101") (mkBaseListMeta "reverse")
 
 -- | 'Inspection' for 'stan0102' — infinite 'Data.OldList.isSuffixOf' @STAN-0102@.
 stan0102 :: Inspection
-stan0102 = mkInfiniteInspection
-    (Id "STAN-0102")
-    (mkBaseListMeta "isSuffixOf") { nameMetaModuleName = "Data.OldList" }
+stan0102 = mkInfiniteInspection (Id "STAN-0102") (mkBaseOldListMeta "isSuffixOf")
 
 -- | 'Inspection' for 'stan0103' — infinite 'Data.OldList.genericLength' @STAN-0103@.
 stan0103 :: Inspection
-stan0103 = mkInfiniteInspection
-    (Id "STAN-0103")
-    (mkBaseListMeta "genericLength") { nameMetaModuleName = "Data.OldList" }
+stan0103 = mkInfiniteInspection (Id "STAN-0103") (mkBaseOldListMeta "genericLength")
