@@ -22,6 +22,10 @@ module Stan.Inspection.Partial
     , stan0006
       -- *** Partial 'Data.OldList.genericIndex'
     , stan0007
+      -- *** Partial 'Data.Maybe.fromJust'
+    , stan0008
+      -- *** Partial 'Text.Read.read'
+    , stan0009
 
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
@@ -46,6 +50,8 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
     , stan0005
     , stan0006
     , stan0007
+    , stan0008
+    , stan0009
     ]
 
 -- | Smart constructor to create partial 'Inspection'.
@@ -98,3 +104,46 @@ stan0006 = mkPartialInspectionList (Id "STAN-0006") (mkBaseListMeta "cycle")
 -- | 'Inspection' for 'stan0007' — partial 'Data.OldList.genericIndex' @STAN-0007@.
 stan0007 :: Inspection
 stan0007 = mkPartialInspection (Id "STAN-0007") (mkBaseOldListMeta "genericIndex")
+
+-- | 'Inspection' for 'stan0008' — partial 'Data.Maybe.fromJust' @STAN-0008@.
+stan0008 :: Inspection
+stan0008 = Inspection
+    { inspectionId = Id "STAN-0008"
+    , inspectionName = "Partial: " <> nameMetaPackage <> "/" <> nameMetaName
+    , inspectionDescription = "Usage of partial function '" <> nameMetaName <> "' for 'Maybe'"
+    , inspectionSolution =
+        [ "Use explicit pattern-matching over Maybe"
+        , "Use one of the standard functions: 'maybe', 'fromMaybe'"
+        ]
+    , inspectionCategory = one partial
+    , inspectionSeverity = Warning
+    , inspectionAnalysis = FindName nameMeta
+    }
+  where
+    nameMeta :: NameMeta
+    nameMeta@NameMeta{..} = NameMeta
+        { nameMetaName       = "fromJust"
+        , nameMetaModuleName = "Data.Maybe"
+        , nameMetaPackage    = "base"
+        }
+
+-- | 'Inspection' for 'stan0008' — partial 'Data.Maybe.fromJust' @STAN-0008@.
+stan0009 :: Inspection
+stan0009 = Inspection
+    { inspectionId = Id "STAN-0009"
+    , inspectionName = "Partial: " <> nameMetaPackage <> "/" <> nameMetaName
+    , inspectionDescription = "Usage of partial parsing function '" <> nameMetaName <> "'"
+    , inspectionSolution =
+        [ "Use 'readMaybe' or 'readEither' to handle failed parsing"
+        ]
+    , inspectionCategory = one partial
+    , inspectionSeverity = Warning
+    , inspectionAnalysis = FindName nameMeta
+    }
+  where
+    nameMeta :: NameMeta
+    nameMeta@NameMeta{..} = NameMeta
+        { nameMetaName       = "read"
+        , nameMetaModuleName = "Text.Read"
+        , nameMetaPackage    = "base"
+        }

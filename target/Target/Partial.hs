@@ -3,6 +3,7 @@
 module Target.Partial where
 
 import Data.List (genericIndex)
+import Data.Maybe (fromJust)
 
 
 stanHead :: [a] -> a
@@ -25,3 +26,9 @@ stanCycle = cycle
 
 stanGenericIndex :: [a] -> Int -> a
 stanGenericIndex = genericIndex
+
+stanFromJust :: Maybe Int -> Int
+stanFromJust = fromJust
+
+stanRead :: String -> Int
+stanRead = read
