@@ -32,3 +32,12 @@ stanFromJust = fromJust
 
 stanRead :: String -> Int
 stanRead = read
+
+stanSucc :: Int -> Int
+stanSucc = succ
+
+stanPred :: Int -> Int
+stanPred = pred
+
+stanToEnum :: Int -> Bool
+stanToEnum = toEnum

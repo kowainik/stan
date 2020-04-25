@@ -26,6 +26,12 @@ module Stan.Inspection.Partial
     , stan0008
       -- *** Partial 'Text.Read.read'
     , stan0009
+      -- *** Partial 'GHC.Enum.succ'
+    , stan0010
+      -- *** Partial 'GHC.Enum.pred'
+    , stan0011
+      -- *** Partial 'GHC.Enum.toEnum'
+    , stan0012
 
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
@@ -55,6 +61,9 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
     , stan0007
     , stan0008
     , stan0009
+    , stan0010
+    , stan0011
+    , stan0012
     ]
 
 -- | Smart constructor to create generic partial 'Inspection'.
@@ -87,6 +96,17 @@ mkPartialInspectionList insId nameMeta = mkPartialInspection insId nameMeta "lis
         [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
         , "Use explicit pattern-matching over lists"
         ]
+
+{- | Smart constructor to create partial 'Inspection' for functions
+that work with enumerable types.
+-}
+mkPartialInspectionEnum :: Id Inspection -> Text -> [Text] -> Inspection
+mkPartialInspectionEnum insId funName solution = mkPartialInspection insId enumMeta ""
+    & descriptionL .~ usage funName "enumerable types"
+    & solutionL .~ solution
+  where
+    enumMeta :: NameMeta
+    enumMeta = set moduleNameL "GHC.Enum" $ mkBaseMeta funName
 
 -- | 'Inspection' for 'stan0001' — partial 'GHC.List.head' @STAN-0001@.
 stan0001 :: Inspection
@@ -139,3 +159,19 @@ stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
   where
     readNameMeta :: NameMeta
     readNameMeta = set moduleNameL "Text.Read" $ mkBaseMeta "read"
+
+-- | 'Inspection' for 'stan0010' — partial 'GHC.Enum.succ' @STAN-0010@.
+stan0010 :: Inspection
+stan0010 = mkPartialInspectionEnum (Id "STAN-0010") "succ"
+    [ "Use '(+ 1)' for integral types (but be aware of arithmetic overflow)"
+    ]
+
+-- | 'Inspection' for 'stan0011' — partial 'GHC.Enum.pred' @STAN-0011@.
+stan0011 :: Inspection
+stan0011 = mkPartialInspectionEnum (Id "STAN-0011") "pred"
+    [ "Use '(- 1)' for integral types (but be aware of arithmetic overflow)"
+    ]
+
+-- | 'Inspection' for 'stan0012' — partial 'GHC.Enum.toEnum' @STAN-0012@.
+stan0012 :: Inspection
+stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" []
