@@ -27,6 +27,7 @@ import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
+import Stan.Core.Toggle (ToggleSolution, isHidden)
 import Stan.Hie.Debug ()
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
@@ -72,8 +73,8 @@ mkObservation insId HieFile{..} srcSpan = Observation
     moduleName = fromGhcModule hie_module
 
 -- | Show 'Observation' in a human-friendly format.
-prettyShowObservation :: Observation -> Text
-prettyShowObservation Observation{..} = unlines $
+prettyShowObservation :: ToggleSolution -> Observation -> Text
+prettyShowObservation toggleSolution Observation{..} = unlines $
     map (" ┃  " <>)
         $  observationTable
         <> ("" : source)
@@ -129,10 +130,13 @@ prettyShowObservation Observation{..} = unlines $
             arrow = srcSpanEndCol observationLoc - start - 1
 
     solution :: [Text]
-    solution = case inspectionSolution inspection of
-        []   -> []
-        sols -> formatWith [italic, green] "Possible solution:" :
+    solution
+        | isHidden toggleSolution = []
+        | null sols = []
+        | otherwise = formatWith [italic, green] "Possible solution:" :
             map (" ⍟ " <>) sols
+      where
+        sols = inspectionSolution inspection
 
 {- | Create a stable 'Observation' 'Id' in a such way that:
 
