@@ -66,13 +66,16 @@ mkPartialInspection
 mkPartialInspection insId nameMeta@NameMeta{..} typeName = Inspection
     { inspectionId = insId
     , inspectionName = "Partial: " <> nameMetaPackage <> "/" <> nameMetaName
-    , inspectionDescription =
-        "Usage of partial function '" <> nameMetaName <> "' for " <> typeName
+    , inspectionDescription = usage nameMetaName typeName
     , inspectionSolution = []
     , inspectionCategory = one Category.partial
     , inspectionSeverity = Warning
     , inspectionAnalysis = FindName nameMeta
     }
+
+usage :: Text -> Text -> Text
+usage funName forWhat =
+    "Usage of partial function '" <> funName <> "' for " <> forWhat
 
 {- | Smart constructor to create partial 'Inspection' for functions
 that work with lists.
@@ -129,7 +132,7 @@ stan0008 = mkPartialInspection (Id "STAN-0008") fromJustNameMeta "'Maybe'"
 -- | 'Inspection' for 'stan0009' — partial 'Text.Read.read' @STAN-0009@.
 stan0009 :: Inspection
 stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
-    & descriptionL .~ "Usage of partial parsing function 'read'"
+    & descriptionL .~ usage "read" "parsing 'String'"
     & solutionL .~
         [ "Use 'readMaybe' or 'readEither' to handle failed parsing"
         ]
