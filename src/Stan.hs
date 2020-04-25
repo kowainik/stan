@@ -27,7 +27,7 @@ runStan = runStanCli >>= \case
     Stan StanArgs{..} -> do
         hieFiles <- readHieFiles stanArgsHiedir
         let analysis = runAnalysis hieFiles
-        putTextLn $ prettyShowAnalysis analysis
+        putTextLn $ prettyShowAnalysis analysis stanArgsToggleSolution
 --        debugHieFile "target/Target/Infinite.hs" hieFiles
     StanInspection InspectionArgs{..} -> case inspectionArgsId of
         Nothing  -> for_ inspections (putTextLn . prettyShowInspectionShort)

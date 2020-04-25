@@ -81,6 +81,7 @@ library
                          Stan.Cli
                          Stan.Core.Id
                          Stan.Core.ModuleName
+                         Stan.Core.Toggle
                          Stan.Hie
                            Stan.Hie.Debug
                          Stan.Inspection

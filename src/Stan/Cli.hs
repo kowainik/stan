@@ -19,11 +19,12 @@ module Stan.Cli
 import Colourista (blue, bold, formatWith)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
-import Options.Applicative (Parser, ParserInfo, command, execParser, fullDesc, help, helper,
+import Options.Applicative (Parser, ParserInfo, command, execParser, flag, fullDesc, help, helper,
                             hsubparser, info, infoOption, long, metavar, progDesc, short,
                             showDefault, strArgument, strOption, value)
 
 import Stan.Core.Id (Id (..))
+import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
 
 import qualified Paths_stan as Meta (version)
@@ -35,8 +36,9 @@ data StanCommand
     | StanInspection InspectionArgs  -- ^ @stan inspection@.
 
 -- | Options used for the main @stan@ command.
-newtype StanArgs = StanArgs
-    { stanArgsHiedir :: FilePath  -- ^ Directory with HIE files
+data StanArgs = StanArgs
+    { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
+    , stanArgsToggleSolution :: !ToggleSolution  -- ^ Hide 'inspectionSolution'.
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -63,6 +65,7 @@ stan = stanInspectionP <|> stanP
 stanP :: Parser StanCommand
 stanP = do
     stanArgsHiedir <- hiedirP
+    stanArgsToggleSolution <- toggleSolutionP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -85,15 +88,23 @@ hiedirP = strOption $ mconcat
     , help "Relative path to the directory with HIE files"
     ]
 
+-- | The solution is shown by default and gets hidden when option is specified.
+toggleSolutionP :: Parser ToggleSolution
+toggleSolutionP = flag ShowSolution HideSolution $ mconcat
+    [ long "hide-solution"
+    , help "Hide verbose solution information for observations"
+    ]
+
+
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
-versionP = infoOption policemanVersion
+versionP = infoOption stanVersion
     $ long "version"
    <> short 'v'
    <> help "Show Stan's version"
 
-policemanVersion :: String
-policemanVersion = toString $ intercalate "\n"
+stanVersion :: String
+stanVersion = toString $ intercalate "\n"
     [ sVersion
     , sHash
     , sDate
