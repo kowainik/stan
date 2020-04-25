@@ -7,7 +7,13 @@ __Inspection__ — check or test provided by Stan.
 -}
 
 module Stan.Inspection
-    ( Inspection (..)
+    ( -- * Stan inspection type
+      Inspection (..)
+    , categoryL
+    , descriptionL
+    , solutionL
+
+      -- * Inspection info
     , InspectionAnalysis (..)
     , InspectionsMap
 
@@ -15,6 +21,8 @@ module Stan.Inspection
     , prettyShowInspection
     , prettyShowInspectionShort
     ) where
+
+import Relude.Extra.Lens (Lens', lens)
 
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
@@ -38,6 +46,21 @@ data Inspection = Inspection
     , inspectionSeverity    :: !Severity
     , inspectionAnalysis    :: !InspectionAnalysis
     } deriving stock (Show, Eq)
+
+descriptionL :: Lens' Inspection Text
+descriptionL = lens
+    inspectionDescription
+    (\inspection new -> inspection { inspectionDescription = new })
+
+solutionL :: Lens' Inspection [Text]
+solutionL = lens
+    inspectionSolution
+    (\inspection new -> inspection { inspectionSolution = new })
+
+categoryL :: Lens' Inspection (NonEmpty Category)
+categoryL = lens
+    inspectionCategory
+    (\inspection new -> inspection { inspectionCategory = new })
 
 {- | Type alias for the 'HashMap' that contains pairs of inspections 'Id's and
 corresponding 'Inspection's.

@@ -21,11 +21,12 @@ module Stan.Inspection.Infinite
 
 import Relude.Extra.Tuple (mapToFst)
 
-import Stan.Category (infinite)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta, mkBaseOldListMeta)
 import Stan.Severity (Severity (..))
+
+import qualified Stan.Category as Category
 
 
 -- | All infinite 'Inspection's map from 'Id's.
@@ -44,7 +45,7 @@ mkInfiniteInspection insId nameMeta@NameMeta{..} = Inspection
     , inspectionDescription =
         "Usage of the '" <> nameMetaName <> "' function that hangs on infinite lists"
     , inspectionSolution = []
-    , inspectionCategory = one infinite
+    , inspectionCategory = Category.infinite :| [Category.list]
     , inspectionSeverity = Warning
     , inspectionAnalysis = FindName nameMeta
     }
