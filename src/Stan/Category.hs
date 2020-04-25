@@ -16,6 +16,7 @@ module Stan.Category
       -- * Stan categories
     , stanCategories
     , infinite
+    , list
     , partial
     ) where
 
@@ -31,6 +32,10 @@ newtype Category = Category
 prettyShowCategory :: Category -> Text
 prettyShowCategory cat = formatWith [magentaBg] $ "#" <> unCategory cat
 
+-- | @List@ category of Stan inspections.
+list :: Category
+list = Category "List"
+
 -- | @Partial@ category of Stan inspections.
 partial :: Category
 partial = Category "Partial"
@@ -42,6 +47,7 @@ infinite = Category "Infinite"
 -- | The list of all available Stan 'Category's.
 stanCategories :: [Category]
 stanCategories =
-    [ partial
-    , infinite
+    [ infinite
+    , list
+    , partial
     ]

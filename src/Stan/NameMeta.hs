@@ -8,11 +8,15 @@ Data types and functions for working with meta information.
 
 module Stan.NameMeta
     ( NameMeta (..)
+    , moduleNameL
 
       -- * Smart constructors
+    , mkBaseMeta
     , mkBaseListMeta
     , mkBaseOldListMeta
     ) where
+
+import Relude.Extra.Lens (Lens', lens, set)
 
 import Stan.Core.ModuleName (ModuleName)
 
@@ -25,14 +29,29 @@ data NameMeta = NameMeta
     } deriving stock (Show, Eq)
 
 
-mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta funName = NameMeta
+{- | Create 'NameMeta' for a function from the @base@ package and
+unknown module.
+-}
+mkBaseMeta :: Text -> NameMeta
+mkBaseMeta funName = NameMeta
     { nameMetaName       = funName
-    , nameMetaModuleName = "GHC.List"
+    , nameMetaModuleName = ""
     , nameMetaPackage    = "base"
     }
 
+moduleNameL :: Lens' NameMeta ModuleName
+moduleNameL = lens
+    nameMetaModuleName
+    (\nameMeta new -> nameMeta { nameMetaModuleName = new })
+
+{- | Create 'NameMeta' for a function from the @base@ package and
+the "GHC.List" module.
+-}
+mkBaseListMeta :: Text -> NameMeta
+mkBaseListMeta = set moduleNameL "GHC.List" . mkBaseMeta
+
+{- | Create 'NameMeta' for a function from the @base@ package and
+the "Data.OldList" module.
+-}
 mkBaseOldListMeta :: Text -> NameMeta
-mkBaseOldListMeta funName = (mkBaseListMeta funName)
-    { nameMetaModuleName = "Data.OldList"
-    }
+mkBaseOldListMeta = set moduleNameL "Data.OldList" . mkBaseMeta
