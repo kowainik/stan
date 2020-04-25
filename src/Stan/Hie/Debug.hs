@@ -20,12 +20,14 @@ package to dependencies and use the @pPrint@ function from the
 
 module Stan.Hie.Debug
     ( debugHieFile
+    , debugDynFlags
     , printHieAsts
+    , printSDoc
     ) where
 
 import Avail (AvailInfo (..))
 import BasicTypes (PromotionFlag (..), TupleSort (..))
-import DynFlags (getDynFlags)
+import DynFlags (DynFlags, getDynFlags)
 import FieldLabel (FieldLbl (..))
 import GHC (runGhc)
 import GHC.Paths (libdir)
@@ -35,7 +37,7 @@ import HieTypes (HieAST (..), HieASTs (..), HieArgs (..), HieFile (..), HieType 
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..), IfaceTyConSort (..), IfaceTyLit (..))
 import Module (Module, ModuleName, moduleNameString, moduleStableString)
 import Name (Name, nameStableString)
-import Outputable (CodeStyle (CStyle), mkCodeStyle, printSDocLn)
+import Outputable (CodeStyle (CStyle), SDoc, mkCodeStyle, printSDocLn)
 import Pretty (Mode (PageMode))
 import Text.Pretty.Simple (pPrint)
 import Var (ArgFlag (..))
@@ -48,17 +50,23 @@ debugHieFile path hieFiles = do
     let mHieFile = find (\HieFile{..} -> hie_hs_file == path) hieFiles
     whenJust mHieFile pPrint
 
+debugDynFlags :: IO DynFlags
+debugDynFlags = runGhc (Just libdir) getDynFlags
+
 {- | Prints 'HieASTs' part of 'HieFile' using @ghc@ pretty-printing.
 -}
 printHieAsts :: HieFile -> IO ()
 printHieAsts hieFile = do
-    dynFlags <- runGhc (Just libdir) getDynFlags
-    printSDocLn
-        PageMode
-        dynFlags
-        stdout
-        (mkCodeStyle CStyle)
-        (ppHies $ hie_asts hieFile)
+    dynFlags <- debugDynFlags
+    printSDoc dynFlags (ppHies $ hie_asts hieFile)
+
+printSDoc :: DynFlags -> SDoc -> IO ()
+printSDoc dynFlags doc = printSDocLn
+    PageMode
+    dynFlags
+    stdout
+    (mkCodeStyle CStyle)
+    doc
 
 -- orphan intances
 deriving stock instance Show HieFile
