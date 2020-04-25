@@ -34,3 +34,9 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         checkObservation analysis Partial.stan0008 31 16 24
     it "STAN-0009: finds usage of 'base/read'" $
         checkObservation analysis Partial.stan0009 34 12 16
+    it "STAN-0010: finds usage of 'base/succ'" $
+        checkObservation analysis Partial.stan0010 37 12 16
+    it "STAN-0011: finds usage of 'base/pred'" $
+        checkObservation analysis Partial.stan0011 40 12 16
+    it "STAN-0012: finds usage of 'base/toEnum'" $
+        checkObservation analysis Partial.stan0012 43 14 20
