@@ -131,8 +131,7 @@ prettyShowObservation toggleSolution Observation{..} = unlines $
 
     solution :: [Text]
     solution
-        | isHidden toggleSolution = []
-        | null sols = []
+        | isHidden toggleSolution || null sols = []
         | otherwise = formatWith [italic, green] "Possible solution:" :
             map (" ⍟ " <>) sols
       where
