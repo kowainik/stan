@@ -1,7 +1,7 @@
 module Main (main) where
 
-import Stan (runStan)
+import Stan (run)
 
 
 main :: IO ()
-main = runStan
+main = run
