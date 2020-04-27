@@ -11,6 +11,8 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
+import Extensions (ExtensionsResult)
+import Extensions.OnOff (OnOffExtension)
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
@@ -19,6 +21,8 @@ import Stan.Hie (countLinesOfCode)
 import Stan.Inspection.All (inspections)
 import Stan.Observation (Observations)
 
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 import qualified Slist as S
 
 
@@ -27,7 +31,7 @@ import qualified Slist as S
 data Analysis = Analysis
     { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
-    , analysisUsedExtensions :: !Int
+    , analysisUsedExtensions :: !(Set OnOffExtension)
     , analysisObservations   :: !Observations
     } deriving stock (Show)
 
@@ -41,6 +45,11 @@ linesOfCodeL = lens
     analysisLinesOfCode
     (\analysis new -> analysis { analysisLinesOfCode = new })
 
+extensionsL :: Lens' Analysis (Set OnOffExtension)
+extensionsL = lens
+    analysisUsedExtensions
+    (\analysis new -> analysis { analysisUsedExtensions = new })
+
 observationsL :: Lens' Analysis Observations
 observationsL = lens
     analysisObservations
@@ -50,7 +59,7 @@ initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
-    , analysisUsedExtensions = 0
+    , analysisUsedExtensions = mempty
     , analysisObservations   = mempty
     }
 
@@ -67,16 +76,24 @@ incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 addObservations :: Observations -> State Analysis ()
 addObservations observations = modify' $ over observationsL (observations <>)
 
+addExtensions :: ExtensionsResult -> State Analysis ()
+addExtensions = \case
+    Right setExtensions -> modify' $ over extensionsL (Set.union setExtensions)
+    Left _err -> pass
+
 {- | Perform static analysis of given 'HieFile'.
 -}
-runAnalysis :: [HieFile] -> Analysis
-runAnalysis = executingState initialAnalysis . analyse
+runAnalysis :: Map FilePath ExtensionsResult -> [HieFile] -> Analysis
+runAnalysis extensionsMap = executingState initialAnalysis . analyse extensionsMap
 
-analyse :: [HieFile] -> State Analysis ()
-analyse [] = pass
-analyse (hieFile:hieFiles) = do
+analyse :: Map FilePath ExtensionsResult -> [HieFile] -> State Analysis ()
+analyse _extsMap [] = pass
+analyse extsMap (hieFile:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
     incModulesNum
     incLinesOfCode $ countLinesOfCode hieFile
     addObservations $ S.concatMap (`analysisByInspection` hieFile) inspections
-    analyse hieFiles
+    -- Add found extensions
+    whenJust (Map.lookup (hie_hs_file hieFile) extsMap) addExtensions
+
+    analyse extsMap hieFiles

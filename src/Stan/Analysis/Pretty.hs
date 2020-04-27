@@ -20,6 +20,7 @@ import Stan.Inspection.All (inspectionsMap)
 import Stan.Observation (Observation (..), Observations, prettyShowObservation)
 
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Slist as S
 
@@ -46,7 +47,7 @@ prettyShowAnalysis Analysis{..} toggleSolution = groupedObservations <> summary
         , mid
         , alignText "Analysed Lines of Code" <> alignNum analysisLinesOfCode
         , mid
-        , alignText "Total extensions" <> alignNum analysisUsedExtensions
+        , alignText "Total extensions" <> alignNum (Set.size analysisUsedExtensions)
         , mid
         , alignText "Total checked inspections" <> alignNum (HM.size inspectionsMap)
         , mid
