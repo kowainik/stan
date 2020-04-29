@@ -11,9 +11,9 @@ module Stan
     ) where
 
 import Colourista (errorMessage, formatWith, infoMessage, italic, warningMessage)
-import Extensions (getPackageExtentionsBySources)
+import Extensions (ExtensionsResult, getPackageExtentionsBySources)
 import HieTypes (HieFile (..))
-import System.Directory (getCurrentDirectory, listDirectory)
+import System.Directory (doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
 
 import Stan.Analysis (runAnalysis)
@@ -34,22 +34,33 @@ run = runStanCli >>= \case
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     hieFiles <- readHieFiles stanArgsHiedir
-    -- create Map from filepathes to sources.
-    let sourcesMap = fromList $ map (\HieFile{..} -> (hie_hs_file, hie_hs_src)) hieFiles
     -- create extensions map
-    extensionsMap <- findCabalFile >>= \case
-        Just cabal -> do
-            infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
-            getPackageExtentionsBySources cabal sourcesMap
-        -- if cabal file is not found, pass the empty map instead
-        Nothing    -> do
-            warningMessage ".cabal file not found in the current directory."
-            infoMessage " 💡 Try using --cabal-file option to specify the path to the .cabal file.\n"
-            pure mempty
+    extensionsMap <- case stanArgsCabalFilePath of
+        -- if cabal file specified via CLI option
+        Just cabal ->
+            ifM (doesFileExist cabal)
+            {- then -} (getExtensionsWithCabal cabal hieFiles)
+            {- else -} (errorMessage (".cabal file does not exist: " <> toText cabal) >> exitFailure)
+        -- try to find cabal file in current directory
+        Nothing -> findCabalFile >>= \case
+            Just cabal -> getExtensionsWithCabal cabal hieFiles
+            -- if cabal file is not found, pass the empty map instead
+            Nothing    -> do
+                warningMessage ".cabal file not found in the current directory."
+                infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
+                pure mempty
 
     let analysis = runAnalysis extensionsMap hieFiles
     putTextLn $ prettyShowAnalysis analysis stanArgsToggleSolution
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
+  where
+    getExtensionsWithCabal :: FilePath -> [HieFile] -> IO (Map FilePath ExtensionsResult)
+    getExtensionsWithCabal cabal hies = do
+        -- create Map from filepathes to sources.
+        let sourcesMap = fromList $ map (\HieFile{..} -> (hie_hs_file, hie_hs_src)) hies
+
+        infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
+        getPackageExtentionsBySources cabal sourcesMap
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of
