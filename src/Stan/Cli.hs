@@ -16,12 +16,14 @@ module Stan.Cli
     , runStanCli
     ) where
 
-import Colourista (blue, bold, formatWith)
+import Colourista (blue, bold, formatWith, reset, yellow)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
-import Options.Applicative (Parser, ParserInfo, command, execParser, flag, fullDesc, help, helper,
-                            hsubparser, info, infoOption, long, metavar, progDesc, short,
-                            showDefault, strArgument, strOption, value)
+import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, command, customExecParser, flag,
+                            fullDesc, help, helpLongEquals, helper, hsubparser, info, infoOption,
+                            long, metavar, prefs, progDesc, short, showDefaultWith, showHelpOnEmpty,
+                            strArgument, strOption, subparserInline, value)
+import Options.Applicative.Help.Chunk (stringChunk)
 
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
@@ -38,6 +40,7 @@ data StanCommand
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
     { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
+    , stanArgsCabalFilePath  :: !(Maybe FilePath)  -- ^ Path to @.cabal@ file.
     , stanArgsToggleSolution :: !ToggleSolution  -- ^ Hide 'inspectionSolution'.
     }
 
@@ -47,12 +50,19 @@ newtype InspectionArgs = InspectionArgs
     }
 
 -- | Run main parser of the @stan@ command line tool.
--- TODO: use customExecParser
 runStanCli :: IO StanCommand
-runStanCli = execParser stanCliParser
+runStanCli = customExecParser stanParserPrefs stanCliParser
+  where
+    -- To turn on some special options.
+    stanParserPrefs :: ParserPrefs
+    stanParserPrefs = prefs $ mconcat
+        [ helpLongEquals
+        , showHelpOnEmpty
+        , subparserInline
+        ]
 
 stanCliParser :: ParserInfo StanCommand
-stanCliParser = info (helper <*> versionP <*> stan) $
+stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
     fullDesc <> progDesc "Haskell Static Analyser"
 
 {- | Stan tool parser. It either uses the named commands or the main @stan@
@@ -65,6 +75,7 @@ stan = stanInspectionP <|> stanP
 stanP :: Parser StanCommand
 stanP = do
     stanArgsHiedir <- hiedirP
+    stanArgsCabalFilePath <- cabalFilePathP
     stanArgsToggleSolution <- toggleSolutionP
     pure $ Stan StanArgs{..}
 
@@ -82,10 +93,17 @@ stanInspectionP = hsubparser $
 hiedirP :: Parser FilePath
 hiedirP = strOption $ mconcat
     [ long "hiedir"
-    , metavar "FILE_PATH"
+    , metavar "DIR_PATH"
     , value ".hie"
-    , showDefault
+    , showDefaultWith (formatWith [blue, bold])
     , help "Relative path to the directory with HIE files"
+    ]
+
+cabalFilePathP :: Parser (Maybe FilePath)
+cabalFilePathP = optional $ strOption $ mconcat
+    [ long "cabal-file-path"
+    , metavar "FILE_PATH"
+    , help "Relative path to the .cabal file"
     ]
 
 -- | The solution is shown by default and gets hidden when option is specified.
@@ -117,3 +135,22 @@ stanVersion = toString $ intercalate "\n"
     sVersion = fmt $ "Stan " <> "v" <> showVersion Meta.version
     sHash = " ➤ " <> fmt "Git revision: " <> $(gitHash)
     sDate = " ➤ " <> fmt "Commit date:  " <> $(gitCommitDate)
+
+-- to put custom header which doesn't cut all spaces
+modifyHeader :: ParserInfo a -> ParserInfo a
+modifyHeader p = p { infoHeader = stringChunk $ toString header }
+
+header :: Text
+header = unlines
+    [ yellow
+    , "     ______________    _   __"
+    , "    / ___/_  __/   |  / | / /"
+    , "    \\__ \\ / / / /| | /  |/ / "
+    , "   ___/ // / / ___ |/ /|  /  "
+    , "  /____//_/ /_/  |_/_/ |_/   "
+    , reset
+    , "  Haskell " <> b "ST" <> "atic " <> b "AN" <> "alyser"
+    ]
+  where
+    b :: Text -> Text
+    b = formatWith [bold]
