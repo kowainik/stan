@@ -13,16 +13,12 @@ module Stan.Analysis.Analyser
 
 import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IEType (..), Identifier,
                  IdentifierDetails (..), NodeInfo (..), TypeIndex)
-import Module (moduleUnitId)
-import Name (nameModule, nameOccName)
-import OccName (occNameString)
 import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
-import Stan.Core.ModuleName (fromGhcModule)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta (..))
+import Stan.NameMeta (NameMeta (..), compareNames)
 import Stan.Observation (Observations, mkObservation)
 
 import qualified Data.Map.Strict as Map
@@ -45,7 +41,7 @@ analyseNameMeta
   -> NameMeta
   -> HieFile
   -> Observations
-analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
+analyseNameMeta insId nameMeta hie@HieFile{..} =
     mkObservation insId hie <$> findHeads hie_asts
   where
     findHeads :: HieASTs TypeIndex -> Slist RealSrcSpan
@@ -71,13 +67,6 @@ analyseNameMeta insId NameMeta{..} hie@HieFile{..} =
         Right name <- Just identifier
         guard $ Set.notMember (IEThing Import) $ identInfo details
 
-        let occName = toText $ occNameString $ nameOccName name
-        let moduleName = fromGhcModule $ nameModule name
-        let package = show @Text $ moduleUnitId $ nameModule name
-
-        guard
-             $ occName    == nameMetaName
-            && moduleName == nameMetaModuleName
-            && package    == nameMetaPackage
+        guard $ compareNames nameMeta name
 
         pure srcSpan
