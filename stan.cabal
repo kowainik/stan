@@ -84,6 +84,7 @@ library
                          Stan.Core.Toggle
                          Stan.Hie
                            Stan.Hie.Debug
+                           Stan.Hie.Match
                          Stan.Inspection
                            Stan.Inspection.All
                            Stan.Inspection.Infinite
@@ -95,7 +96,8 @@ library
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
 
-  build-depends:       base64 ^>= 0.4.1
+  build-depends:       array ^>= 0.5
+                     , base64 ^>= 0.4.1
                      , bytestring ^>= 0.10
                      , colourista ^>= 0.0.0.0
                      , containers ^>= 0.6

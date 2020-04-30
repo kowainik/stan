@@ -22,7 +22,7 @@ import Development.GitRev (gitCommitDate, gitHash)
 import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, command, customExecParser, flag,
                             fullDesc, help, helpLongEquals, helper, hsubparser, info, infoOption,
                             long, metavar, prefs, progDesc, short, showDefaultWith, showHelpOnEmpty,
-                            strArgument, strOption, subparserInline, value)
+                            showHelpOnError, strArgument, strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
 
 import Stan.Core.Id (Id (..))
@@ -58,6 +58,7 @@ runStanCli = customExecParser stanParserPrefs stanCliParser
     stanParserPrefs = prefs $ mconcat
         [ helpLongEquals
         , showHelpOnEmpty
+        , showHelpOnError
         , subparserInline
         ]
 
