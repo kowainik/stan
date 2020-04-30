@@ -78,7 +78,10 @@ hieMatchType i pat arr =
     satisfyPattern :: HieTypeFlat -> Pattern -> Bool
     satisfyPattern (HTyVarTy name) (PatternName nameMeta []) =
         compareNames nameMeta name
-    satisfyPattern (HTyConApp IfaceTyCon{..} (HieArgs hieArgs)) (PatternName nameMeta args) =
+    satisfyPattern
+        (HTyConApp IfaceTyCon{..} (HieArgs hieArgs))
+        (PatternName nameMeta args)
+      =
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
         && checkWith (\(_, ix) a -> isJust $ hieMatchType ix a arr) hieArgs args
