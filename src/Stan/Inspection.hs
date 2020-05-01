@@ -26,6 +26,7 @@ import Relude.Extra.Lens (Lens', lens)
 
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
+import Stan.Hie.Match (Pattern)
 import Stan.NameMeta (NameMeta)
 import Stan.Severity (Severity, prettyShowSeverity)
 
@@ -71,8 +72,8 @@ type InspectionsMap = HashMap (Id Inspection) Inspection
 inspections in a uniformed way.
 -}
 data InspectionAnalysis
-    -- | Find specific function name.
-    = FindName NameMeta
+    -- | Find specific function name by specified 'Pattern'.
+    = FindName NameMeta Pattern
     -- | Missing @infix@ declaration for operator.
     | Infix
     deriving stock (Show, Eq)

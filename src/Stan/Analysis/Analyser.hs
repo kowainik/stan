@@ -17,6 +17,7 @@ import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
+import Stan.Hie.Match (Pattern (..), hieMatchType)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta (..), compareNames)
 import Stan.Observation (Observations, mkObservation)
@@ -31,21 +32,22 @@ over 'InspectionAnalysis'.
 -}
 analysisByInspection :: Inspection -> HieFile -> Observations
 analysisByInspection Inspection{..} = case inspectionAnalysis of
-    FindName nameMeta -> analyseNameMeta inspectionId nameMeta
-    Infix             -> const mempty  -- TODO: not yet implemented
+    FindName nameMeta pat -> analyseNameMeta inspectionId nameMeta pat
+    Infix                 -> const mempty  -- TODO: not yet implemented
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}
 analyseNameMeta
   :: Id Inspection
   -> NameMeta
+  -> Pattern
   -> HieFile
   -> Observations
-analyseNameMeta insId nameMeta hie@HieFile{..} =
-    mkObservation insId hie <$> findHeads hie_asts
+analyseNameMeta insId nameMeta pat hie@HieFile{..} =
+    mkObservation insId hie <$> findSpans hie_asts
   where
-    findHeads :: HieASTs TypeIndex -> Slist RealSrcSpan
-    findHeads =
+    findSpans :: HieASTs TypeIndex -> Slist RealSrcSpan
+    findSpans =
         S.concatMap findInAst
         . Map.elems
         . getAsts
@@ -56,17 +58,20 @@ analyseNameMeta insId nameMeta hie@HieFile{..} =
 
     findInNode :: RealSrcSpan -> NodeInfo TypeIndex -> Slist RealSrcSpan
     findInNode srcSpan NodeInfo{..} = slist
-        $ mapMaybe (findHeadUsage srcSpan)
+        $ mapMaybe (findUsage nodeType srcSpan)
         $ Map.assocs nodeIdentifiers
 
-    findHeadUsage
-        :: RealSrcSpan
+    findUsage
+        :: [TypeIndex]
+        -> RealSrcSpan
         -> (Identifier, IdentifierDetails TypeIndex)
         -> Maybe RealSrcSpan
-    findHeadUsage srcSpan (identifier, details) = do
+    findUsage typeIxs srcSpan (identifier, details) = do
         Right name <- Just identifier
         guard $ Set.notMember (IEThing Import) $ identInfo details
 
         guard $ compareNames nameMeta name
+
+        guard $ any isJust $ map (\i -> hieMatchType i pat hie_types) typeIxs
 
         pure srcSpan

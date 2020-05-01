@@ -29,6 +29,9 @@ information from there.
 module Stan.Hie.Match
     ( Pattern (..)
     , hieMatchType
+
+      -- * Common 'Pattern's
+    , patternList
     ) where
 
 import BasicTypes (PromotionFlag (NotPromoted))
@@ -59,6 +62,7 @@ data Pattern
     | PatternFun Pattern Pattern
     -- | Type wildcard, matches anything.
     | PatternAnything
+    deriving stock (Show, Eq)
 
 {- | Matching function that searches the array of types recursively.
 -}
@@ -76,6 +80,7 @@ hieMatchType i pat arr =
     curFlat = arr Arr.! i
 
     satisfyPattern :: HieTypeFlat -> Pattern -> Bool
+    satisfyPattern _ PatternAnything = True
     satisfyPattern (HTyVarTy name) (PatternName nameMeta []) =
         compareNames nameMeta name
     satisfyPattern
@@ -88,7 +93,8 @@ hieMatchType i pat arr =
     satisfyPattern (HFunTy i1 i2) (PatternFun p1 p2) =
            isJust (hieMatchType i1 p1 arr)
         && isJust (hieMatchType i2 p2 arr)
-    satisfyPattern _ PatternAnything = True
+    satisfyPattern (HQualTy _ ix) p = isJust $ hieMatchType ix p arr
+    satisfyPattern (HForAllTy _ ix) p = isJust $ hieMatchType ix p arr
     satisfyPattern _flat _p = False
 
     checkWith :: (a -> b -> Bool) -> [a] -> [b] -> Bool
@@ -96,3 +102,15 @@ hieMatchType i pat arr =
     checkWith _ [] _          = False
     checkWith _ _ []          = False
     checkWith f (a:as) (b:bs) = f a b && checkWith f as bs
+
+
+-- | 'Pattern' for list @[a]@.
+patternList :: Pattern
+patternList = PatternName
+    ( NameMeta
+        { nameMetaName       = "[]"
+        , nameMetaModuleName = "GHC.Types"
+        , nameMetaPackage    = "ghc-prim"
+        }
+    )
+    [PatternAnything]

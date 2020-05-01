@@ -16,6 +16,7 @@ module Stan.NameMeta
     , mkBaseMeta
     , mkBaseListMeta
     , mkBaseOldListMeta
+    , mkBaseFoldableMeta
     ) where
 
 import Module (moduleUnitId)
@@ -71,3 +72,9 @@ the "Data.OldList" module.
 -}
 mkBaseOldListMeta :: Text -> NameMeta
 mkBaseOldListMeta = set moduleNameL "Data.OldList" . mkBaseMeta
+
+{- | Create 'NameMeta' for a function from the @base@ package and
+the "Data.Foldable" module.
+-}
+mkBaseFoldableMeta :: Text -> NameMeta
+mkBaseFoldableMeta = set moduleNameL "Data.Foldable" . mkBaseMeta
