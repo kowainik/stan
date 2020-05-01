@@ -28,7 +28,7 @@ module Stan.Inspection.Infinite
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
-import Stan.Hie.Match (Pattern (..), patternList)
+import Stan.Hie.Match (Pattern (..), listFunPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta)
 import Stan.Severity (Severity (..))
@@ -70,7 +70,7 @@ stan0102 = mkInfiniteInspection (Id "STAN-0102") (mkBaseOldListMeta "isSuffixOf"
 
 -- | 'Inspection' for 'stan0103' — infinite 'Data.Foldable.length' @STAN-0103@.
 stan0103 :: Inspection
-stan0103 = mkInfiniteInspection (Id "STAN-0103") (mkBaseFoldableMeta "length") (PatternFun patternList PatternAnything)
+stan0103 = mkInfiniteInspection (Id "STAN-0103") (mkBaseFoldableMeta "length") listFunPattern
 
 -- | 'Inspection' for 'stan0104' — infinite 'Data.OldList.genericLength' @STAN-0104@.
 stan0104 :: Inspection
@@ -78,8 +78,8 @@ stan0104 = mkInfiniteInspection (Id "STAN-0104") (mkBaseOldListMeta "genericLeng
 
 -- | 'Inspection' for 'stan0105' — infinite 'Data.Foldable.sum' @STAN-0105@.
 stan0105 :: Inspection
-stan0105 = mkInfiniteInspection (Id "STAN-0105") (mkBaseFoldableMeta "sum") (PatternFun patternList PatternAnything)
+stan0105 = mkInfiniteInspection (Id "STAN-0105") (mkBaseFoldableMeta "sum") listFunPattern
 
 -- | 'Inspection' for 'stan0106' — infinite 'Data.Foldable.product' @STAN-0106@.
 stan0106 :: Inspection
-stan0106 = mkInfiniteInspection (Id "STAN-0106") (mkBaseFoldableMeta "product") (PatternFun patternList PatternAnything)
+stan0106 = mkInfiniteInspection (Id "STAN-0106") (mkBaseFoldableMeta "product") listFunPattern

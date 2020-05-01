@@ -68,10 +68,12 @@ analyseNameMeta insId nameMeta pat hie@HieFile{..} =
         -> Maybe RealSrcSpan
     findUsage typeIxs srcSpan (identifier, details) = do
         Right name <- Just identifier
-        guard $ Set.notMember (IEThing Import) $ identInfo details
-
-        guard $ compareNames nameMeta name
-
-        guard $ any (\i -> hieMatchPattern i pat hie_types) typeIxs
+        guard
+            -- not in the imports
+            $ Set.notMember (IEThing Import) (identInfo details)
+            -- exact name/module/package
+            && compareNames nameMeta name
+            -- compatible with the given pattern
+            && any (hieMatchPattern hie_types pat) typeIxs
 
         pure srcSpan

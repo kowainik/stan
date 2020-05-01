@@ -31,7 +31,8 @@ module Stan.Hie.Match
     , hieMatchPattern
 
       -- * Common 'Pattern's
-    , patternList
+    , listPattern
+    , listFunPattern
     ) where
 
 import BasicTypes (PromotionFlag (NotPromoted))
@@ -67,14 +68,17 @@ data Pattern
 {- | Matching function that searches the array of types recursively.
 -}
 hieMatchPattern
-    :: TypeIndex   -- ^ Index of the current expression type
+    :: Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
     -> Pattern  -- ^ Our search query
-    -> Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
+    -> TypeIndex   -- ^ Index of the current expression type
     -> Bool  -- ^ If matched type is found
-hieMatchPattern i pat arr = curFlat `satisfyPattern` pat
+hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
   where
     curFlat :: HieTypeFlat
     curFlat = arr Arr.! i
+
+    match :: Pattern -> TypeIndex -> Bool
+    match = hieMatchPattern arr
 
     satisfyPattern :: HieTypeFlat -> Pattern -> Bool
     satisfyPattern _ PatternAnything = True
@@ -86,12 +90,12 @@ hieMatchPattern i pat arr = curFlat `satisfyPattern` pat
       =
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
-        && checkWith (\(_, ix) a -> hieMatchPattern ix a arr) hieArgs args
+        && checkWith (\(_, ix) a -> match a ix) hieArgs args
     satisfyPattern (HFunTy i1 i2) (PatternFun p1 p2) =
-           hieMatchPattern i1 p1 arr
-        && hieMatchPattern i2 p2 arr
-    satisfyPattern (HQualTy _ ix) p = hieMatchPattern ix p arr
-    satisfyPattern (HForAllTy _ ix) p = hieMatchPattern ix p arr
+           match p1 i1
+        && match p2 i2
+    satisfyPattern (HQualTy _ ix) p = match p ix
+    satisfyPattern (HForAllTy _ ix) p = match p ix
     satisfyPattern _flat _p = False
 
     checkWith :: (a -> b -> Bool) -> [a] -> [b] -> Bool
@@ -102,8 +106,8 @@ hieMatchPattern i pat arr = curFlat `satisfyPattern` pat
 
 
 -- | 'Pattern' for list @[a]@.
-patternList :: Pattern
-patternList = PatternName
+listPattern :: Pattern
+listPattern = PatternName
     ( NameMeta
         { nameMetaName       = "[]"
         , nameMetaModuleName = "GHC.Types"
@@ -111,3 +115,6 @@ patternList = PatternName
         }
     )
     [PatternAnything]
+
+listFunPattern :: Pattern
+listFunPattern = PatternFun listPattern PatternAnything
