@@ -10,8 +10,12 @@ module Stan
     ( run
     ) where
 
+import Relude.Extra.Tuple (mapToSnd)
+
 import Colourista (errorMessage, formatWith, infoMessage, italic, warningMessage)
-import Extensions (ExtensionsResult, getPackageExtentionsBySources)
+import Control.Exception (catch)
+import Extensions (ExtensionsError (CabalParseError), ExtensionsResult)
+import Extensions.Cabal (CabalException, parseCabalFileExtensions)
 import HieTypes (HieFile (..))
 import System.Directory (doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
@@ -25,6 +29,9 @@ import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
 -- import Stan.Hie.Debug (debugHieFile)
 
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
+
 
 run :: IO ()
 run = runStanCli >>= \case
@@ -34,8 +41,8 @@ run = runStanCli >>= \case
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     hieFiles <- readHieFiles stanArgsHiedir
-    -- create extensions map
-    extensionsMap <- case stanArgsCabalFilePath of
+    -- create cabal default extensions map
+    cabalExtensionsMap <- case stanArgsCabalFilePath of
         -- if cabal file specified via CLI option
         Just cabal ->
             ifM (doesFileExist cabal)
@@ -50,17 +57,21 @@ runStan StanArgs{..} = do
                 infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
                 pure mempty
 
-    let analysis = runAnalysis extensionsMap hieFiles
+    let analysis = runAnalysis cabalExtensionsMap hieFiles
     putTextLn $ prettyShowAnalysis analysis stanArgsToggleSolution
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
   where
     getExtensionsWithCabal :: FilePath -> [HieFile] -> IO (Map FilePath ExtensionsResult)
     getExtensionsWithCabal cabal hies = do
-        -- create Map from filepathes to sources.
-        let sourcesMap = fromList $ map (\HieFile{..} -> (hie_hs_file, hie_hs_src)) hies
-
         infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
-        getPackageExtentionsBySources cabal sourcesMap
+        (Right . Set.fromList <<$>> parseCabalFileExtensions cabal)
+            `catch` handleCabalErr
+      where
+        handleCabalErr :: CabalException -> IO (Map FilePath ExtensionsResult)
+        handleCabalErr _ = do
+            errorMessage "Error when parsing cabal file. Stan will continue without information from .cabal file"
+            pure $ Map.fromList $
+                map (mapToSnd (const $ Left CabalParseError) . hie_hs_file) hies
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of

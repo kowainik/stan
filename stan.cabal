@@ -82,6 +82,7 @@ library
                          Stan.Core.Id
                          Stan.Core.ModuleName
                          Stan.Core.Toggle
+                         Stan.FileInfo
                          Stan.Hie
                            Stan.Hie.Debug
                            Stan.Hie.Match
