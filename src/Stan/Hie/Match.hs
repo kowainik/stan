@@ -31,16 +31,21 @@ module Stan.Hie.Match
     , hieMatchPattern
 
       -- * Common 'Pattern's
+    , integerPattern
+    , naturalPattern
     , listPattern
+    , nonEmptyPattern
     , listFunPattern
     ) where
+
+import Relude.Extra.Lens ((.~))
 
 import BasicTypes (PromotionFlag (NotPromoted))
 import Data.Array (Array)
 import HieTypes (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..))
 
-import Stan.NameMeta (NameMeta (..), compareNames)
+import Stan.NameMeta (NameMeta (..), compareNames, mkBaseMeta, moduleNameL)
 
 import qualified Data.Array as Arr
 
@@ -116,5 +121,29 @@ listPattern = PatternName
     )
     [PatternAnything]
 
+-- | 'Pattern' for 'NonEmpty'.
+nonEmptyPattern :: Pattern
+nonEmptyPattern = PatternName
+    ( mkBaseMeta "NonEmpty" & moduleNameL .~ "GHC.Base")
+    [PatternAnything]
+
+-- | 'Pattern' for @[a] -> _@
 listFunPattern :: Pattern
 listFunPattern = PatternFun listPattern PatternAnything
+
+-- | 'Pattern' for 'Integer'.
+integerPattern :: Pattern
+integerPattern = PatternName
+    ( NameMeta
+        { nameMetaName       = "Integer"
+        , nameMetaModuleName = "GHC.Integer.Type"
+        , nameMetaPackage    = "integer-wired-in"
+        }
+    )
+    []
+
+-- | 'Pattern' for 'Natural'.
+naturalPattern :: Pattern
+naturalPattern = PatternName
+    ( mkBaseMeta "Natural" & moduleNameL .~ "GHC.Natural")
+    []

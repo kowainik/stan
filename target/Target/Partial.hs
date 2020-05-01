@@ -1,12 +1,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
-
 module Target.Partial where
 
 import Data.Foldable (maximumBy, minimumBy)
 import Data.List (foldl1', genericIndex)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (fromJust)
-
-
+import GHC.Exts (fromList)
+import Numeric.Natural (Natural)
 stanHead :: [a] -> a
 stanHead = head
 
@@ -63,3 +63,9 @@ stanFoldl1' = foldl1'
 
 stanFoldr1 :: (a -> a -> a) -> [a] -> a
 stanFoldr1 = foldr1
+
+stanFromList :: [x] -> NonEmpty x
+stanFromList = fromList
+
+stanFromInteger :: Integer -> Natural
+stanFromInteger = fromInteger
