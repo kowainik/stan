@@ -12,7 +12,7 @@ import Stan.Hie (countLinesOfCode)
 linesOfCodeSpec :: HieFile -> Spec
 linesOfCodeSpec hieFile = describe "LoC tests" $
     it "should count lines of code in the example file" $
-        countLinesOfCode hieFile `shouldBe` 43
+        countLinesOfCode hieFile `shouldBe` 65
 
 modulesNumSpec :: Int -> Spec
 modulesNumSpec num = describe "Modules number tests" $

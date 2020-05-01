@@ -2,7 +2,8 @@
 
 module Target.Partial where
 
-import Data.List (genericIndex)
+import Data.Foldable (maximumBy, minimumBy)
+import Data.List (foldl1', genericIndex)
 import Data.Maybe (fromJust)
 
 
@@ -41,3 +42,24 @@ stanPred = pred
 
 stanToEnum :: Int -> Bool
 stanToEnum = toEnum
+
+stanMaximum :: [Int] -> Int
+stanMaximum = maximum
+
+stanMinimum :: Ord a => [a] -> a
+stanMinimum = minimum
+
+stanMaximumBy :: [Int] -> Int
+stanMaximumBy = maximumBy compare
+
+stanMinimumBy :: (a -> a -> Ordering) -> [a] -> a
+stanMinimumBy = minimumBy
+
+stanFoldl1 :: (a -> a -> a) -> [a] -> a
+stanFoldl1 = foldl1
+
+stanFoldl1' :: (a -> a -> a) -> [a] -> a
+stanFoldl1' = foldl1'
+
+stanFoldr1 :: (a -> a -> a) -> [a] -> a
+stanFoldr1 = foldr1

@@ -32,6 +32,20 @@ module Stan.Inspection.Partial
     , stan0011
       -- *** Partial 'GHC.Enum.toEnum'
     , stan0012
+      -- *** Partial 'Data.Foldable.maximum'
+    , stan0013
+      -- *** Partial 'Data.Foldable.minimum'
+    , stan0014
+      -- *** Partial 'Data.Foldable.maximumBy'
+    , stan0015
+      -- *** Partial 'Data.Foldable.minimumBy'
+    , stan0016
+      -- *** Partial 'Data.Foldable.foldl1'
+    , stan0017
+      -- *** Partial 'Data.Foldable.foldl1\''
+    , stan0018
+      -- *** Partial 'Data.Foldable.foldr1'
+    , stan0019
 
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
@@ -41,10 +55,11 @@ import Relude.Extra.Lens (set, (%~), (.~))
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
-import Stan.Hie.Match (Pattern (..))
+import Stan.Hie.Match (Pattern (..), listFunPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseListMeta, mkBaseMeta, mkBaseOldListMeta, moduleNameL)
+import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseMeta,
+                      mkBaseOldListMeta, moduleNameL)
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -65,23 +80,39 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
     , stan0010
     , stan0011
     , stan0012
+    , stan0013
+    , stan0014
+    , stan0015
+    , stan0016
+    , stan0017
+    , stan0018
+    , stan0019
     ]
 
--- | Smart constructor to create generic partial 'Inspection'.
-mkPartialInspection
+-- | Smart constructor to create generic partial 'Inspection' with a given 'Pattern'.
+mkPartialInspectionPattern
     :: Id Inspection
     -> NameMeta
+    -> Pattern
     -> Text  -- ^ Type name
     -> Inspection
-mkPartialInspection insId nameMeta@NameMeta{..} typeName = Inspection
+mkPartialInspectionPattern insId nameMeta@NameMeta{..} pat typeName = Inspection
     { inspectionId = insId
     , inspectionName = "Partial: " <> nameMetaPackage <> "/" <> nameMetaName
     , inspectionDescription = usage nameMetaName typeName
     , inspectionSolution = []
     , inspectionCategory = one Category.partial
     , inspectionSeverity = Warning
-    , inspectionAnalysis = FindName nameMeta PatternAnything
+    , inspectionAnalysis = FindName nameMeta pat
     }
+
+-- | Smart constructor to create generic partial 'Inspection' with 'PatternAnything'.
+mkPartialInspection
+    :: Id Inspection
+    -> NameMeta
+    -> Text  -- ^ Type name
+    -> Inspection
+mkPartialInspection insId nameMeta = mkPartialInspectionPattern insId nameMeta PatternAnything
 
 usage :: Text -> Text -> Text
 usage funName forWhat =
@@ -176,3 +207,40 @@ stan0011 = mkPartialInspectionEnum (Id "STAN-0011") "pred"
 -- | 'Inspection' for 'stan0012' — partial 'GHC.Enum.toEnum' @STAN-0012@.
 stan0012 :: Inspection
 stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" []
+
+-- | 'Inspection' for 'stan0013' — partial 'Data.Foldable.maximum' @STAN-0013@.
+stan0013 :: Inspection
+stan0013 = mkPartialInspectionPattern
+    (Id "STAN-0013") (mkBaseFoldableMeta "maximum") listFunPattern ""
+
+-- | 'Inspection' for 'stan0014' — partial 'Data.Foldable.minimum' @STAN-0014@.
+stan0014 :: Inspection
+stan0014 = mkPartialInspectionPattern
+    (Id "STAN-0014") (mkBaseFoldableMeta "minimum") listFunPattern ""
+
+orderingFunPattern :: Pattern
+orderingFunPattern = PatternFun PatternAnything listFunPattern
+
+-- | 'Inspection' for 'stan0015' — partial 'Data.Foldable.maximumBy' @STAN-0015@.
+stan0015 :: Inspection
+stan0015 = mkPartialInspectionPattern
+    (Id "STAN-0015") (mkBaseFoldableMeta "maximumBy") orderingFunPattern ""
+
+-- | 'Inspection' for 'stan0016' — partial 'Data.Foldable.minimumBy' @STAN-0016@.
+stan0016 :: Inspection
+stan0016 = mkPartialInspectionPattern
+    (Id "STAN-0016") (mkBaseFoldableMeta "minimumBy") orderingFunPattern ""
+
+-- | 'Inspection' for 'stan0017' — partial 'Data.Foldable.foldl1' @STAN-0017@.
+stan0017 :: Inspection
+stan0017 = mkPartialInspectionPattern
+    (Id "STAN-0017") (mkBaseFoldableMeta "foldl1") orderingFunPattern ""
+
+-- | 'Inspection' for 'stan0018' — partial 'Data.Foldable.foldl1\'' @STAN-0018@.
+stan0018 :: Inspection
+stan0018 = mkPartialInspectionList (Id "STAN-0018") (mkBaseListMeta "foldl1'")
+
+-- | 'Inspection' for 'stan0019' — partial 'Data.Foldable.foldr1' @STAN-0019@.
+stan0019 :: Inspection
+stan0019 = mkPartialInspectionPattern
+    (Id "STAN-0019") (mkBaseFoldableMeta "foldr1") orderingFunPattern ""

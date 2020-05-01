@@ -11,7 +11,7 @@ import qualified Stan.Inspection.Infinite as Infinite
 
 
 analysisInfiniteSpec :: Analysis -> Spec
-analysisInfiniteSpec analysis = describe "Partial functions" $ do
+analysisInfiniteSpec analysis = describe "Infinite functions" $ do
     let checkObservation = observationAssert
             "Target/Infinite.hs"
             "Target.Infinite"
