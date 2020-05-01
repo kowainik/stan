@@ -28,7 +28,7 @@ information from there.
 
 module Stan.Hie.Match
     ( Pattern (..)
-    , hieMatchType
+    , hieMatchPattern
 
       -- * Common 'Pattern's
     , patternList
@@ -66,15 +66,12 @@ data Pattern
 
 {- | Matching function that searches the array of types recursively.
 -}
-hieMatchType
+hieMatchPattern
     :: TypeIndex   -- ^ Index of the current expression type
     -> Pattern  -- ^ Our search query
     -> Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
-    -> Maybe HieTypeFlat  -- ^ Matched type, if it was found
-hieMatchType i pat arr =
-    if curFlat `satisfyPattern` pat
-    then Just curFlat
-    else Nothing
+    -> Bool  -- ^ If matched type is found
+hieMatchPattern i pat arr = curFlat `satisfyPattern` pat
   where
     curFlat :: HieTypeFlat
     curFlat = arr Arr.! i
@@ -89,12 +86,12 @@ hieMatchType i pat arr =
       =
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
-        && checkWith (\(_, ix) a -> isJust $ hieMatchType ix a arr) hieArgs args
+        && checkWith (\(_, ix) a -> hieMatchPattern ix a arr) hieArgs args
     satisfyPattern (HFunTy i1 i2) (PatternFun p1 p2) =
-           isJust (hieMatchType i1 p1 arr)
-        && isJust (hieMatchType i2 p2 arr)
-    satisfyPattern (HQualTy _ ix) p = isJust $ hieMatchType ix p arr
-    satisfyPattern (HForAllTy _ ix) p = isJust $ hieMatchType ix p arr
+           hieMatchPattern i1 p1 arr
+        && hieMatchPattern i2 p2 arr
+    satisfyPattern (HQualTy _ ix) p = hieMatchPattern ix p arr
+    satisfyPattern (HForAllTy _ ix) p = hieMatchPattern ix p arr
     satisfyPattern _flat _p = False
 
     checkWith :: (a -> b -> Bool) -> [a] -> [b] -> Bool

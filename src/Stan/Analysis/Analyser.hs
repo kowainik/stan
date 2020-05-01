@@ -17,7 +17,7 @@ import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
-import Stan.Hie.Match (Pattern (..), hieMatchType)
+import Stan.Hie.Match (Pattern (..), hieMatchPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta (..), compareNames)
 import Stan.Observation (Observations, mkObservation)
@@ -72,6 +72,6 @@ analyseNameMeta insId nameMeta pat hie@HieFile{..} =
 
         guard $ compareNames nameMeta name
 
-        guard $ any isJust $ map (\i -> hieMatchType i pat hie_types) typeIxs
+        guard $ any (\i -> hieMatchPattern i pat hie_types) typeIxs
 
         pure srcSpan
