@@ -41,6 +41,7 @@ import Relude.Extra.Lens (set, (%~), (.~))
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
+import Stan.Hie.Match (Pattern (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), mkBaseListMeta, mkBaseMeta, mkBaseOldListMeta, moduleNameL)
@@ -79,7 +80,7 @@ mkPartialInspection insId nameMeta@NameMeta{..} typeName = Inspection
     , inspectionSolution = []
     , inspectionCategory = one Category.partial
     , inspectionSeverity = Warning
-    , inspectionAnalysis = FindName nameMeta
+    , inspectionAnalysis = FindName nameMeta PatternAnything
     }
 
 usage :: Text -> Text -> Text

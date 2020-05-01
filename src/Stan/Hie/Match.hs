@@ -28,7 +28,11 @@ information from there.
 
 module Stan.Hie.Match
     ( Pattern (..)
-    , hieMatchType
+    , hieMatchPattern
+
+      -- * Common 'Pattern's
+    , listPattern
+    , listFunPattern
     ) where
 
 import BasicTypes (PromotionFlag (NotPromoted))
@@ -59,23 +63,25 @@ data Pattern
     | PatternFun Pattern Pattern
     -- | Type wildcard, matches anything.
     | PatternAnything
+    deriving stock (Show, Eq)
 
 {- | Matching function that searches the array of types recursively.
 -}
-hieMatchType
-    :: TypeIndex   -- ^ Index of the current expression type
+hieMatchPattern
+    :: Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
     -> Pattern  -- ^ Our search query
-    -> Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
-    -> Maybe HieTypeFlat  -- ^ Matched type, if it was found
-hieMatchType i pat arr =
-    if curFlat `satisfyPattern` pat
-    then Just curFlat
-    else Nothing
+    -> TypeIndex   -- ^ Index of the current expression type
+    -> Bool  -- ^ If matched type is found
+hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
   where
     curFlat :: HieTypeFlat
     curFlat = arr Arr.! i
 
+    match :: Pattern -> TypeIndex -> Bool
+    match = hieMatchPattern arr
+
     satisfyPattern :: HieTypeFlat -> Pattern -> Bool
+    satisfyPattern _ PatternAnything = True
     satisfyPattern (HTyVarTy name) (PatternName nameMeta []) =
         compareNames nameMeta name
     satisfyPattern
@@ -84,11 +90,12 @@ hieMatchType i pat arr =
       =
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
-        && checkWith (\(_, ix) a -> isJust $ hieMatchType ix a arr) hieArgs args
+        && checkWith (\(_, ix) a -> match a ix) hieArgs args
     satisfyPattern (HFunTy i1 i2) (PatternFun p1 p2) =
-           isJust (hieMatchType i1 p1 arr)
-        && isJust (hieMatchType i2 p2 arr)
-    satisfyPattern _ PatternAnything = True
+           match p1 i1
+        && match p2 i2
+    satisfyPattern (HQualTy _ ix) p = match p ix
+    satisfyPattern (HForAllTy _ ix) p = match p ix
     satisfyPattern _flat _p = False
 
     checkWith :: (a -> b -> Bool) -> [a] -> [b] -> Bool
@@ -96,3 +103,18 @@ hieMatchType i pat arr =
     checkWith _ [] _          = False
     checkWith _ _ []          = False
     checkWith f (a:as) (b:bs) = f a b && checkWith f as bs
+
+
+-- | 'Pattern' for list @[a]@.
+listPattern :: Pattern
+listPattern = PatternName
+    ( NameMeta
+        { nameMetaName       = "[]"
+        , nameMetaModuleName = "GHC.Types"
+        , nameMetaPackage    = "ghc-prim"
+        }
+    )
+    [PatternAnything]
+
+listFunPattern :: Pattern
+listFunPattern = PatternFun listPattern PatternAnything
