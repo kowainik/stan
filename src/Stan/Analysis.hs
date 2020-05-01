@@ -11,12 +11,14 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
-import Extensions (ExtensionsResult)
-import Extensions.OnOff (OnOffExtension)
+import Extensions (ExtensionsError (ModuleParseError, NotCabalModule), ExtensionsResult)
+import Extensions.OnOff (OnOffExtension, mergeExtensions)
+import Extensions.Parser (parseSourceWithPath)
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Analysis.Analyser (analysisByInspection)
+import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
 import Stan.Inspection.All (inspections)
 import Stan.Observation (Observations)
@@ -33,6 +35,7 @@ data Analysis = Analysis
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !(Set OnOffExtension)
     , analysisObservations   :: !Observations
+    , analysisFileMap        :: !FileMap
     } deriving stock (Show)
 
 modulesNumL :: Lens' Analysis Int
@@ -55,12 +58,18 @@ observationsL = lens
     analysisObservations
     (\analysis new -> analysis { analysisObservations = new })
 
+fileMapL :: Lens' Analysis FileMap
+fileMapL = lens
+    analysisFileMap
+    (\analysis new -> analysis { analysisFileMap = new })
+
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
     , analysisUsedExtensions = mempty
     , analysisObservations   = mempty
+    , analysisFileMap        = mempty
     }
 
 incModulesNum :: State Analysis ()
@@ -76,24 +85,46 @@ incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 addObservations :: Observations -> State Analysis ()
 addObservations observations = modify' $ over observationsL (observations <>)
 
-addExtensions :: ExtensionsResult -> State Analysis ()
-addExtensions = \case
-    Right setExtensions -> modify' $ over extensionsL (Set.union setExtensions)
-    Left _err -> pass
+-- | Collect all ubique used extensions.
+addExtensions :: Set OnOffExtension -> State Analysis ()
+addExtensions = modify' . over extensionsL . Set.union
+
+-- | Update 'FileInfo' for the given 'FilePath'.
+updateFileMap :: FilePath -> FileInfo -> State Analysis ()
+updateFileMap fp fi = modify' $ over fileMapL (Map.insert fp fi)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
 runAnalysis :: Map FilePath ExtensionsResult -> [HieFile] -> Analysis
-runAnalysis extensionsMap = executingState initialAnalysis . analyse extensionsMap
+runAnalysis cabalExtensionsMap = executingState initialAnalysis . analyse cabalExtensionsMap
 
 analyse :: Map FilePath ExtensionsResult -> [HieFile] -> State Analysis ()
 analyse _extsMap [] = pass
-analyse extsMap (hieFile:hieFiles) = do
+analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
-    incModulesNum
-    incLinesOfCode $ countLinesOfCode hieFile
-    addObservations $ S.concatMap (`analysisByInspection` hieFile) inspections
-    -- Add found extensions
-    whenJust (Map.lookup (hie_hs_file hieFile) extsMap) addExtensions
+    let fileInfoLoc = countLinesOfCode hieFile
+    let fileInfoCabalExtensions = fromMaybe
+            (Left $ NotCabalModule hie_hs_file)
+            (Map.lookup hie_hs_file cabalExtensions)
+    let fileInfoExtensions = bimap
+            (ModuleParseError hie_hs_file)
+            Set.fromList
+            (parseSourceWithPath hie_hs_file hie_hs_src)
+    let fileInfoPath = hie_hs_file
+    -- merge cabal and module extensions and update overall exts
+    let fileMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
+    let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) inspections
 
-    analyse extsMap hieFiles
+    incModulesNum
+    incLinesOfCode fileInfoLoc
+    updateFileMap hie_hs_file FileInfo{..}
+    addExtensions fileMergedExtensions
+    addObservations fileInfoObservations
+
+    analyse cabalExtensions hieFiles
+  where
+    merge :: ExtensionsResult -> ExtensionsResult -> Set OnOffExtension
+    merge (Left _) (Left _)           = mempty
+    merge (Left _) (Right exts)       = exts
+    merge (Right exts) (Left _)       = exts
+    merge (Right exts1) (Right exts2) = mergeExtensions $ toList exts1 <> toList exts2
