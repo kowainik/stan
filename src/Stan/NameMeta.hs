@@ -11,8 +11,12 @@ module Stan.NameMeta
       -- * Lenses
     , moduleNameL
 
+      -- * Pretty show
+    , prettyShowNameMeta
+
       -- * Comparison with 'Name'
     , compareNames
+
       -- * Smart constructors
     , mkBaseMeta
     , mkBaseListMeta
@@ -25,7 +29,9 @@ import Name (Name, nameModule, nameOccName)
 import OccName (occNameString)
 import Relude.Extra.Lens (Lens', lens, set)
 
-import Stan.Core.ModuleName (ModuleName, fromGhcModule)
+import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
+
+import qualified Data.Text as T
 
 
 -- | Meta information about function/type.
@@ -35,6 +41,13 @@ data NameMeta = NameMeta
     , nameMetaName       :: !Text
     } deriving stock (Show, Eq)
 
+-- | Pretty show 'NameMeta' in the following format: @package\/module\/name@.
+prettyShowNameMeta :: NameMeta -> Text
+prettyShowNameMeta NameMeta{..} = T.intercalate "/"
+    [ nameMetaPackage
+    , unModuleName nameMetaModuleName
+    , nameMetaName
+    ]
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 unknown module.

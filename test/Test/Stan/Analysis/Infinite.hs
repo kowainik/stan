@@ -2,29 +2,32 @@ module Test.Stan.Analysis.Infinite
     ( analysisInfiniteSpec
     ) where
 
-import Test.Hspec (Spec, describe, it)
+import Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it)
 
 import Stan.Analysis (Analysis)
-import Test.Stan.Analysis.Common (observationAssert)
+import Stan.Inspection (Inspection (..), sortById)
+import Stan.Inspection.Infinite (infiniteInspectionsMap)
+import Stan.NameMeta (NameMeta (..))
+import Test.Stan.Analysis.Common (itShouldStr, observationAssert, unsafeNameMeta)
 
-import qualified Stan.Inspection.Infinite as Infinite
+import qualified Data.Text as T
 
 
 analysisInfiniteSpec :: Analysis -> Spec
-analysisInfiniteSpec analysis = describe "Infinite functions" $ do
-    let checkObservation = observationAssert
-            "Target/Infinite.hs"
-            "Target.Infinite"
+analysisInfiniteSpec analysis = describe "Infinite functions" $
+    forM_ (zip (sortById infiniteInspectionsMap) [9, 12 ..]) checkObservation
+  where
+    checkObservation :: (Inspection, Int) -> SpecWith (Arg Expectation)
+    checkObservation (ins@Inspection{..}, line) = it (itShouldStr ins) $
+        observationAssert "Target/Infinite.hs" "Target.Infinite"
+            analysis
+            ins
+            line start end
+      where
+        nameMeta :: NameMeta
+        nameMeta = unsafeNameMeta inspectionAnalysis
 
-    it "STAN-0101: finds usage of 'base/reverse'" $
-        checkObservation analysis Infinite.stan0101 9 15 22
-    it "STAN-0102: finds usage of 'base/isSuffixOf'" $
-        checkObservation analysis Infinite.stan0102 12 18 28
-    it "STAN-0103: finds usage of 'base/length'" $
-        checkObservation analysis Infinite.stan0103 15 14 20
-    it "STAN-0104: finds usage of 'base/genericLength'" $
-        checkObservation analysis Infinite.stan0104 18 21 34
-    it "STAN-0105: finds usage of 'base/sum'" $
-        checkObservation analysis Infinite.stan0105 21 11 14
-    it "STAN-0106: finds usage of 'base/product'" $
-        checkObservation analysis Infinite.stan0106 24 15 22
+        funLen, start, end :: Int
+        funLen = T.length $ nameMetaName nameMeta
+        start  = funLen + 8
+        end    = start + funLen

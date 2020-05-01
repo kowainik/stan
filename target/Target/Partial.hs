@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
+
 module Target.Partial where
 
 import Data.Foldable (maximumBy, minimumBy)
@@ -7,6 +8,8 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (fromJust)
 import GHC.Exts (fromList)
 import Numeric.Natural (Natural)
+
+
 stanHead :: [a] -> a
 stanHead = head
 

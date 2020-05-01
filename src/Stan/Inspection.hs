@@ -17,6 +17,8 @@ module Stan.Inspection
     , InspectionAnalysis (..)
     , InspectionsMap
 
+      -- * Sorting
+    , sortById
       -- * Pretty print
     , prettyShowInspection
     , prettyShowInspectionShort
@@ -32,6 +34,7 @@ import Stan.Severity (Severity, prettyShowSeverity)
 
 import Colourista (blue, bold, formatWith, green, italic)
 
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 
 
@@ -67,6 +70,10 @@ categoryL = lens
 corresponding 'Inspection's.
 -}
 type InspectionsMap = HashMap (Id Inspection) Inspection
+
+-- | Sort 'Inspection' by 'Id'
+sortById :: InspectionsMap -> [Inspection]
+sortById = sortWith inspectionId . HM.elems
 
 {- | Data type that represents all possible types of @stan@
 inspections in a uniformed way.
