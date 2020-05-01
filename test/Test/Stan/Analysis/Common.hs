@@ -1,5 +1,7 @@
 module Test.Stan.Analysis.Common
     ( observationAssert
+    , itShouldStr
+    , unsafeNameMeta
     ) where
 
 import FastString (FastString, mkFastString)
@@ -10,7 +12,8 @@ import Test.Hspec (Expectation, shouldBe)
 import Stan.Analysis (Analysis (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName)
-import Stan.Inspection (Inspection (..))
+import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
+import Stan.NameMeta (NameMeta, prettyShowNameMeta)
 import Stan.Observation (Observation (..), mkObservationId)
 
 import qualified Data.Text as Text
@@ -60,3 +63,14 @@ observationAssert modulePath moduleName analysis Inspection{..} line start end =
 
     pathFS :: FastString
     pathFS = mkFastString path
+
+-- | Generates text to be used in tests names.
+itShouldStr :: Inspection -> String
+itShouldStr Inspection{..} = toString $ unId inspectionId
+    <> ": finds usage of '"
+    <> prettyShowNameMeta (unsafeNameMeta inspectionAnalysis)
+    <> "'"
+
+unsafeNameMeta :: InspectionAnalysis -> NameMeta
+unsafeNameMeta (FindName nm _) = nm
+unsafeNameMeta _               = error "Impossible happened in tests"
