@@ -113,12 +113,13 @@ analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     let fileInfoPath = hie_hs_file
     -- merge cabal and module extensions and update overall exts
     let fileMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
+    let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) inspections
 
     incModulesNum
     incLinesOfCode fileInfoLoc
     updateFileMap hie_hs_file FileInfo{..}
     addExtensions fileMergedExtensions
-    addObservations $ S.concatMap (`analysisByInspection` hieFile) inspections
+    addObservations fileInfoObservations
 
     analyse cabalExtensions hieFiles
   where

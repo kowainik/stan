@@ -14,6 +14,8 @@ module Stan.FileInfo
 import Extensions (ExtensionsResult)
 import Extensions.OnOff (OnOffExtension)
 
+import Stan.Observation (Observations)
+
 
 -- | File specific information.
 data FileInfo = FileInfo
@@ -22,6 +24,7 @@ data FileInfo = FileInfo
     , fileInfoCabalExtensions :: !ExtensionsResult
     , fileInfoExtensions      :: !ExtensionsResult
     , fileMergedExtensions    :: !(Set OnOffExtension)
+    , fileInfoObservations    :: !Observations
     } deriving stock (Show, Eq)
 
 type FileMap = Map FilePath FileInfo
