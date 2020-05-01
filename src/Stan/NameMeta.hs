@@ -8,6 +8,7 @@ Data types and functions for working with meta information.
 
 module Stan.NameMeta
     ( NameMeta (..)
+      -- * Lenses
     , moduleNameL
 
       -- * Comparison with 'Name'

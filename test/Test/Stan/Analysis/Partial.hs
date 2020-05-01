@@ -48,9 +48,13 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         checkObservation analysis Partial.stan0015 53 17 26
     it "STAN-0016: finds usage of 'base/minimumBy'" $
         checkObservation analysis Partial.stan0016 56 17 26
-    it "STAN-0017: finds usage of 'base/foldl1'" $
+    it "STAN-0017: finds usage of 'base/foldl1" $
         checkObservation analysis Partial.stan0017 59 14 20
     it "STAN-0018: finds usage of 'base/foldl1'" $
         checkObservation analysis Partial.stan0018 62 15 22
-    it "STAN-0019: finds usage of 'base/foldr1'" $
+    it "STAN-0019: finds usage of 'base/foldr1" $
         checkObservation analysis Partial.stan0019 65 14 20
+    it "STAN-0020: finds usage of 'base/fromList" $
+        checkObservation analysis Partial.stan0020 68 16 24
+    it "STAN-0021: finds usage of 'base/fromInteger" $
+        checkObservation analysis Partial.stan0021 71 19 30
