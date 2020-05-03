@@ -68,6 +68,8 @@ data Pattern
     | PatternFun Pattern Pattern
     -- | Type wildcard, matches anything.
     | PatternAnything
+    -- | Choice between patterns. Should match either of them.
+    | PatternOr Pattern Pattern
     deriving stock (Show, Eq)
 
 {- | Matching function that searches the array of types recursively.
@@ -87,6 +89,9 @@ hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
 
     satisfyPattern :: HieTypeFlat -> Pattern -> Bool
     satisfyPattern _ PatternAnything = True
+    satisfyPattern t (PatternOr p1 p2) =
+           satisfyPattern t p1
+        || satisfyPattern t p2
     satisfyPattern (HTyVarTy name) (PatternName nameMeta []) =
         compareNames nameMeta name
     satisfyPattern
@@ -110,31 +115,37 @@ hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
     checkWith f (a:as) (b:bs) = f a b && checkWith f as bs
 
 
--- | 'Pattern' for list @[a]@.
+-- | 'Pattern' for list @[a]@ or @'String'@.
 listPattern :: Pattern
-listPattern = PatternName
-    ( NameMeta
-        { nameMetaName       = "[]"
-        , nameMetaModuleName = "GHC.Types"
-        , nameMetaPackage    = "ghc-prim"
-        }
+listPattern = PatternOr
+    (PatternName
+        (NameMeta
+            { nameMetaName       = "[]"
+            , nameMetaModuleName = "GHC.Types"
+            , nameMetaPackage    = "ghc-prim"
+            }
+        )
+        [PatternAnything]
     )
-    [PatternAnything]
+    (PatternName
+        (mkBaseMeta "String" & moduleNameL .~ "GHC.Base")
+        []
+    )
 
 -- | 'Pattern' for 'NonEmpty'.
 nonEmptyPattern :: Pattern
 nonEmptyPattern = PatternName
-    ( mkBaseMeta "NonEmpty" & moduleNameL .~ "GHC.Base")
+    (mkBaseMeta "NonEmpty" & moduleNameL .~ "GHC.Base")
     [PatternAnything]
 
--- | 'Pattern' for @[a] -> _@
+-- | 'Pattern' for @[a] -> _@ or @String -> _@.
 listFunPattern :: Pattern
 listFunPattern = PatternFun listPattern PatternAnything
 
 -- | 'Pattern' for 'Integer'.
 integerPattern :: Pattern
 integerPattern = PatternName
-    ( NameMeta
+    (NameMeta
         { nameMetaName       = "Integer"
         , nameMetaModuleName = "GHC.Integer.Type"
         , nameMetaPackage    = "integer-wired-in"
@@ -145,5 +156,5 @@ integerPattern = PatternName
 -- | 'Pattern' for 'Natural'.
 naturalPattern :: Pattern
 naturalPattern = PatternName
-    ( mkBaseMeta "Natural" & moduleNameL .~ "GHC.Natural")
+    (mkBaseMeta "Natural" & moduleNameL .~ "GHC.Natural")
     []

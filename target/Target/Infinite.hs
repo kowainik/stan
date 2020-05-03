@@ -11,7 +11,7 @@ stanReverse = reverse
 stanIsSuffixOf :: String -> Bool
 stanIsSuffixOf = isSuffixOf "stan"
 
-stanLength :: [a] -> Int
+stanLength :: String -> Int
 stanLength = length
 
 stanGenericLength :: String -> Int
