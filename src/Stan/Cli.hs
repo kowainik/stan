@@ -28,6 +28,7 @@ import Options.Applicative.Help.Chunk (stringChunk)
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
+import Stan.Report (ReportSettings (..))
 
 import qualified Paths_stan as Meta (version)
 
@@ -41,7 +42,7 @@ data StanCommand
 data StanArgs = StanArgs
     { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath  :: !(Maybe FilePath)  -- ^ Path to @.cabal@ file.
-    , stanArgsToggleSolution :: !ToggleSolution  -- ^ Hide 'inspectionSolution'.
+    , stanArgsReportSettings :: !ReportSettings  -- ^ Settings for report
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -77,7 +78,7 @@ stanP :: Parser StanCommand
 stanP = do
     stanArgsHiedir <- hiedirP
     stanArgsCabalFilePath <- cabalFilePathP
-    stanArgsToggleSolution <- toggleSolutionP
+    stanArgsReportSettings <- reportSettingsP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -106,6 +107,11 @@ cabalFilePathP = optional $ strOption $ mconcat
     , metavar "FILE_PATH"
     , help "Relative path to the .cabal file"
     ]
+
+reportSettingsP :: Parser ReportSettings
+reportSettingsP = do
+    reportSettingsSolutionVerbosity <- toggleSolutionP
+    pure ReportSettings{..}
 
 -- | The solution is shown by default and gets hidden when option is specified.
 toggleSolutionP :: Parser ToggleSolution

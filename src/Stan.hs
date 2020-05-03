@@ -46,7 +46,7 @@ runStan StanArgs{..} = do
     cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
 
     let analysis = runAnalysis cabalExtensionsMap hieFiles
-    putTextLn $ prettyShowAnalysis analysis stanArgsToggleSolution
+    putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 
 runInspection :: InspectionArgs -> IO ()

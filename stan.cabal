@@ -92,6 +92,7 @@ library
                            Stan.Inspection.Partial
                          Stan.NameMeta
                          Stan.Observation
+                         Stan.Report
                          Stan.Severity
 
   autogen-modules:     Paths_stan
