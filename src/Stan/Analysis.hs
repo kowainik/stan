@@ -66,7 +66,7 @@ initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
-    , analysisUsedExtensions = (mempty, mempty)
+    , analysisUsedExtensions = mempty
     , analysisObservations   = mempty
     , analysisFileMap        = mempty
     }
