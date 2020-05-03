@@ -26,13 +26,14 @@ module Stan.Inspection
 
 import Relude.Extra.Lens (Lens', lens)
 
+import Colourista (blue, bold, formatWith, green)
+import Colourista.Short (b, i)
+
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Hie.Match (Pattern)
 import Stan.NameMeta (NameMeta)
 import Stan.Severity (Severity, prettyShowSeverity)
-
-import Colourista (blue, bold, formatWith, green, italic)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
@@ -98,14 +99,10 @@ prettyShowInspection Inspection{..} = unlines $
     , ""
     ,  formatWith [green] "Possible solutions:"
     ] <> map ("  - " <>) inspectionSolution
-  where
-    i, b :: Text -> Text
-    i = formatWith [italic]
-    b = formatWith [bold]
 
 -- | Show the short view of a given 'Inspection'.
 prettyShowInspectionShort :: Inspection -> Text
 prettyShowInspectionShort Inspection{..} =
     " ❋ "
     <> formatWith [bold, blue] ("[" <> unId inspectionId <> "] ")
-    <> formatWith [italic] inspectionName
+    <> i inspectionName

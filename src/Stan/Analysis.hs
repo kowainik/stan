@@ -11,9 +11,8 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
-import Extensions (ExtensionsError (ModuleParseError, NotCabalModule), ExtensionsResult)
-import Extensions.OnOff (OnOffExtension, mergeExtensions)
-import Extensions.Parser (parseSourceWithPath)
+import Extensions (ExtensionsError (..), ExtensionsResult, OnOffExtension, ParsedExtensions (..),
+                   SafeHaskellExtension, mergeAnyExtensions, parseSourceWithPath)
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
@@ -33,7 +32,7 @@ import qualified Slist as S
 data Analysis = Analysis
     { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
-    , analysisUsedExtensions :: !(Set OnOffExtension)
+    , analysisUsedExtensions :: !(Set OnOffExtension, Set SafeHaskellExtension)
     , analysisObservations   :: !Observations
     , analysisFileMap        :: !FileMap
     } deriving stock (Show)
@@ -48,7 +47,7 @@ linesOfCodeL = lens
     analysisLinesOfCode
     (\analysis new -> analysis { analysisLinesOfCode = new })
 
-extensionsL :: Lens' Analysis (Set OnOffExtension)
+extensionsL :: Lens' Analysis (Set OnOffExtension, Set SafeHaskellExtension)
 extensionsL = lens
     analysisUsedExtensions
     (\analysis new -> analysis { analysisUsedExtensions = new })
@@ -67,7 +66,7 @@ initialAnalysis :: Analysis
 initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
-    , analysisUsedExtensions = mempty
+    , analysisUsedExtensions = (mempty, mempty)
     , analysisObservations   = mempty
     , analysisFileMap        = mempty
     }
@@ -85,9 +84,14 @@ incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
 addObservations :: Observations -> State Analysis ()
 addObservations observations = modify' $ over observationsL (observations <>)
 
--- | Collect all ubique used extensions.
-addExtensions :: Set OnOffExtension -> State Analysis ()
-addExtensions = modify' . over extensionsL . Set.union
+-- | Collect all unique used extensions.
+addExtensions :: ParsedExtensions -> State Analysis ()
+addExtensions ParsedExtensions{..} = modify' $ over extensionsL
+    (\(setExts, setSafeExts) ->
+        ( Set.union (Set.fromList parsedExtensionsAll) setExts
+        , maybe setSafeExts (`Set.insert` setSafeExts) parsedExtensionsSafe
+        )
+    )
 
 -- | Update 'FileInfo' for the given 'FilePath'.
 updateFileMap :: FilePath -> FileInfo -> State Analysis ()
@@ -95,10 +99,13 @@ updateFileMap fp fi = modify' $ over fileMapL (Map.insert fp fi)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
-runAnalysis :: Map FilePath ExtensionsResult -> [HieFile] -> Analysis
+runAnalysis :: Map FilePath (Either ExtensionsError ParsedExtensions) -> [HieFile] -> Analysis
 runAnalysis cabalExtensionsMap = executingState initialAnalysis . analyse cabalExtensionsMap
 
-analyse :: Map FilePath ExtensionsResult -> [HieFile] -> State Analysis ()
+analyse
+    :: Map FilePath (Either ExtensionsError ParsedExtensions)
+    -> [HieFile]
+    -> State Analysis ()
 analyse _extsMap [] = pass
 analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     -- traceM (hie_hs_file hieFile)
@@ -106,25 +113,26 @@ analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     let fileInfoCabalExtensions = fromMaybe
             (Left $ NotCabalModule hie_hs_file)
             (Map.lookup hie_hs_file cabalExtensions)
-    let fileInfoExtensions = bimap
-            (ModuleParseError hie_hs_file)
-            Set.fromList
-            (parseSourceWithPath hie_hs_file hie_hs_src)
+    let fileInfoExtensions = first (ModuleParseError hie_hs_file) $
+            parseSourceWithPath hie_hs_file hie_hs_src
     let fileInfoPath = hie_hs_file
     -- merge cabal and module extensions and update overall exts
-    let fileMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
+    let fileInfoMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
     let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) inspections
 
     incModulesNum
     incLinesOfCode fileInfoLoc
     updateFileMap hie_hs_file FileInfo{..}
-    addExtensions fileMergedExtensions
+    whenRight_ fileInfoExtensions addExtensions
+    whenRight_ fileInfoCabalExtensions addExtensions
     addObservations fileInfoObservations
 
     analyse cabalExtensions hieFiles
   where
-    merge :: ExtensionsResult -> ExtensionsResult -> Set OnOffExtension
-    merge (Left _) (Left _)           = mempty
-    merge (Left _) (Right exts)       = exts
-    merge (Right exts) (Left _)       = exts
-    merge (Right exts1) (Right exts2) = mergeExtensions $ toList exts1 <> toList exts2
+    merge
+        :: (Either ExtensionsError ParsedExtensions)
+        -> (Either ExtensionsError ParsedExtensions)
+        -> ExtensionsResult
+    merge (Left err) _                = Left err
+    merge _ (Left err)                = Left err
+    merge (Right exts1) (Right exts2) = mergeAnyExtensions exts1 exts2
