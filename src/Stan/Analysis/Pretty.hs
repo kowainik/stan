@@ -15,9 +15,9 @@ import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
-import Stan.Core.Toggle (ToggleSolution)
 import Stan.Inspection.All (inspectionsMap)
 import Stan.Observation (Observation (..), Observations, prettyShowObservation)
+import Stan.Report (ReportSettings)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Set as Set
@@ -28,13 +28,13 @@ import qualified Slist as S
 {- | Shows analysed output of Stan work.
 This functions groups 'Observation's by 'FilePath' they are found in.
 -}
-prettyShowAnalysis :: Analysis -> ToggleSolution -> Text
-prettyShowAnalysis Analysis{..} toggleSolution = groupedObservations <> summary
+prettyShowAnalysis :: Analysis -> ReportSettings -> Text
+prettyShowAnalysis Analysis{..} reportSettings = groupedObservations <> summary
   where
     groupedObservations :: Text
     groupedObservations =
         Text.intercalate "\n\n"
-        $ map (showByFile toggleSolution)
+        $ map (showByFile reportSettings)
         $ toPairs
         $ groupObservationsByFile analysisObservations
 
@@ -70,8 +70,8 @@ prettyShowAnalysis Analysis{..} toggleSolution = groupedObservations <> summary
         mid = separator "┣" "╋" "┫"
         bot = separator "┗" "┻" "┛"
 
-showByFile :: ToggleSolution -> (FilePath, Observations) -> Text
-showByFile toggleSolution (file, obs) = unlines
+showByFile :: ReportSettings -> (FilePath, Observations) -> Text
+showByFile reportSettings (file, obs) = unlines
     [ i "  File:         " <> b (toText file)
     , i "  Module:       " <> b (maybe "" (unModuleName . observationModuleName) $ S.safeHead obs)
     , i "  Observations: " <> b (show $ length obs)
@@ -79,7 +79,7 @@ showByFile toggleSolution (file, obs) = unlines
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
-        (toList $ prettyShowObservation toggleSolution <$> S.sortOn observationLoc obs)
+        (toList $ prettyShowObservation reportSettings <$> S.sortOn observationLoc obs)
 
 -- | Groups 'Observation's by the filepath.
 groupObservationsByFile

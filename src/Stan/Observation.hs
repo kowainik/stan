@@ -27,10 +27,11 @@ import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
-import Stan.Core.Toggle (ToggleSolution, isHidden)
+import Stan.Core.Toggle (isHidden)
 import Stan.Hie.Debug ()
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
+import Stan.Report (ReportSettings (..))
 import Stan.Severity (prettyShowSeverity, severityColour)
 
 import qualified Crypto.Hash.SHA1 as SHA1
@@ -73,8 +74,8 @@ mkObservation insId HieFile{..} srcSpan = Observation
     moduleName = fromGhcModule hie_module
 
 -- | Show 'Observation' in a human-friendly format.
-prettyShowObservation :: ToggleSolution -> Observation -> Text
-prettyShowObservation toggleSolution Observation{..} = unlines $
+prettyShowObservation :: ReportSettings -> Observation -> Text
+prettyShowObservation ReportSettings{..} Observation{..} = unlines $
     map (" ┃  " <>)
         $  observationTable
         <> ("" : source)
@@ -131,7 +132,7 @@ prettyShowObservation toggleSolution Observation{..} = unlines $
 
     solution :: [Text]
     solution
-        | isHidden toggleSolution || null sols = []
+        | isHidden reportSettingsSolutionVerbosity || null sols = []
         | otherwise = "💡 " <> formatWith [italic, green] "Possible solution:" :
             map ("    ⍟ " <>) sols
       where
