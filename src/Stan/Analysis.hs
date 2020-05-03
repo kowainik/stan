@@ -130,8 +130,8 @@ analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     analyse cabalExtensions hieFiles
   where
     merge
-        :: (Either ExtensionsError ParsedExtensions)
-        -> (Either ExtensionsError ParsedExtensions)
+        :: Either ExtensionsError ParsedExtensions
+        -> Either ExtensionsError ParsedExtensions
         -> ExtensionsResult
     merge (Left err) _                = Left err
     merge _ (Left err)                = Left err
