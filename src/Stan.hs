@@ -8,14 +8,16 @@ Main running module.
 
 module Stan
     ( run
+
+      -- ** Internal
+    , createCabalExtensionsMap
     ) where
 
 import Relude.Extra.Tuple (mapToSnd)
 
 import Colourista (errorMessage, formatWith, infoMessage, italic, warningMessage)
 import Control.Exception (catch)
-import Extensions (ExtensionsError (CabalParseError), ExtensionsResult)
-import Extensions.Cabal (CabalException, parseCabalFileExtensions)
+import Extensions (CabalException, ExtensionsError (..), ParsedExtensions, parseCabalFileExtensions)
 import HieTypes (HieFile (..))
 import System.Directory (doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
@@ -30,7 +32,6 @@ import Stan.Inspection.All (inspections, lookupInspectionById)
 -- import Stan.Hie.Debug (debugHieFile)
 
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 
 
 run :: IO ()
@@ -61,7 +62,10 @@ runInspection InspectionArgs{..} = case inspectionArgsId of
 {- | From a given path to cabal file and 'HieFile's create the map from modules
 (that are in .cabal file) to the resulting parsed extensions for each.
 -}
-createCabalExtensionsMap :: Maybe FilePath -> [HieFile] -> IO (Map FilePath ExtensionsResult)
+createCabalExtensionsMap
+    :: Maybe FilePath
+    -> [HieFile]
+    -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
 createCabalExtensionsMap cabalPath hies = case cabalPath of
     -- if cabal file specified via CLI option
     Just cabal ->
@@ -77,17 +81,21 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
             infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
             pure mempty
   where
-    getExtensionsWithCabal :: FilePath -> IO (Map FilePath ExtensionsResult)
+    getExtensionsWithCabal
+        :: FilePath
+        -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
     getExtensionsWithCabal cabal = do
         infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
-        (Right . Set.fromList <<$>> parseCabalFileExtensions cabal)
+        (Right <<$>> parseCabalFileExtensions cabal)
             `catch` handleCabalErr
       where
-        handleCabalErr :: CabalException -> IO (Map FilePath ExtensionsResult)
-        handleCabalErr _ = do
+        handleCabalErr
+            :: CabalException
+            -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
+        handleCabalErr err = do
             errorMessage "Error when parsing cabal file. Stan will continue without information from .cabal file"
             pure $ Map.fromList $
-                map (mapToSnd (const $ Left CabalParseError) . hie_hs_file) hies
+                map (mapToSnd (const $ Left $ CabalError err) . hie_hs_file) hies
 
 -- | Find a @.cabal@ file in the current directory.
 -- TODO: better error handling in stan.

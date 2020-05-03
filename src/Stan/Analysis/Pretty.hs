@@ -10,7 +10,7 @@ module Stan.Analysis.Pretty
     ( prettyShowAnalysis
     ) where
 
-import Colourista (bold, formatWith, italic)
+import Colourista.Short (b, i)
 import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
@@ -41,13 +41,15 @@ prettyShowAnalysis Analysis{..} toggleSolution = groupedObservations <> summary
     summary :: Text
     summary = unlines
         [ ""
-        , formatWith [bold] "           Stan's Summary:"
+        , b "           Stan's Summary:"
         , top
         , alignText "Analysed modules" <> alignNum analysisModulesNum
         , mid
         , alignText "Analysed Lines of Code" <> alignNum analysisLinesOfCode
         , mid
-        , alignText "Total extensions" <> alignNum (Set.size analysisUsedExtensions)
+        , alignText "Total Haskel2010 extensions" <> alignNum (Set.size $ fst analysisUsedExtensions)
+        , mid
+        , alignText "Total SafeHaskel extensions" <> alignNum (Set.size $ snd analysisUsedExtensions)
         , mid
         , alignText "Total checked inspections" <> alignNum (HM.size inspectionsMap)
         , mid
@@ -78,10 +80,6 @@ showByFile toggleSolution (file, obs) = unlines
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
         (toList $ prettyShowObservation toggleSolution <$> S.sortOn observationLoc obs)
-  where
-    i, b :: Text -> Text
-    i = formatWith [italic]
-    b = formatWith [bold]
 
 -- | Groups 'Observation's by the filepath.
 groupObservationsByFile

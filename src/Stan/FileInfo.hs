@@ -11,20 +11,19 @@ module Stan.FileInfo
     , FileInfo (..)
     ) where
 
-import Extensions (ExtensionsResult)
-import Extensions.OnOff (OnOffExtension)
+import Extensions (ExtensionsError, ExtensionsResult, ParsedExtensions)
 
 import Stan.Observation (Observations)
 
 
 -- | File specific information.
 data FileInfo = FileInfo
-    { fileInfoPath            :: !FilePath
-    , fileInfoLoc             :: !Int
-    , fileInfoCabalExtensions :: !ExtensionsResult
-    , fileInfoExtensions      :: !ExtensionsResult
-    , fileMergedExtensions    :: !(Set OnOffExtension)
-    , fileInfoObservations    :: !Observations
+    { fileInfoPath             :: !FilePath
+    , fileInfoLoc              :: !Int
+    , fileInfoCabalExtensions  :: !(Either ExtensionsError ParsedExtensions)
+    , fileInfoExtensions       :: !(Either ExtensionsError ParsedExtensions)
+    , fileInfoMergedExtensions :: !ExtensionsResult
+    , fileInfoObservations     :: !Observations
     } deriving stock (Show, Eq)
 
 type FileMap = Map FilePath FileInfo
