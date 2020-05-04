@@ -17,10 +17,11 @@ import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
-import Stan.Hie.Match (Pattern (..), hieMatchPattern)
+import Stan.Hie.Match (hieMatchPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta (..), compareNames)
 import Stan.Observation (Observations, mkObservation)
+import Stan.Pattern (Pattern (..))
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set

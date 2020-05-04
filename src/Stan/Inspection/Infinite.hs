@@ -28,9 +28,9 @@ module Stan.Inspection.Infinite
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
-import Stan.Hie.Match (Pattern (..), listFunPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta)
+import Stan.Pattern (Pattern (..), listFunPattern)
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
