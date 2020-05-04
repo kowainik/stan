@@ -55,14 +55,14 @@ module Stan.Inspection.Partial
     , partialInspectionsMap
     ) where
 
-import Relude.Extra.Lens (set, (%~), (.~))
+import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseMeta,
-                      mkBaseOldListMeta, moduleNameL)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
+                      mkBaseOldListMeta)
 import Stan.Pattern (Pattern (..), integerPattern, listFunPattern, listPattern, naturalPattern,
                      nonEmptyPattern, (?), (|->))
 import Stan.Severity (Severity (..))
@@ -145,7 +145,7 @@ mkPartialInspectionEnum insId funName solution = mkPartialInspection insId enumM
     & solutionL .~ solution
   where
     enumMeta :: NameMeta
-    enumMeta = set moduleNameL "GHC.Enum" $ mkBaseMeta funName
+    enumMeta = funName `baseNameFrom` "GHC.Enum"
 
 -- | 'Inspection' — partial 'GHC.List.head' @STAN-0001@.
 stan0001 :: Inspection
@@ -186,7 +186,7 @@ stan0008 = mkPartialInspection (Id "STAN-0008") fromJustNameMeta "'Maybe'"
         ]
   where
     fromJustNameMeta :: NameMeta
-    fromJustNameMeta = set moduleNameL "Data.Maybe" $ mkBaseMeta "fromJust"
+    fromJustNameMeta = "fromJust" `baseNameFrom` "Data.Maybe"
 
 -- | 'Inspection' — partial 'Text.Read.read' @STAN-0009@.
 stan0009 :: Inspection
@@ -197,7 +197,7 @@ stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
         ]
   where
     readNameMeta :: NameMeta
-    readNameMeta = set moduleNameL "Text.Read" $ mkBaseMeta "read"
+    readNameMeta = "read" `baseNameFrom` "Text.Read"
 
 -- | 'Inspection' — partial 'GHC.Enum.succ' @STAN-0010@.
 stan0010 :: Inspection
@@ -256,7 +256,7 @@ stan0019 = mkPartialInspectionPattern
 stan0020 :: Inspection
 stan0020 = mkPartialInspectionPattern
     (Id "STAN-0020")
-    (mkBaseMeta "fromList" & moduleNameL .~ "GHC.Exts")
+    ("fromList" `baseNameFrom` "GHC.Exts")
     (listPattern |-> nonEmptyPattern)
     ""
 
@@ -264,6 +264,6 @@ stan0020 = mkPartialInspectionPattern
 stan0021 :: Inspection
 stan0021 = mkPartialInspectionPattern
     (Id "STAN-0021")
-    (mkBaseMeta "fromInteger" & moduleNameL .~ "GHC.Num")
+    ("fromInteger" `baseNameFrom` "GHC.Num")
     (integerPattern |-> naturalPattern)
     ""
