@@ -24,9 +24,7 @@ module Stan.Pattern
     , naturalPattern
     ) where
 
-import Relude.Extra.Lens ((.~))
-
-import Stan.NameMeta (NameMeta (..), mkBaseMeta, moduleNameL)
+import Stan.NameMeta (NameMeta (..), baseNameFrom)
 
 
 {- | Query pattern used to search types in HIE AST.
@@ -73,18 +71,20 @@ infix 5 |::
 -- | 'Pattern' for list @[a]@ or @'String'@.
 listPattern :: Pattern
 listPattern =
-    NameMeta
+    listNameMeta |:: [ (?) ]
+    |||
+    "String" `baseNameFrom` "GHC.Base" |:: []
+  where
+    listNameMeta :: NameMeta
+    listNameMeta = NameMeta
         { nameMetaName       = "[]"
         , nameMetaModuleName = "GHC.Types"
         , nameMetaPackage    = "ghc-prim"
-        } |:: [ (?) ]
-    |||
-    (mkBaseMeta "String" & moduleNameL .~ "GHC.Base") |:: []
+        }
 
 -- | 'Pattern' for 'NonEmpty'.
 nonEmptyPattern :: Pattern
-nonEmptyPattern =
-    (mkBaseMeta "NonEmpty" & moduleNameL .~ "GHC.Base") |:: [ (?) ]
+nonEmptyPattern = "NonEmpty" `baseNameFrom` "GHC.Base" |:: [ (?) ]
 
 -- | 'Pattern' for @[a] -> _@ or @String -> _@.
 listFunPattern :: Pattern
@@ -100,5 +100,4 @@ integerPattern = NameMeta
 
 -- | 'Pattern' for 'Natural'.
 naturalPattern :: Pattern
-naturalPattern =
-    (mkBaseMeta "Natural" & moduleNameL .~ "GHC.Natural") |:: []
+naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []

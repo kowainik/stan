@@ -8,8 +8,6 @@ Data types and functions for working with meta information.
 
 module Stan.NameMeta
     ( NameMeta (..)
-      -- * Lenses
-    , moduleNameL
 
       -- * Pretty show
     , prettyShowNameMeta
@@ -18,7 +16,7 @@ module Stan.NameMeta
     , compareNames
 
       -- * Smart constructors
-    , mkBaseMeta
+    , baseNameFrom
     , mkBaseListMeta
     , mkBaseOldListMeta
     , mkBaseFoldableMeta
@@ -49,21 +47,6 @@ prettyShowNameMeta NameMeta{..} = T.intercalate "/"
     , nameMetaName
     ]
 
-{- | Create 'NameMeta' for a function from the @base@ package and
-unknown module.
--}
-mkBaseMeta :: Text -> NameMeta
-mkBaseMeta funName = NameMeta
-    { nameMetaName       = funName
-    , nameMetaModuleName = ""
-    , nameMetaPackage    = "base"
-    }
-
-moduleNameL :: Lens' NameMeta ModuleName
-moduleNameL = lens
-    nameMetaModuleName
-    (\nameMeta new -> nameMeta { nameMetaModuleName = new })
-
 -- | Check if 'NameMeta' is identical to 'Name'.
 compareNames :: NameMeta -> Name -> Bool
 compareNames NameMeta{..} name =
@@ -76,19 +59,30 @@ compareNames NameMeta{..} name =
         && package    == nameMetaPackage
 
 {- | Create 'NameMeta' for a function from the @base@ package and
+a given 'ModuleName'. module.
+-}
+infix 8 `baseNameFrom`
+baseNameFrom :: Text -> ModuleName -> NameMeta
+baseNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
+    , nameMetaPackage    = "base"
+    }
+
+{- | Create 'NameMeta' for a function from the @base@ package and
 the "GHC.List" module.
 -}
 mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta = set moduleNameL "GHC.List" . mkBaseMeta
+mkBaseListMeta = (`baseNameFrom` "GHC.List")
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.OldList" module.
 -}
 mkBaseOldListMeta :: Text -> NameMeta
-mkBaseOldListMeta = set moduleNameL "Data.OldList" . mkBaseMeta
+mkBaseOldListMeta = (`baseNameFrom` "Data.OldList")
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.Foldable" module.
 -}
 mkBaseFoldableMeta :: Text -> NameMeta
-mkBaseFoldableMeta = set moduleNameL "Data.Foldable" . mkBaseMeta
+mkBaseFoldableMeta = (`baseNameFrom` "Data.Foldable")
