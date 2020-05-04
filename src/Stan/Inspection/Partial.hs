@@ -59,12 +59,12 @@ import Relude.Extra.Lens (set, (%~), (.~))
 import Relude.Extra.Tuple (mapToFst)
 
 import Stan.Core.Id (Id (..))
-import Stan.Hie.Match (Pattern (..), integerPattern, listFunPattern, listPattern, naturalPattern,
-                       nonEmptyPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseMeta,
                       mkBaseOldListMeta, moduleNameL)
+import Stan.Pattern (Pattern (..), integerPattern, listFunPattern, listPattern, naturalPattern,
+                     nonEmptyPattern, (?), (|->))
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -226,7 +226,7 @@ stan0014 = mkPartialInspectionPattern
     (Id "STAN-0014") (mkBaseFoldableMeta "minimum") listFunPattern ""
 
 orderingFunPattern :: Pattern
-orderingFunPattern = PatternFun PatternAnything listFunPattern
+orderingFunPattern = (?) |-> listFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.maximumBy' @STAN-0015@.
 stan0015 :: Inspection
@@ -257,7 +257,7 @@ stan0020 :: Inspection
 stan0020 = mkPartialInspectionPattern
     (Id "STAN-0020")
     (mkBaseMeta "fromList" & moduleNameL .~ "GHC.Exts")
-    (PatternFun listPattern nonEmptyPattern)
+    (listPattern |-> nonEmptyPattern)
     ""
 
 -- | 'Inspection' — partial 'GHC.Num.fromInteger' @STAN-0021@.
@@ -265,5 +265,5 @@ stan0021 :: Inspection
 stan0021 = mkPartialInspectionPattern
     (Id "STAN-0021")
     (mkBaseMeta "fromInteger" & moduleNameL .~ "GHC.Num")
-    (PatternFun integerPattern naturalPattern)
+    (integerPattern |-> naturalPattern)
     ""

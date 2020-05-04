@@ -27,50 +27,19 @@ information from there.
 -}
 
 module Stan.Hie.Match
-    ( Pattern (..)
-    , hieMatchPattern
-
-      -- * Common 'Pattern's
-    , integerPattern
-    , naturalPattern
-    , listPattern
-    , nonEmptyPattern
-    , listFunPattern
+    ( hieMatchPattern
     ) where
-
-import Relude.Extra.Lens ((.~))
 
 import BasicTypes (PromotionFlag (NotPromoted))
 import Data.Array (Array)
 import HieTypes (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..))
 
-import Stan.NameMeta (NameMeta (..), compareNames, mkBaseMeta, moduleNameL)
+import Stan.NameMeta (compareNames)
+import Stan.Pattern (Pattern (..))
 
 import qualified Data.Array as Arr
 
-
-{- | Query pattern used to search types in HIE AST.
--}
-data Pattern
-    {- | Argument, type or constructor:
-
-    +---------------------+---------------------------------------------------------------------+
-    | @a@                 | @PatternName (NameMeta ... \"a\") []@                               |
-    +---------------------+---------------------------------------------------------------------+
-    | @[a]@               | @PatternName (NameMeta ... \"[]\") [aPattern]@                      |
-    +---------------------+---------------------------------------------------------------------+
-    | @Either Int String@ | @PatternName (NameMeta ... \"Either\") [intPattern, stringPattern]@ |
-    +---------------------+---------------------------------------------------------------------+
-    -}
-    = PatternName NameMeta [Pattern]
-    -- | Function pattern.
-    | PatternFun Pattern Pattern
-    -- | Type wildcard, matches anything.
-    | PatternAnything
-    -- | Choice between patterns. Should match either of them.
-    | PatternOr Pattern Pattern
-    deriving stock (Show, Eq)
 
 {- | Matching function that searches the array of types recursively.
 -}
@@ -113,48 +82,3 @@ hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
     checkWith _ [] _          = False
     checkWith _ _ []          = False
     checkWith f (a:as) (b:bs) = f a b && checkWith f as bs
-
-
--- | 'Pattern' for list @[a]@ or @'String'@.
-listPattern :: Pattern
-listPattern = PatternOr
-    (PatternName
-        (NameMeta
-            { nameMetaName       = "[]"
-            , nameMetaModuleName = "GHC.Types"
-            , nameMetaPackage    = "ghc-prim"
-            }
-        )
-        [PatternAnything]
-    )
-    (PatternName
-        (mkBaseMeta "String" & moduleNameL .~ "GHC.Base")
-        []
-    )
-
--- | 'Pattern' for 'NonEmpty'.
-nonEmptyPattern :: Pattern
-nonEmptyPattern = PatternName
-    (mkBaseMeta "NonEmpty" & moduleNameL .~ "GHC.Base")
-    [PatternAnything]
-
--- | 'Pattern' for @[a] -> _@ or @String -> _@.
-listFunPattern :: Pattern
-listFunPattern = PatternFun listPattern PatternAnything
-
--- | 'Pattern' for 'Integer'.
-integerPattern :: Pattern
-integerPattern = PatternName
-    (NameMeta
-        { nameMetaName       = "Integer"
-        , nameMetaModuleName = "GHC.Integer.Type"
-        , nameMetaPackage    = "integer-wired-in"
-        }
-    )
-    []
-
--- | 'Pattern' for 'Natural'.
-naturalPattern :: Pattern
-naturalPattern = PatternName
-    (mkBaseMeta "Natural" & moduleNameL .~ "GHC.Natural")
-    []

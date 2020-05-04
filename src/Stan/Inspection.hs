@@ -31,8 +31,8 @@ import Colourista.Short (b, i)
 
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
-import Stan.Hie.Match (Pattern)
 import Stan.NameMeta (NameMeta)
+import Stan.Pattern (Pattern)
 import Stan.Severity (Severity, prettyShowSeverity)
 
 import qualified Data.HashMap.Strict as HM
