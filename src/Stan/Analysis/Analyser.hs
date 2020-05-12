@@ -21,7 +21,7 @@ import Stan.Hie.Match (hieMatchPattern)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta (..), compareNames)
 import Stan.Observation (Observations, mkObservation)
-import Stan.Pattern (Pattern (..))
+import Stan.Pattern.Type (PatternType (..))
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -41,7 +41,7 @@ analysisByInspection Inspection{..} = case inspectionAnalysis of
 analyseNameMeta
   :: Id Inspection
   -> NameMeta
-  -> Pattern
+  -> PatternType
   -> HieFile
   -> Observations
 analyseNameMeta insId nameMeta pat hie@HieFile{..} =

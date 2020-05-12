@@ -92,7 +92,7 @@ library
                            Stan.Inspection.Partial
                          Stan.NameMeta
                          Stan.Observation
-                         Stan.Pattern
+                           Stan.Pattern.Type
                          Stan.Report
                          Stan.Severity
 

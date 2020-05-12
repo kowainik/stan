@@ -6,9 +6,9 @@ Maintainer: Kowainik <xrom.xkov@gmail.com>
 Patterns for types and type search.
 -}
 
-module Stan.Pattern
+module Stan.Pattern.Type
     ( -- * Type
-      Pattern (..)
+      PatternType (..)
 
       -- * eDSL
     , (?)
@@ -16,7 +16,7 @@ module Stan.Pattern
     , (|->)
     , (|::)
 
-      -- * Common 'Pattern's
+      -- * Common 'PatternType's
     , listPattern
     , nonEmptyPattern
     , listFunPattern
@@ -29,7 +29,7 @@ import Stan.NameMeta (NameMeta (..), baseNameFrom)
 
 {- | Query pattern used to search types in HIE AST.
 -}
-data Pattern
+data PatternType
     {- | Argument, type or constructor:
 
     +---------------------+---------------------------------------------------------------------+
@@ -40,36 +40,36 @@ data Pattern
     | @Either Int String@ | @PatternName (NameMeta ... \"Either\") [intPattern, stringPattern]@ |
     +---------------------+---------------------------------------------------------------------+
     -}
-    = PatternName NameMeta [Pattern]
+    = PatternTypeName NameMeta [PatternType]
     -- | Function pattern.
-    | PatternFun Pattern Pattern
+    | PatternTypeFun PatternType PatternType
     -- | Type wildcard, matches anything.
-    | PatternAnything
+    | PatternTypeAnything
     -- | Choice between patterns. Should match either of them.
-    | PatternOr Pattern Pattern
+    | PatternTypeOr PatternType PatternType
     deriving stock (Show, Eq)
 
--- | Short operator alias for 'PatternAnything'.
-(?) :: Pattern
-(?) = PatternAnything
+-- | Short operator alias for 'PatternTypeAnything'.
+(?) :: PatternType
+(?) = PatternTypeAnything
 
--- | Short operator alias for 'PatternOr'.
+-- | Short operator alias for 'PatternTypeOr'.
 infixr 3 |||
-(|||) :: Pattern -> Pattern -> Pattern
-(|||) = PatternOr
+(|||) :: PatternType -> PatternType -> PatternType
+(|||) = PatternTypeOr
 
 -- | Short operator alias for 'PatternFun'.
 infixr 4 |->
-(|->) :: Pattern -> Pattern -> Pattern
-(|->) = PatternFun
+(|->) :: PatternType -> PatternType -> PatternType
+(|->) = PatternTypeFun
 
--- | Short operator alias for 'PatternName'.
+-- | Short operator alias for 'PatternTypeName'.
 infix 5 |::
-(|::) :: NameMeta -> [Pattern] -> Pattern
-(|::) = PatternName
+(|::) :: NameMeta -> [PatternType] -> PatternType
+(|::) = PatternTypeName
 
--- | 'Pattern' for list @[a]@ or @'String'@.
-listPattern :: Pattern
+-- | 'PatternType' for list @[a]@ or @'String'@.
+listPattern :: PatternType
 listPattern =
     listNameMeta |:: [ (?) ]
     |||
@@ -82,22 +82,22 @@ listPattern =
         , nameMetaPackage    = "ghc-prim"
         }
 
--- | 'Pattern' for 'NonEmpty'.
-nonEmptyPattern :: Pattern
+-- | 'PatternType' for 'NonEmpty'.
+nonEmptyPattern :: PatternType
 nonEmptyPattern = "NonEmpty" `baseNameFrom` "GHC.Base" |:: [ (?) ]
 
--- | 'Pattern' for @[a] -> _@ or @String -> _@.
-listFunPattern :: Pattern
+-- | 'PatternType' for @[a] -> _@ or @String -> _@.
+listFunPattern :: PatternType
 listFunPattern = listPattern |-> (?)
 
--- | 'Pattern' for 'Integer'.
-integerPattern :: Pattern
+-- | 'PatternType' for 'Integer'.
+integerPattern :: PatternType
 integerPattern = NameMeta
     { nameMetaName       = "Integer"
     , nameMetaModuleName = "GHC.Integer.Type"
     , nameMetaPackage    = "integer-wired-in"
     } |:: []
 
--- | 'Pattern' for 'Natural'.
-naturalPattern :: Pattern
+-- | 'PatternType' for 'Natural'.
+naturalPattern :: PatternType
 naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []

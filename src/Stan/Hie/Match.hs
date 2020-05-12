@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
 Some `Stan.Inspection.Inspection`s require to know about types and some
-mechanism to match types to the given 'Pattern'. This information on types/type
+mechanism to match types to the given 'PatternType'. This information on types/type
 expressions is taken from @HIE files@ in a more suitable view.
 
 Let's take a look at the function @foo@:
@@ -36,7 +36,7 @@ import HieTypes (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..))
 
 import Stan.NameMeta (compareNames)
-import Stan.Pattern (Pattern (..))
+import Stan.Pattern.Type (PatternType (..))
 
 import qualified Data.Array as Arr
 
@@ -45,7 +45,7 @@ import qualified Data.Array as Arr
 -}
 hieMatchPattern
     :: Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
-    -> Pattern  -- ^ Our search query
+    -> PatternType  -- ^ Our search query
     -> TypeIndex   -- ^ Index of the current expression type
     -> Bool  -- ^ If matched type is found
 hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
@@ -53,24 +53,24 @@ hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
     curFlat :: HieTypeFlat
     curFlat = arr Arr.! i
 
-    match :: Pattern -> TypeIndex -> Bool
+    match :: PatternType -> TypeIndex -> Bool
     match = hieMatchPattern arr
 
-    satisfyPattern :: HieTypeFlat -> Pattern -> Bool
-    satisfyPattern _ PatternAnything = True
-    satisfyPattern t (PatternOr p1 p2) =
+    satisfyPattern :: HieTypeFlat -> PatternType -> Bool
+    satisfyPattern _ PatternTypeAnything = True
+    satisfyPattern t (PatternTypeOr p1 p2) =
            satisfyPattern t p1
         || satisfyPattern t p2
-    satisfyPattern (HTyVarTy name) (PatternName nameMeta []) =
+    satisfyPattern (HTyVarTy name) (PatternTypeName nameMeta []) =
         compareNames nameMeta name
     satisfyPattern
         (HTyConApp IfaceTyCon{..} (HieArgs hieArgs))
-        (PatternName nameMeta args)
+        (PatternTypeName nameMeta args)
       =
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
         && checkWith (\(_, ix) a -> match a ix) hieArgs args
-    satisfyPattern (HFunTy i1 i2) (PatternFun p1 p2) =
+    satisfyPattern (HFunTy i1 i2) (PatternTypeFun p1 p2) =
            match p1 i1
         && match p2 i2
     satisfyPattern (HQualTy _ ix) p = match p ix

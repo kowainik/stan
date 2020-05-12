@@ -30,7 +30,7 @@ import Relude.Extra.Tuple (mapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta)
-import Stan.Pattern (Pattern (..), listFunPattern)
+import Stan.Pattern.Type (PatternType (..), listFunPattern, (?))
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -48,7 +48,7 @@ infiniteInspectionsMap = fromList $ map (mapToFst inspectionId)
     ]
 
 -- | Smart constructor to create infinite 'Inspection'.
-mkInfiniteInspection :: Id Inspection -> NameMeta -> Pattern -> Inspection
+mkInfiniteInspection :: Id Inspection -> NameMeta -> PatternType -> Inspection
 mkInfiniteInspection insId nameMeta@NameMeta{..} pat = Inspection
     { inspectionId = insId
     , inspectionName = "Infinite: " <> nameMetaPackage <> "/" <> nameMetaName
@@ -62,11 +62,11 @@ mkInfiniteInspection insId nameMeta@NameMeta{..} pat = Inspection
 
 -- | 'Inspection' for 'stan0101' — infinite 'reverse' @STAN-0101@.
 stan0101 :: Inspection
-stan0101 = mkInfiniteInspection (Id "STAN-0101") (mkBaseListMeta "reverse") PatternAnything
+stan0101 = mkInfiniteInspection (Id "STAN-0101") (mkBaseListMeta "reverse") (?)
 
 -- | 'Inspection' for 'stan0102' — infinite 'Data.OldList.isSuffixOf' @STAN-0102@.
 stan0102 :: Inspection
-stan0102 = mkInfiniteInspection (Id "STAN-0102") (mkBaseOldListMeta "isSuffixOf") PatternAnything
+stan0102 = mkInfiniteInspection (Id "STAN-0102") (mkBaseOldListMeta "isSuffixOf") (?)
 
 -- | 'Inspection' for 'stan0103' — infinite 'Data.Foldable.length' @STAN-0103@.
 stan0103 :: Inspection
@@ -74,7 +74,7 @@ stan0103 = mkInfiniteInspection (Id "STAN-0103") (mkBaseFoldableMeta "length") l
 
 -- | 'Inspection' for 'stan0104' — infinite 'Data.OldList.genericLength' @STAN-0104@.
 stan0104 :: Inspection
-stan0104 = mkInfiniteInspection (Id "STAN-0104") (mkBaseOldListMeta "genericLength") PatternAnything
+stan0104 = mkInfiniteInspection (Id "STAN-0104") (mkBaseOldListMeta "genericLength") (?)
 
 -- | 'Inspection' for 'stan0105' — infinite 'Data.Foldable.sum' @STAN-0105@.
 stan0105 :: Inspection
