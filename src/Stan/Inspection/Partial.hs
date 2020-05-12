@@ -63,8 +63,8 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
                         descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
                       mkBaseOldListMeta)
-import Stan.Pattern (Pattern (..), integerPattern, listFunPattern, listPattern, naturalPattern,
-                     nonEmptyPattern, (?), (|->))
+import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
+                          naturalPattern, nonEmptyPattern, (?), (|->))
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -100,7 +100,7 @@ partialInspectionsMap = fromList $ map (mapToFst inspectionId)
 mkPartialInspectionPattern
     :: Id Inspection
     -> NameMeta
-    -> Pattern
+    -> PatternType
     -> Text  -- ^ Type name
     -> Inspection
 mkPartialInspectionPattern insId nameMeta@NameMeta{..} pat typeName = Inspection
@@ -119,7 +119,8 @@ mkPartialInspection
     -> NameMeta
     -> Text  -- ^ Type name
     -> Inspection
-mkPartialInspection insId nameMeta = mkPartialInspectionPattern insId nameMeta PatternAnything
+mkPartialInspection insId nameMeta =
+    mkPartialInspectionPattern insId nameMeta (?)
 
 usage :: Text -> Text -> Text
 usage funName forWhat =
@@ -225,7 +226,7 @@ stan0014 :: Inspection
 stan0014 = mkPartialInspectionPattern
     (Id "STAN-0014") (mkBaseFoldableMeta "minimum") listFunPattern ""
 
-orderingFunPattern :: Pattern
+orderingFunPattern :: PatternType
 orderingFunPattern = (?) |-> listFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.maximumBy' @STAN-0015@.

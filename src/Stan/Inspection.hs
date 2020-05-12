@@ -32,7 +32,7 @@ import Colourista.Short (b, i)
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.NameMeta (NameMeta)
-import Stan.Pattern (Pattern)
+import Stan.Pattern.Type (PatternType)
 import Stan.Severity (Severity, prettyShowSeverity)
 
 import qualified Data.HashMap.Strict as HM
@@ -80,8 +80,8 @@ sortById = sortWith inspectionId . HM.elems
 inspections in a uniformed way.
 -}
 data InspectionAnalysis
-    -- | Find specific function name by specified 'Pattern'.
-    = FindName NameMeta Pattern
+    -- | Find specific function name by specified 'PatternType'.
+    = FindName NameMeta PatternType
     -- | Missing @infix@ declaration for operator.
     | Infix
     deriving stock (Show, Eq)
