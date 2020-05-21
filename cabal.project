@@ -1,6 +1,0 @@
-packages: .
-
-source-repository-package
-    type: git
-    location: https://github.com/kowainik/extensions.git
-    tag: 662bd899ceab5ae0f5e1ee0a6197d4d0fb1e59ee
