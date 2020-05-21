@@ -8,8 +8,8 @@ mechanism to match parts of syntax tree to the given
 'PatternAst'. This information on AST expressions is taken from @HIE
 files@ in a more suitable view.
 
-This module contains an implementation of the process of retrieval of this
-information from there.
+This module contains an implementation of the process of retrieval of AST
+information from @HIE@ files.
 -}
 
 module Stan.Hie.MatchAst
