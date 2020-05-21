@@ -79,7 +79,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
         -- else concat map for each @.cabal@ file.
         cabals -> fmap mconcat $ mapM getExtensionsWithCabal cabals
     -- if cabal file specified via CLI option
-    cabals -> fmap mconcat $ sequence $ flip map (ordNub cabals) $ \cabal ->
+    cabals -> fmap mconcat $ forM (ordNub cabals) $ \cabal ->
         ifM (doesFileExist cabal)
         {- then -} (getExtensionsWithCabal cabal)
         {- else -} (errorMessage (".cabal file does not exist: " <> toText cabal) >> exitFailure)
