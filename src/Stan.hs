@@ -77,7 +77,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
             infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
             pure mempty
         -- else concat map for each @.cabal@ file.
-        cabals -> fmap mconcat $ sequence $ map getExtensionsWithCabal cabals
+        cabals -> fmap mconcat $ mapM getExtensionsWithCabal cabals
     -- if cabal file specified via CLI option
     cabals -> fmap mconcat $ sequence $ flip map (ordNub cabals) $ \cabal ->
         ifM (doesFileExist cabal)
@@ -108,7 +108,7 @@ findCabalFiles = do
     dir <- getCurrentDirectory
     curDirCabal <- findCabalFileDir dir
     dirs <- getSubdirsRecursive dir
-    subDirsCabals <- sequence $ map findCabalFileDir dirs
+    subDirsCabals <- mapM findCabalFileDir dirs
     pure $ catMaybes $ curDirCabal : subDirsCabals
 
 -- | Find a @.cabal@ file in the given directory.
