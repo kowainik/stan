@@ -11,20 +11,19 @@ module Stan.Analysis.Analyser
     ( analysisByInspection
     ) where
 
-import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieFile (..), IEType (..), Identifier,
-                 IdentifierDetails (..), NodeInfo (..), TypeIndex)
+import HieTypes (HieAST (..), HieASTs (..), HieFile (..), Identifier, IdentifierDetails (..),
+                 NodeInfo (..), TypeIndex)
 import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
-import Stan.Hie.Match (hieMatchPattern)
+import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta (..), compareNames)
+import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Type (PatternType (..))
 
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 import qualified Slist as S
 
 
@@ -67,14 +66,11 @@ analyseNameMeta insId nameMeta pat hie@HieFile{..} =
         -> RealSrcSpan
         -> (Identifier, IdentifierDetails TypeIndex)
         -> Maybe RealSrcSpan
-    findUsage typeIxs srcSpan (identifier, details) = do
-        Right name <- Just identifier
+    findUsage typeIxs srcSpan hieId = do
         guard
-            -- not in the imports
-            $ Set.notMember (IEThing Import) (identInfo details)
-            -- exact name/module/package
-            && compareNames nameMeta name
+            -- matches with the given nameMeta
+            $ hieMatchNameMeta nameMeta hieId
             -- compatible with the given pattern
-            && any (hieMatchPattern hie_types pat) typeIxs
+            && any (hieMatchPatternType hie_types pat) typeIxs
 
         pure srcSpan

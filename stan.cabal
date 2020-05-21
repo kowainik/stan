@@ -80,18 +80,21 @@ library
                          Stan.Category
                          Stan.Cli
                          Stan.Core.Id
+                         Stan.Core.List
                          Stan.Core.ModuleName
                          Stan.Core.Toggle
                          Stan.FileInfo
                          Stan.Hie
                            Stan.Hie.Debug
-                           Stan.Hie.Match
+                           Stan.Hie.MatchAst
+                           Stan.Hie.MatchType
                          Stan.Inspection
                            Stan.Inspection.All
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
                          Stan.NameMeta
                          Stan.Observation
+                           Stan.Pattern.Ast
                            Stan.Pattern.Type
                          Stan.Report
                          Stan.Severity

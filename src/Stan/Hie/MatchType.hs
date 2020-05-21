@@ -3,7 +3,7 @@ Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
-Some `Stan.Inspection.Inspection`s require to know about types and some
+Some 'Stan.Inspection.Inspection's require to know about types and some
 mechanism to match types to the given 'PatternType'. This information on types/type
 expressions is taken from @HIE files@ in a more suitable view.
 
@@ -26,8 +26,8 @@ This module contains an implementation of the process of retrieval of this
 information from there.
 -}
 
-module Stan.Hie.Match
-    ( hieMatchPattern
+module Stan.Hie.MatchType
+    ( hieMatchPatternType
     ) where
 
 import BasicTypes (PromotionFlag (NotPromoted))
@@ -35,6 +35,7 @@ import Data.Array (Array)
 import HieTypes (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..))
 
+import Stan.Core.List (checkWith)
 import Stan.NameMeta (compareNames)
 import Stan.Pattern.Type (PatternType (..))
 
@@ -43,18 +44,18 @@ import qualified Data.Array as Arr
 
 {- | Matching function that searches the array of types recursively.
 -}
-hieMatchPattern
+hieMatchPatternType
     :: Array TypeIndex HieTypeFlat  -- ^ Array of all types in HIE file
     -> PatternType  -- ^ Our search query
     -> TypeIndex   -- ^ Index of the current expression type
     -> Bool  -- ^ If matched type is found
-hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
+hieMatchPatternType arr pat i = curFlat `satisfyPattern` pat
   where
     curFlat :: HieTypeFlat
     curFlat = arr Arr.! i
 
     match :: PatternType -> TypeIndex -> Bool
-    match = hieMatchPattern arr
+    match = hieMatchPatternType arr
 
     satisfyPattern :: HieTypeFlat -> PatternType -> Bool
     satisfyPattern _ PatternTypeAnything = True
@@ -76,9 +77,3 @@ hieMatchPattern arr pat i = curFlat `satisfyPattern` pat
     satisfyPattern (HQualTy _ ix) p = match p ix
     satisfyPattern (HForAllTy _ ix) p = match p ix
     satisfyPattern _flat _p = False
-
-    checkWith :: (a -> b -> Bool) -> [a] -> [b] -> Bool
-    checkWith _ [] []         = True
-    checkWith _ [] _          = False
-    checkWith _ _ []          = False
-    checkWith f (a:as) (b:bs) = f a b && checkWith f as bs

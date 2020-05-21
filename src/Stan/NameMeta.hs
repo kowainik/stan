@@ -14,6 +14,7 @@ module Stan.NameMeta
 
       -- * Comparison with 'Name'
     , compareNames
+    , hieMatchNameMeta
 
       -- * Smart constructors
     , baseNameFrom
@@ -22,13 +23,15 @@ module Stan.NameMeta
     , mkBaseFoldableMeta
     ) where
 
+import HieTypes (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
+                 TypeIndex)
 import Module (moduleUnitId)
 import Name (Name, nameModule, nameOccName)
 import OccName (occNameString)
-import Relude.Extra.Lens (Lens', lens, set)
 
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
 
+import qualified Data.Set as Set
 import qualified Data.Text as T
 
 
@@ -57,6 +60,21 @@ compareNames NameMeta{..} name =
            occName    == nameMetaName
         && moduleName == nameMetaModuleName
         && package    == nameMetaPackage
+
+{- | Check whether HIE 'Identifier' with details is a given 'NameMeta'.
+-}
+hieMatchNameMeta
+    :: NameMeta  -- ^ Name meta info
+    -> (Identifier, IdentifierDetails TypeIndex)  -- ^ HIE identifier
+    -> Bool
+hieMatchNameMeta nameMeta (identifier, details) = isJust $ do
+    -- check: not a module name
+    Right name <- Just identifier
+    guard
+        -- not in the imports
+        $ Set.notMember (IEThing Import) (identInfo details)
+        -- exact name/module/package
+        && compareNames nameMeta name
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 a given 'ModuleName'. module.
