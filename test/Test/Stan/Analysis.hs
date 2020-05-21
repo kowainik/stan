@@ -15,7 +15,7 @@ import qualified Data.Set as Set
 
 analysisSpec :: [HieFile] -> Spec
 analysisSpec hieFiles = describe "Static Analysis" $ do
-    extensionsMap <- runIO $ createCabalExtensionsMap (Just "stan.cabal") hieFiles
+    extensionsMap <- runIO $ createCabalExtensionsMap ["stan.cabal"] hieFiles
     let analysis = runAnalysis extensionsMap hieFiles
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis

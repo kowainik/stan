@@ -41,7 +41,7 @@ data StanCommand
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
     { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
-    , stanArgsCabalFilePath  :: !(Maybe FilePath)  -- ^ Path to @.cabal@ file.
+    , stanArgsCabalFilePath  :: ![FilePath]  -- ^ Path to @.cabal@ files.
     , stanArgsReportSettings :: !ReportSettings  -- ^ Settings for report
     }
 
@@ -101,11 +101,11 @@ hiedirP = strOption $ mconcat
     , help "Relative path to the directory with HIE files"
     ]
 
-cabalFilePathP :: Parser (Maybe FilePath)
-cabalFilePathP = optional $ strOption $ mconcat
+cabalFilePathP :: Parser [FilePath]
+cabalFilePathP = many $ strOption $ mconcat
     [ long "cabal-file-path"
     , metavar "FILE_PATH"
-    , help "Relative path to the .cabal file"
+    , help "Relative path to the .cabal file (can specify many of this option)"
     ]
 
 reportSettingsP :: Parser ReportSettings
