@@ -79,6 +79,7 @@ library
                            Stan.Analysis.Pretty
                          Stan.Category
                          Stan.Cli
+                         Stan.Config
                          Stan.Core.Id
                          Stan.Core.List
                          Stan.Core.ModuleName
@@ -98,6 +99,7 @@ library
                            Stan.Pattern.Type
                          Stan.Report
                          Stan.Severity
+                         Stan.Toml
 
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
@@ -119,6 +121,7 @@ library
                      , pretty-simple ^>= 3.2
                      , slist ^>= 0.1
                      , text ^>= 1.2
+                     , tomland ^>= 1.3.0.0
                      , unordered-containers ^>= 0.2
 
 executable stan
