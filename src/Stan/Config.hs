@@ -33,8 +33,6 @@ data CheckType
     | Ignore
     deriving stock (Show, Eq, Enum, Bounded)
 
--- TODO: it doesn't make sense to have both Nothing, so we need a data type like 'These'
--- data These a b = This a | That b | Both a b
 data Check = Check
     { checkType   :: !CheckType
     , checkFilter :: !(Maybe CheckFilter)
