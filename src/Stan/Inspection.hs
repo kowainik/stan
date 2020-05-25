@@ -32,6 +32,7 @@ import Colourista.Short (b, i)
 import Stan.Category (Category, prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.NameMeta (NameMeta)
+import Stan.Pattern.Ast (PatternAst)
 import Stan.Pattern.Type (PatternType)
 import Stan.Severity (Severity, prettyShowSeverity)
 
@@ -82,8 +83,8 @@ inspections in a uniformed way.
 data InspectionAnalysis
     -- | Find specific function name by specified 'PatternType'.
     = FindName NameMeta PatternType
-    -- | Missing @infix@ declaration for operator.
-    | Infix
+    -- | Find specific part of Haskell AST.
+    | FindAst PatternAst
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.

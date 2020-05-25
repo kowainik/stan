@@ -1,11 +1,12 @@
 module Test.Stan.Analysis.Common
     ( observationAssert
+    , noObservationAssert
     , itShouldStr
     , unsafeNameMeta
     ) where
 
 import FastString (FastString, mkFastString)
-import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan)
+import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan, srcSpanStartLine)
 import System.FilePath ((</>))
 import Test.Hspec (Expectation, shouldBe)
 
@@ -19,6 +20,9 @@ import Stan.Observation (Observation (..), mkObservationId)
 import qualified Data.Text as Text
 
 
+{- | Checks that there's 'Observation' of a given inspection in a
+given line and span.
+-}
 observationAssert
     :: FilePath  -- ^ Path to module
     -> ModuleName  -- ^ Module name
@@ -63,6 +67,27 @@ observationAssert modulePath moduleName analysis Inspection{..} line start end =
 
     pathFS :: FastString
     pathFS = mkFastString path
+
+-- | Checks that there's no 'Observation' of a given inspection in a given line.
+noObservationAssert
+    :: FilePath  -- ^ Path to module
+    -> ModuleName  -- ^ Module name
+    -> Analysis
+    -> Inspection
+    -> Int  -- ^ Line number
+    -> Expectation
+noObservationAssert modulePath moduleName analysis Inspection{..} line =
+    foundPartialObservation `shouldBe` Nothing
+  where
+    foundPartialObservation :: Maybe Observation
+    foundPartialObservation = find
+        (\Observation{..} ->
+            observationInspectionId == inspectionId
+            && observationFile == modulePath
+            && observationModuleName == moduleName
+            && srcSpanStartLine observationLoc == line
+        )
+        (analysisObservations analysis)
 
 -- | Generates text to be used in tests names.
 itShouldStr :: Inspection -> String

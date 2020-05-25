@@ -7,6 +7,7 @@ import Test.Hspec (Spec, describe, it, runIO, shouldBe)
 
 import Stan (createCabalExtensionsMap)
 import Stan.Analysis (Analysis (..), runAnalysis)
+import Test.Stan.Analysis.AntiPattern (analysisAntiPatternSpec)
 import Test.Stan.Analysis.Infinite (analysisInfiniteSpec)
 import Test.Stan.Analysis.Partial (analysisPartialSpec)
 
@@ -19,6 +20,7 @@ analysisSpec hieFiles = describe "Static Analysis" $ do
     let analysis = runAnalysis extensionsMap hieFiles
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis
+    analysisAntiPatternSpec analysis
     analysisExtensionsSpec analysis
 
 

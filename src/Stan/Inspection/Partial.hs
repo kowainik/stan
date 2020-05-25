@@ -4,6 +4,10 @@ SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
 Contains all 'Inspection's for partial functions.
+
+The __partial__ inspections are in ranges:
+
+* @STAN-0001 .. STAN-0100@
 -}
 
 module Stan.Inspection.Partial

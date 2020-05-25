@@ -16,30 +16,57 @@ module Stan.Hie.MatchAst
     ( hieMatchPatternAst
     ) where
 
-import HieTypes (HieAST (..), NodeInfo (..), TypeIndex)
+import HieTypes (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..), TypeIndex)
+import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Core.List (checkWith)
-import Stan.NameMeta (hieMatchNameMeta)
+import Stan.Hie.MatchType (hieMatchPatternType)
+import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Pattern.Ast (PatternAst (..))
+import Stan.Pattern.Type (PatternType)
 
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
+import qualified Relude.Unsafe as Unsafe
 
 
 {- | Matching function that matches current AST node with a given
 pattern.
 -}
 hieMatchPatternAst
-    :: HieAST TypeIndex
-    -> PatternAst
-    -> Bool
-hieMatchPatternAst Node{..} = \case
+    :: HieFile  -- ^ HIE file
+    -> HieAST TypeIndex  -- ^ Current AST node to match
+    -> PatternAst  -- ^ Pattern to match against
+    -> Bool  -- ^ 'True' if pattern matches AST node
+hieMatchPatternAst hie@HieFile{..} Node{..} = \case
     PatternAstAnything -> True
-    PatternAstConstant _ -> False  -- TODO: not yet implemented
-    PatternAstName nameMeta ->
-        any (hieMatchNameMeta nameMeta)
+    PatternAstConstant n ->
+        Set.member ("HsOverLit", "HsExpr") (nodeAnnotations nodeInfo)
+        && readMaybe (decodeUtf8 $ slice nodeSpan) == Just n
+    PatternAstName nameMeta patType ->
+        any (matchNameAndType nameMeta patType)
         $ Map.assocs
         $ nodeIdentifiers nodeInfo
     PatternAstNode tags patChildren ->
            tags `Set.isSubsetOf` nodeAnnotations nodeInfo
-        && checkWith hieMatchPatternAst nodeChildren patChildren
+        && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
+  where
+    -- take sub-bytestring from src according to a given span
+    -- TODO: current works only with single-line spans
+    slice :: RealSrcSpan -> ByteString
+    slice span =
+        BS.take (srcSpanEndCol span - srcSpanStartCol span)
+        $ BS.drop (srcSpanStartCol span - 1)
+        $ Unsafe.at (srcSpanStartLine span - 1)
+        $ BS8.lines hie_hs_src
+
+    matchNameAndType
+        :: NameMeta
+        -> PatternType
+        -> (Identifier, IdentifierDetails TypeIndex)
+        -> Bool
+    matchNameAndType nameMeta patType ids =
+        hieMatchNameMeta nameMeta ids
+        && any (hieMatchPatternType hie_types patType) (nodeType nodeInfo)

@@ -18,6 +18,7 @@ module Stan.Inspection.All
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionsMap)
+import Stan.Inspection.AntiPattern (antiPatternInspectionsMap)
 import Stan.Inspection.Infinite (infiniteInspectionsMap)
 import Stan.Inspection.Partial (partialInspectionsMap)
 
@@ -29,6 +30,7 @@ inspectionsMap :: InspectionsMap
 inspectionsMap =
     partialInspectionsMap
     <> infiniteInspectionsMap
+    <> antiPatternInspectionsMap
 
 {- | List of all inspections.
 -}
