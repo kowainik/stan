@@ -17,11 +17,13 @@ import Slist (Slist, slist)
 import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
+import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Observation (Observations, mkObservation)
-import Stan.Pattern.Type (PatternType (..))
+import Stan.Pattern.Ast (PatternAst)
+import Stan.Pattern.Type (PatternType)
 
 import qualified Data.Map.Strict as Map
 import qualified Slist as S
@@ -32,8 +34,8 @@ over 'InspectionAnalysis'.
 -}
 analysisByInspection :: Inspection -> HieFile -> Observations
 analysisByInspection Inspection{..} = case inspectionAnalysis of
-    FindName nameMeta pat -> analyseNameMeta inspectionId nameMeta pat
-    Infix                 -> const mempty  -- TODO: not yet implemented
+    FindName nameMeta patType -> analyseNameMeta inspectionId nameMeta patType
+    FindAst patAst            -> analyseAst inspectionId patAst
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}
@@ -43,7 +45,7 @@ analyseNameMeta
   -> PatternType
   -> HieFile
   -> Observations
-analyseNameMeta insId nameMeta pat hie@HieFile{..} =
+analyseNameMeta insId nameMeta patType hie@HieFile{..} =
     mkObservation insId hie <$> findSpans hie_asts
   where
     findSpans :: HieASTs TypeIndex -> Slist RealSrcSpan
@@ -71,6 +73,27 @@ analyseNameMeta insId nameMeta pat hie@HieFile{..} =
             -- matches with the given nameMeta
             $ hieMatchNameMeta nameMeta hieId
             -- compatible with the given pattern
-            && any (hieMatchPatternType hie_types pat) typeIxs
+            && any (hieMatchPatternType hie_types patType) typeIxs
 
         pure srcSpan
+
+{- | Check for occurrences of the specified function given via 'NameMeta'.
+-}
+analyseAst
+  :: Id Inspection
+  -> PatternAst
+  -> HieFile
+  -> Observations
+analyseAst insId patAst hie@HieFile{..} =
+    mkObservation insId hie <$> findSpans hie_asts
+  where
+    findSpans :: HieASTs TypeIndex -> Slist RealSrcSpan
+    findSpans =
+        S.concatMap findInAst
+        . Map.elems
+        . getAsts
+
+    findInAst :: HieAST TypeIndex -> Slist RealSrcSpan
+    findInAst node@Node{..} =
+        slist [nodeSpan | hieMatchPatternAst hie node patAst]
+        <> S.concatMap findInAst nodeChildren

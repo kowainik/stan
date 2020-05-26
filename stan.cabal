@@ -91,6 +91,7 @@ library
                            Stan.Hie.MatchType
                          Stan.Inspection
                            Stan.Inspection.All
+                           Stan.Inspection.AntiPattern
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
                          Stan.NameMeta
@@ -133,7 +134,8 @@ executable stan
 library target
   import:              common-options
   hs-source-dirs:      target
-  exposed-modules:     Target.Infinite
+  exposed-modules:     Target.AntiPattern
+                       Target.Infinite
                        Target.Partial
 
 test-suite stan-test
@@ -143,6 +145,7 @@ test-suite stan-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       Test.Stan.Analysis
+                         Test.Stan.Analysis.AntiPattern
                          Test.Stan.Analysis.Common
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial

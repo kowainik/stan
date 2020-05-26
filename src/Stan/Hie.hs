@@ -21,7 +21,7 @@ import UniqSupply (mkSplitUniqSupply)
 
 import Stan.Hie.Debug ()
 
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Char8 as BS8
 
 
 {- | Returns contents of all @.hie@ files recursively in the given
@@ -44,4 +44,4 @@ createNameCache = do
 
 -- | Get the number of lines of code in the file by analising 'HieFile'.
 countLinesOfCode :: HieFile -> Int
-countLinesOfCode HieFile{..} = length $ BS.lines hie_hs_src
+countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src

@@ -4,6 +4,10 @@ SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
 Contains all 'Inspection's for functions that hang on infinite lists.
+
+The __infinite__ inspections are in ranges:
+
+* @STAN-0101 .. STAN-0200@
 -}
 
 module Stan.Inspection.Infinite

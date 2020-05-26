@@ -15,6 +15,7 @@ module Stan.Category
 
       -- * Stan categories
     , stanCategories
+    , antiPattern
     , infinite
     , list
     , partial
@@ -44,10 +45,15 @@ partial = Category "Partial"
 infinite :: Category
 infinite = Category "Infinite"
 
+-- | @AntiPattern@ category of Stan inspections.
+antiPattern :: Category
+antiPattern = Category "AntiPattern"
+
 -- | The list of all available Stan 'Category's.
 stanCategories :: [Category]
 stanCategories =
-    [ infinite
+    [ antiPattern
+    , infinite
     , list
     , partial
     ]
