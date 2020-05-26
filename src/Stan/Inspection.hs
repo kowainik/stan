@@ -83,7 +83,7 @@ inspections in a uniformed way.
 data InspectionAnalysis
     -- | Find specific function name by specified 'PatternType'.
     = FindName NameMeta PatternType
-    -- | Find specific part of Haskell AST.
+    -- | Find the specific part of the Haskell AST.
     | FindAst PatternAst
     deriving stock (Show, Eq)
 
