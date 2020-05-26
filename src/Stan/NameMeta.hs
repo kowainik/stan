@@ -26,7 +26,7 @@ module Stan.NameMeta
 import HieTypes (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
                  TypeIndex)
 import Module (moduleUnitId)
-import Name (Name, nameModule, nameOccName)
+import Name (Name, isExternalName, nameModule, nameOccName)
 import OccName (occNameString)
 
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
@@ -57,7 +57,8 @@ compareNames NameMeta{..} name =
         moduleName = fromGhcModule $ nameModule name
         package = show @Text $ moduleUnitId $ nameModule name
     in
-           occName    == nameMetaName
+        isExternalName name
+        && occName    == nameMetaName
         && moduleName == nameMetaModuleName
         && package    == nameMetaPackage
 
