@@ -149,15 +149,20 @@ test-suite stan-test
                          Test.Stan.Analysis.Common
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
+                       Test.Stan.Gen
                        Test.Stan.Number
                        Test.Stan.Observation
+                       Test.Stan.Toml
 
   build-depends:       stan
                      , containers
                      , filepath ^>= 1.4
                      , ghc
+                     , hedgehog ^>= 1.0
                      , hspec ^>= 2.7
+                     , hspec-hedgehog ^>= 0.0.1.2
                      , text
+                     , tomland
                      , unordered-containers
 
   ghc-options:         -threaded
