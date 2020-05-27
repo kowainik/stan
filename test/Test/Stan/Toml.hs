@@ -27,7 +27,7 @@ tomlSpec = describe "TOML configuration tests" $ do
   where
     configExample :: PartialConfig
     configExample = ConfigP
-        { configChecks = ("TOML",) <$> pure
+        { configChecks = withTag "TOML" $ pure
             [ Check Ignore Nothing (Just $ CheckScopeDirectory "test/")
             , Check Include Nothing Nothing
             , Check Ignore (Just $ CheckInspection $ Id "STAN-0002") Nothing
