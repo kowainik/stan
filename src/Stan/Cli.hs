@@ -27,7 +27,8 @@ import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command,
 import Options.Applicative.Help.Chunk (stringChunk)
 
 import Stan.Category (Category (..))
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config (..))
+import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config,
+                    ConfigP (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
@@ -126,7 +127,7 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     ]
 
 configP :: Parser Config
-configP = fmap Config $ many $ hsubparser $
+configP = fmap ConfigP $ many $ hsubparser $
     command "check" (info checkP (progDesc "Specify list of checks"))
 
 checkP :: Parser Check

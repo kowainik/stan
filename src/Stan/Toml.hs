@@ -7,14 +7,21 @@ Maintainer: Kowainik <xrom.xkov@gmail.com>
 -}
 
 module Stan.Toml
-    ( -- * Codecs
-      configCodec
+    ( getTomlConfig
+      -- * Codecs
+    , configCodec
     ) where
 
+import Colourista (infoMessage)
+import System.Directory (doesFileExist, getHomeDirectory)
+import System.FilePath ((</>))
 import Toml (Key, TomlCodec, (.=))
+import Trial (fiasco)
+import Trial.Tomland (taggedTrialCodec)
 
 import Stan.Category (Category (..))
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config (..))
+import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
+                    PartialConfig)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..))
@@ -24,9 +31,26 @@ import Stan.Severity (Severity (..))
 import qualified Toml
 
 
-configCodec :: TomlCodec Config
-configCodec = Config
-    <$> Toml.list checkCodec "check" .= configChecks
+getTomlConfig :: IO PartialConfig
+getTomlConfig = do
+    file <- defaultConfigFile
+    isFile <- doesFileExist file
+    if isFile
+    then do
+        infoMessage $ "Configurations from " <> toText defaultTomlFile <> " will be used."
+        Toml.decodeFile configCodec file
+    else let e = fiasco "Configurations file doesn't exist" in
+        pure $ ConfigP e
+
+defaultTomlFile :: FilePath
+defaultTomlFile = ".stan.toml"
+
+defaultConfigFile :: IO FilePath
+defaultConfigFile = (</> defaultTomlFile) <$> getHomeDirectory
+
+configCodec :: TomlCodec PartialConfig
+configCodec = ConfigP
+    <$> taggedTrialCodec "TOML" (Toml.list checkCodec) "check" .= configChecks
 
 checkCodec :: TomlCodec Check
 checkCodec = Check

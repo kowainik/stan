@@ -1,3 +1,11 @@
+{-# LANGUAGE ApplicativeDo        #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedLabels     #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -8,12 +16,22 @@ Maintainer: Kowainik <xrom.xkov@gmail.com>
 
 module Stan.Config
     ( -- * Data types
-      Config (..)
+      ConfigP (..)
+    , Config
+    , PartialConfig
     , Check (..)
     , CheckType (..)
     , CheckFilter (..)
     , CheckScope (..)
+
+      -- * Default
+    , defaultConfig
+
+      -- * Final stage
+    , finaliseConfig
     ) where
+
+import Trial ((::-), Phase (..), Trial, withTag)
 
 import Stan.Category (Category (..))
 import Stan.Core.Id (Id (..))
@@ -23,10 +41,27 @@ import Stan.Observation (Observation (..))
 import Stan.Severity (Severity (..))
 
 
-data Config = Config
-    { configChecks :: ![Check]
+data ConfigP (p :: Phase Text) = ConfigP
+    { configChecks :: !(p ::- [Check])
     -- , configGroupBy :: !GroupBy
-    } deriving stock (Show, Eq)
+    }
+
+deriving stock instance
+    ( Show (p ::- [Check])
+    ) => Show (ConfigP p)
+
+deriving stock instance
+    ( Eq (p ::- [Check])
+    ) => Eq (ConfigP p)
+
+type Config = ConfigP 'Final
+type PartialConfig = ConfigP 'Partial
+
+instance Semigroup PartialConfig where
+    (<>) :: PartialConfig -> PartialConfig -> PartialConfig
+    x <> y = ConfigP
+        { configChecks = configChecks x <> configChecks y
+        }
 
 data CheckType
     = Include
@@ -51,3 +86,13 @@ data CheckScope
     | CheckScopeDirectory FilePath
     | CheckScopeModule ModuleName
     deriving stock (Show, Eq)
+
+defaultConfig :: PartialConfig
+defaultConfig = ConfigP
+    { configChecks = withTag "Default" $ pure []
+    }
+
+finaliseConfig :: PartialConfig -> Trial Text Config
+finaliseConfig config = do
+    configChecks <- #configChecks config
+    pure ConfigP {..}
