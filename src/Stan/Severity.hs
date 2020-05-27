@@ -46,7 +46,7 @@ data Severity
     | Warning
     -- | Dangerous behaviour.
     | Error
-    deriving stock (Show, Eq, Enum, Bounded)
+    deriving stock (Show, Read, Eq, Enum, Bounded)
 
 -- | Get the colour of the severity level.
 severityColour :: Severity -> Text

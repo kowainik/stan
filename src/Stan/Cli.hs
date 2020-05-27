@@ -19,12 +19,15 @@ module Stan.Cli
 import Colourista (blue, bold, formatWith, reset, yellow)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
-import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, command, customExecParser, flag,
-                            fullDesc, help, helpLongEquals, helper, hsubparser, info, infoOption,
-                            long, metavar, prefs, progDesc, short, showDefaultWith, showHelpOnEmpty,
-                            showHelpOnError, strArgument, strOption, subparserInline, value)
+import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command, customExecParser,
+                            flag, flag', fullDesc, help, helpLongEquals, helper, hsubparser, info,
+                            infoOption, long, metavar, option, prefs, progDesc, short,
+                            showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
+                            strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
 
+import Stan.Category (Category (..))
+import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
@@ -43,6 +46,7 @@ data StanArgs = StanArgs
     { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath  :: ![FilePath]  -- ^ Path to @.cabal@ files.
     , stanArgsReportSettings :: !ReportSettings  -- ^ Settings for report
+    , stanArgsConfig         :: !Config
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -79,6 +83,7 @@ stanP = do
     stanArgsHiedir <- hiedirP
     stanArgsCabalFilePath <- cabalFilePathP
     stanArgsReportSettings <- reportSettingsP
+    stanArgsConfig <- configP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -120,6 +125,57 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     , help "Hide verbose solution information for observations"
     ]
 
+configP :: Parser Config
+configP = fmap Config $ many $ hsubparser $
+    command "check" (info checkP (progDesc "Specify list of checks"))
+
+checkP :: Parser Check
+checkP = do
+    checkType <- checkTypeP
+    checkFilter <- optional checkFilterP
+    checkScope  <- optional checkScopeP
+    pure Check{..}
+
+checkTypeP :: Parser CheckType
+checkTypeP =
+    -- QUESTION: is it better than --type=Ignore or --type=Include
+        flag' Include (long "include" <> help "Include check")
+    <|> flag' Ignore (long "ignore" <> help "Ignore check")
+
+checkFilterP :: Parser CheckFilter
+checkFilterP =
+        CheckInspection . Id <$> strOption
+        (long "inspectionId"
+        <> metavar "INSPECTION_ID"
+        <> help "Inspection ID to ignore or include")
+    <|> CheckObservation . Id <$> strOption
+        (long "observationId"
+        <> metavar "OBSERVATION_ID"
+        <> help "Observation ID to ignore or include")
+    <|> CheckSeverity <$> option auto
+        -- TODO: how to specify all possible values here in help?
+        (long "severity"
+        <> metavar "SEVERITY"
+        <> help "Inspection Severity to ignore or include")
+    <|> CheckCategory . Category <$> strOption
+        (long "category"
+        <> metavar "CATEGORY"
+        <> help "Inspection Category to ignore or include")
+
+checkScopeP :: Parser CheckScope
+checkScopeP =
+        CheckScopeFile <$> strOption
+        (long "file"
+        <> metavar "FILE_PATH"
+        <> help "File to ignore or include")
+    <|> CheckScopeDirectory <$> strOption
+        (long "directory"
+        <> metavar "DIRECTORY_PATH"
+        <> help "Directory to ignore or include")
+    <|> CheckScopeModule <$> strOption
+        (long "module"
+        <> metavar "MODULE"
+        <> help "Module to ignore or include")
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
