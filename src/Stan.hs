@@ -22,14 +22,17 @@ import HieTypes (HieFile (..))
 import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
 import System.IO.Unsafe (unsafeInterleaveIO)
+import Trial (prettyPrintTrial)
 
 import Stan.Analysis (runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), runStanCli)
+import Stan.Config (defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.Hie (readHieFiles)
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
+import Stan.Toml (getTomlConfig)
 -- import Stan.Hie.Debug (debugHieFile)
 
 import qualified Data.Map.Strict as Map
@@ -42,6 +45,11 @@ run = runStanCli >>= \case
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
+    -- config
+    tomlConfig <- getTomlConfig
+    let config = finaliseConfig $ defaultConfig <> tomlConfig
+    putTextLn $ prettyPrintTrial config
+
     hieFiles <- readHieFiles stanArgsHiedir
     -- create cabal default extensions map
     cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
