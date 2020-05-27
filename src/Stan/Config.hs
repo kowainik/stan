@@ -26,7 +26,7 @@ import Stan.Severity (Severity (..))
 data Config = Config
     { configChecks :: ![Check]
     -- , configGroupBy :: !GroupBy
-    } deriving stock (Show)
+    } deriving stock (Show, Eq)
 
 data CheckType
     = Include
@@ -37,17 +37,17 @@ data Check = Check
     { checkType   :: !CheckType
     , checkFilter :: !(Maybe CheckFilter)
     , checkScope  :: !(Maybe CheckScope)
-    } deriving stock (Show)
+    } deriving stock (Show, Eq)
 
 data CheckFilter
     = CheckInspection (Id Inspection)
     | CheckObservation (Id Observation)
     | CheckSeverity Severity
     | CheckCategory Category
-    deriving stock (Show)
+    deriving stock (Show, Eq)
 
 data CheckScope
     = CheckScopeFile FilePath
     | CheckScopeDirectory FilePath
     | CheckScopeModule ModuleName
-    deriving stock (Show)
+    deriving stock (Show, Eq)
