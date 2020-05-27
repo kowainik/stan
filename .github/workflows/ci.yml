@@ -40,4 +40,4 @@ jobs:
 
     - name: Test
       run: |
-        cabal test --enable-tests --test-show-details=direct all
+        cabal test --enable-tests --test-show-details=direct stan-test

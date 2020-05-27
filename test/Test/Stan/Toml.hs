@@ -5,6 +5,7 @@ module Test.Stan.Toml
 import Hedgehog (Gen, forAll, tripping)
 import Test.Hspec (Spec, describe, it, shouldReturn)
 import Test.Hspec.Hedgehog (hedgehog)
+import Trial (withTag)
 
 import Stan.Category (Category, stanCategories)
 import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
@@ -44,7 +45,7 @@ configTomlRoundtripProperty = hedgehog $ do
     tripping config (Toml.encode configCodec) (Toml.decode configCodec)
 
 genConfig :: Gen PartialConfig
-genConfig = ConfigP . pure . ("TOML",) <$> genSmallList genCheck
+genConfig = ConfigP . withTag "TOML" . pure <$> genSmallList genCheck
 
 genCheck :: Gen Check
 genCheck = Check
