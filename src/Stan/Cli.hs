@@ -15,6 +15,8 @@ module Stan.Cli
     , InspectionArgs (..)
     , TomlToCliArgs (..)
     , runStanCli
+    , stanParserPrefs
+    , stanCliParser
     ) where
 
 import Colourista (blue, bold, formatWith, reset, yellow)
@@ -69,15 +71,15 @@ newtype TomlToCliArgs = TomlToCliArgs
 -- | Run main parser of the @stan@ command line tool.
 runStanCli :: IO StanCommand
 runStanCli = customExecParser stanParserPrefs stanCliParser
-  where
-    -- To turn on some special options.
-    stanParserPrefs :: ParserPrefs
-    stanParserPrefs = prefs $ mconcat
-        [ helpLongEquals
-        , showHelpOnEmpty
-        , showHelpOnError
-        , subparserInline
-        ]
+
+-- | To turn on some special options.
+stanParserPrefs :: ParserPrefs
+stanParserPrefs = prefs $ mconcat
+    [ helpLongEquals
+    , showHelpOnEmpty
+    , showHelpOnError
+    , subparserInline
+    ]
 
 stanCliParser :: ParserInfo StanCommand
 stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
