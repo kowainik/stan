@@ -37,9 +37,9 @@ inspectionsMap =
 inspections :: [Inspection]
 inspections = sortWith inspectionId $ HM.elems inspectionsMap
 
--- | List of all inspection 'Id's.
-inspectionsIds :: [Id Inspection]
-inspectionsIds = HM.keys inspectionsMap
+-- | Set of all inspection 'Id's.
+inspectionsIds :: HashSet (Id Inspection)
+inspectionsIds = HM.keysSet inspectionsMap
 
 -- | Look up 'Inspection' by the given inspection 'Id'.
 lookupInspectionById :: Id Inspection -> Maybe Inspection
