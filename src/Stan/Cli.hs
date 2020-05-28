@@ -13,6 +13,7 @@ module Stan.Cli
     ( StanCommand (..)
     , StanArgs (..)
     , InspectionArgs (..)
+    , TomlToCliArgs (..)
     , runStanCli
     ) where
 
@@ -43,6 +44,7 @@ import qualified Paths_stan as Meta (version)
 data StanCommand
     = Stan StanArgs  -- ^ Just @stan@ with its options.
     | StanInspection InspectionArgs  -- ^ @stan inspection@.
+    | StanTomlToCli TomlToCliArgs  -- ^ @stan toml-to-cli@
 
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
@@ -57,6 +59,11 @@ data StanArgs = StanArgs
 -- | Options used for the @stan inspection@ command.
 newtype InspectionArgs = InspectionArgs
     { inspectionArgsId :: Maybe (Id Inspection)
+    }
+
+-- | Options used for the @stan inspection@ command.
+newtype TomlToCliArgs = TomlToCliArgs
+    { tomlToCliArgsFilePath :: Maybe FilePath
     }
 
 -- | Run main parser of the @stan@ command line tool.
@@ -80,7 +87,7 @@ stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
 command.
 -}
 stan :: Parser StanCommand
-stan = stanInspectionP <|> stanP
+stan = stanInspectionP <|> stanTomlToCliP <|> stanP
 
 -- | @stan@ command parser.
 stanP :: Parser StanCommand
@@ -103,6 +110,16 @@ stanInspectionP = hsubparser $
         inspectionArgsId <- Id <<$>> optional ( strArgument
             (metavar "INSPECTION_ID" <> help "Show specific Inspection information"))
         pure $ StanInspection InspectionArgs{..}
+
+stanTomlToCliP :: Parser StanCommand
+stanTomlToCliP = hsubparser $ command "toml-to-cli" $
+    info tomlToCliP
+        (progDesc "Convert TOML configuration file into stan CLI command")
+  where
+    tomlToCliP :: Parser StanCommand
+    tomlToCliP = do
+        tomlToCliArgsFilePath <- configFileP
+        pure $ StanTomlToCli TomlToCliArgs{..}
 
 hiedirP :: Parser FilePath
 hiedirP = strOption $ mconcat

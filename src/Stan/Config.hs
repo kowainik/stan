@@ -29,6 +29,9 @@ module Stan.Config
 
       -- * Final stage
     , finaliseConfig
+
+      -- * Printing
+    , configToCliCommand
     ) where
 
 import Trial ((::-), Phase (..), Trial, withTag)
@@ -39,6 +42,8 @@ import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Observation (Observation (..))
 import Stan.Severity (Severity (..))
+
+import qualified Data.Text as T
 
 
 data ConfigP (p :: Phase Text) = ConfigP
@@ -96,3 +101,30 @@ finaliseConfig :: PartialConfig -> Trial Text Config
 finaliseConfig config = do
     configChecks <- #configChecks config
     pure ConfigP {..}
+
+configToCliCommand :: Config -> Text
+configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map checkToCli configChecks)
+  where
+    checkToCli :: Check -> Text
+    checkToCli Check{..} = "check"
+        <> checkTypeToCli checkType
+        <> maybe "" checkFilterToCli checkFilter
+        <> maybe "" checkScopeToCli checkScope
+
+    checkTypeToCli :: CheckType -> Text
+    checkTypeToCli = \case
+        Include -> " --include"
+        Ignore  -> " --ignore"
+
+    checkFilterToCli :: CheckFilter -> Text
+    checkFilterToCli = \case
+        CheckInspection insId -> " --inspectionId=" <> unId insId
+        CheckObservation obsId -> " --observationId=" <> unId obsId
+        CheckSeverity sev -> " --severity=" <> show sev
+        CheckCategory cat -> " --severity=" <> unCategory cat
+
+    checkScopeToCli :: CheckScope -> Text
+    checkScopeToCli = \case
+        CheckScopeFile file -> " --file=" <> toText file
+        CheckScopeDirectory dir -> " --directory=" <> toText dir
+        CheckScopeModule m -> " --module=" <> unModuleName m
