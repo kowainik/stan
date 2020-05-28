@@ -45,10 +45,12 @@ data StanCommand
 
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
-    { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
-    , stanArgsCabalFilePath  :: ![FilePath]  -- ^ Path to @.cabal@ files.
-    , stanArgsReportSettings :: !ReportSettings  -- ^ Settings for report
-    , stanArgsConfig         :: !PartialConfig
+    { stanArgsHiedir               :: !FilePath  -- ^ Directory with HIE files
+    , stanArgsCabalFilePath        :: ![FilePath]  -- ^ Path to @.cabal@ files.
+    , stanArgsReportSettings       :: !ReportSettings  -- ^ Settings for report
+    , stanArgsUseDefaultConfigFile :: !Bool  -- ^ Use default @.stan.toml@ file
+    , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
+    , stanArgsConfig               :: !PartialConfig
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -86,6 +88,8 @@ stanP = do
     stanArgsCabalFilePath <- cabalFilePathP
     stanArgsReportSettings <- reportSettingsP
     stanArgsConfig <- configP
+    stanArgsConfigFile <- configFileP
+    stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -113,6 +117,19 @@ cabalFilePathP = many $ strOption $ mconcat
     [ long "cabal-file-path"
     , metavar "FILE_PATH"
     , help "Relative path to the .cabal file (can specify many of this option)"
+    ]
+
+configFileP :: Parser (Maybe FilePath)
+configFileP = optional $ strOption $ mconcat
+    [ long "config-file"
+    , metavar "FILE_PATH"
+    , help "Relative path to the .toml configurations file"
+    ]
+
+useDefaultConfigFileP :: Parser Bool
+useDefaultConfigFileP = flag True False $ mconcat
+    [ long "no-default"
+    , help "Ignore local .stan.toml configuration file"
     ]
 
 reportSettingsP :: Parser ReportSettings
