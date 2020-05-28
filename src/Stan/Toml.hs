@@ -1,3 +1,5 @@
+{-# LANGUAGE ApplicativeDo #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -13,11 +15,11 @@ module Stan.Toml
     ) where
 
 import Colourista (infoMessage)
-import System.Directory (doesFileExist, getHomeDirectory)
+import System.Directory (doesFileExist, getCurrentDirectory, getHomeDirectory)
 import System.FilePath ((</>))
 import Toml (Key, TomlCodec, (.=))
-import Trial (fiasco)
-import Trial.Tomland (taggedTrialCodec)
+import Trial (TaggedTrial, Trial (..), fiasco)
+import Trial.Tomland (taggedTrialStrCodec)
 
 import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
@@ -32,25 +34,41 @@ import qualified Toml
 
 
 getTomlConfig :: IO PartialConfig
-getTomlConfig = do
-    file <- defaultConfigFile
-    isFile <- doesFileExist file
-    if isFile
-    then do
-        infoMessage $ "Configurations from " <> toText defaultTomlFile <> " will be used."
-        Toml.decodeFile configCodec file
-    else let e = fiasco "Configurations file doesn't exist" in
-        pure $ ConfigP e
+getTomlConfig = defaultCurConfigFile >>= readToml >>= \case
+    Result _ r -> pure r
+    resCur -> defaultHomeConfigFile >>= readToml >>= \ resHome ->
+        pure $ case resCur <> resHome of
+            Fiasco f     -> ConfigP $ Fiasco f
+            Result _ res -> res
+  where
+    readToml :: FilePath -> IO (Trial Text PartialConfig)
+    readToml file = do
+        isFile <- doesFileExist file
+        if isFile
+        then do
+            infoMessage $ "Reading Configurations from " <> toText file <> " ..."
+            pure <$> Toml.decodeFile configCodec file
+        else pure $ fiasco $ "TOML Configurations file doesn't exist: " <> toText file
 
 defaultTomlFile :: FilePath
 defaultTomlFile = ".stan.toml"
 
-defaultConfigFile :: IO FilePath
-defaultConfigFile = (</> defaultTomlFile) <$> getHomeDirectory
+defaultHomeConfigFile :: IO FilePath
+defaultHomeConfigFile = (</> defaultTomlFile) <$> getHomeDirectory
+
+defaultCurConfigFile :: IO FilePath
+defaultCurConfigFile = (</> defaultTomlFile) <$> getCurrentDirectory
 
 configCodec :: TomlCodec PartialConfig
 configCodec = ConfigP
-    <$> taggedTrialCodec "TOML" (Toml.list checkCodec) "check" .= configChecks
+    <$> checksCodec .= configChecks
+
+checksCodec :: TomlCodec (TaggedTrial Text [Check])
+checksCodec = do
+    checks <- taggedTrialStrCodec (Toml.list checkCodec) "check"
+    pure $ case checks of
+        Result _ (_, []) -> checks <> fiasco "No TOML value is specified for key 'check'"
+        _                -> checks
 
 checkCodec :: TomlCodec Check
 checkCodec = Check

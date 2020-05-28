@@ -47,7 +47,7 @@ runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     -- config
     tomlConfig <- getTomlConfig
-    let config = finaliseConfig $ defaultConfig <> tomlConfig
+    let config = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     putTextLn $ prettyPrintTrial config
 
     hieFiles <- readHieFiles stanArgsHiedir
