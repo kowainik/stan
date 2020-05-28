@@ -22,13 +22,14 @@ import HieTypes (HieFile (..))
 import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
 import System.IO.Unsafe (unsafeInterleaveIO)
-import Trial (prettyPrintTrial)
+import Trial (prettyPrintTaggedTrial, prettyPrintTrial, trialToMaybe)
 
 import Stan.Analysis (runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), runStanCli)
 import Stan.Config (defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
+import Stan.EnvVars (EnvVars (..), getEnvVars)
 import Stan.Hie (readHieFiles)
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
@@ -45,8 +46,13 @@ run = runStanCli >>= \case
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
+    -- ENV vars
+    EnvVars{..} <- getEnvVars
+    let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
+    putTextLn $ prettyPrintTaggedTrial defConfTrial
+    let useDefConfig = fromMaybe True (snd <$> trialToMaybe defConfTrial)
     -- config
-    tomlConfig <- getTomlConfig stanArgsUseDefaultConfigFile stanArgsConfigFile
+    tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
     let config = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     putTextLn $ prettyPrintTrial config
 
