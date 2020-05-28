@@ -188,7 +188,7 @@ applyChecks paths = foldl' useCheck filesMap
                 CheckInspection checkId -> iId == checkId
                 CheckObservation _      -> False
                 CheckSeverity sev       -> sev == inspectionSeverity
-                CheckCategory cat       -> elem cat inspectionCategory
+                CheckCategory cat       -> cat `elem` inspectionCategory
 
     applyForScope
         :: (HashSet (Id Inspection) -> HashSet (Id Inspection))
@@ -199,16 +199,10 @@ applyChecks paths = foldl' useCheck filesMap
         Nothing -> f <$> hm  -- no scope = apply for everything
         Just cScope -> case cScope of
             CheckScopeFile path -> HashMap.alter (fmap f) path hm
-            CheckScopeDirectory dir ->
-                HashMap.fromList
-                $ mapKeepMaybe
-                    (\(path, ins) -> guard (isInDir dir path) *> pure (path, f ins))
-                $ HashMap.toList hm
+            CheckScopeDirectory dir -> HashMap.mapWithKey
+                (\path -> if isInDir dir path then f else id)
+                hm
             CheckScopeModule _moduleName -> hm  -- TODO: no info about modules here :(
 
     isInDir :: FilePath -> FilePath -> Bool
     isInDir dir path = dir `isPrefixOf` path
-
--- Like 'mapMaybe' but keeps the original element if function returns Nothing
-mapKeepMaybe :: (a -> Maybe a) -> [a] -> [a]
-mapKeepMaybe f = mapMaybe (\a -> f a <|> Just a)
