@@ -22,12 +22,13 @@ import HieTypes (HieFile (..))
 import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory)
 import System.FilePath (takeExtension, (</>))
 import System.IO.Unsafe (unsafeInterleaveIO)
-import Trial (prettyPrintTaggedTrial, prettyPrintTrial, trialToMaybe)
+import Trial (Trial (..), prettyPrintTaggedTrial, prettyPrintTrial, trialToMaybe)
 
 import Stan.Analysis (runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
-import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), runStanCli)
-import Stan.Config (defaultConfig, finaliseConfig)
+import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
+                 runStanCli)
+import Stan.Config (configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), getEnvVars)
 import Stan.Hie (readHieFiles)
@@ -43,6 +44,7 @@ run :: IO ()
 run = runStanCli >>= \case
     Stan stanArgs -> runStan stanArgs
     StanInspection inspectionArgs -> runInspection inspectionArgs
+    StanTomlToCli tomlToCliArgs -> runTomlToCli tomlToCliArgs
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
@@ -73,6 +75,15 @@ runInspection InspectionArgs{..} = case inspectionArgsId of
             errorMessage $ "Inspection with such ID does not exist: " <> unId insId
             putTextLn $ " 💡 " <> formatWith [italic] "Use 'stan inspection' to see the list of all available inspections."
 
+runTomlToCli :: TomlToCliArgs -> IO ()
+runTomlToCli TomlToCliArgs{..} = do
+    let useDefConfig = isNothing tomlToCliArgsFilePath
+    partialConfig <- getTomlConfig useDefConfig tomlToCliArgsFilePath
+    case finaliseConfig partialConfig of
+        Result _ res -> putTextLn $ configToCliCommand res
+        fiasco -> do
+            errorMessage $ "Could not get Configurations:"
+            putTextLn $ prettyPrintTrial fiasco
 
 {- | From a given path to cabal file and 'HieFile's create the map from modules
 (that are in .cabal file) to the resulting parsed extensions for each.
