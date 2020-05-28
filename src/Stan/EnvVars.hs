@@ -28,7 +28,7 @@ getEnvVars = do
     pure EnvVars{..}
   where
     getEnvVar :: String -> (String -> Trial Text a) -> IO (TaggedTrial Text a)
-    getEnvVar var act = lookupEnv var >>= \val -> pure $ withTag "EnvVar" $ case val of
+    getEnvVar var act = lookupEnv var <&> \val -> withTag "EnvVar" $ case val of
         Nothing -> fiasco $ "No " <> toText var <> " Env Variable is set"
 
         Just s  -> act s
