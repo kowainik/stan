@@ -153,6 +153,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Common
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
+                       Test.Stan.Cli
                        Test.Stan.Gen
                        Test.Stan.Number
                        Test.Stan.Observation
@@ -165,6 +166,7 @@ test-suite stan-test
                      , hedgehog ^>= 1.0
                      , hspec ^>= 2.7
                      , hspec-hedgehog ^>= 0.0.1.2
+                     , optparse-applicative
                      , text
                      , tomland
                      , trial

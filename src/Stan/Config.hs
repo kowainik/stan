@@ -102,6 +102,17 @@ finaliseConfig config = do
     configChecks <- #configChecks config
     pure ConfigP {..}
 
+
+{- |
+
+@
+  ⓘ Reading Configurations from /home/vrom911/Kowainik/stan/.stan.toml ...
+stan check --ignore --directory=test/ \
+     check --include \
+     check --ignore --inspectionId=STAN-0002 \
+     check --ignore --inspectionId=STAN-0001 --file=src/MyFile.hs
+@
+-}
 configToCliCommand :: Config -> Text
 configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map checkToCli configChecks)
   where
