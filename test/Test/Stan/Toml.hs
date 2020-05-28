@@ -2,21 +2,17 @@ module Test.Stan.Toml
     ( tomlSpec
     ) where
 
-import Hedgehog (Gen, forAll, (===))
+import Hedgehog (forAll, (===))
 import Test.Hspec (Spec, describe, it, shouldReturn)
 import Test.Hspec.Hedgehog (hedgehog)
 import Trial (Trial (..), withTag)
 
-import Stan.Category (Category, stanCategories)
 import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config,
                     ConfigP (..), PartialConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
-import Stan.Core.ModuleName (ModuleName (..))
-import Stan.Severity (Severity)
 import Stan.Toml (configCodec)
-import Test.Stan.Gen (Property, genId, genSmallList, genSmallString, genSmallText)
+import Test.Stan.Gen (Property, genConfig)
 
-import qualified Hedgehog.Gen as Gen
 import qualified Toml
 
 
@@ -52,39 +48,3 @@ toPartialConfig :: Config -> PartialConfig
 toPartialConfig ConfigP{..} = ConfigP
     { configChecks = withTag "TOML" $ pure configChecks
     }
-
-genConfig :: Gen Config
-genConfig = ConfigP <$> genSmallList genCheck
-
-genCheck :: Gen Check
-genCheck = Check
-    <$> genCheckType
-    <*> Gen.maybe genCheckFilter
-    <*> Gen.maybe genCheckScope
-
-genCheckFilter :: Gen CheckFilter
-genCheckFilter = Gen.choice
-    [ CheckInspection  <$> genId
-    , CheckObservation <$> genId
-    , CheckSeverity    <$> genSeverity
-    , CheckCategory    <$> genCategory
-    ]
-
-genCheckScope :: Gen CheckScope
-genCheckScope = Gen.choice
-    [ CheckScopeFile      <$> genSmallString
-    , CheckScopeDirectory <$> genSmallString
-    , CheckScopeModule    <$> genModuleName
-    ]
-
-genCheckType :: Gen CheckType
-genCheckType = Gen.enumBounded
-
-genSeverity :: Gen Severity
-genSeverity = Gen.enumBounded
-
-genCategory :: Gen Category
-genCategory = Gen.element stanCategories
-
-genModuleName :: Gen ModuleName
-genModuleName = ModuleName <$> genSmallText

@@ -138,7 +138,7 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map chec
         CheckInspection insId -> " --inspectionId=" <> unId insId
         CheckObservation obsId -> " --observationId=" <> unId obsId
         CheckSeverity sev -> " --severity=" <> show sev
-        CheckCategory cat -> " --severity=" <> unCategory cat
+        CheckCategory cat -> " --category=" <> unCategory cat
 
     checkScopeToCli :: CheckScope -> Text
     checkScopeToCli = \case
