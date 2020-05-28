@@ -25,7 +25,8 @@ import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command,
                             showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
                             strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
-import Trial (fiasco, withTag)
+import Trial (TaggedTrial, fiasco, withTag)
+import Trial.OptparseApplicative (taggedTrialParser)
 
 import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
@@ -48,7 +49,7 @@ data StanArgs = StanArgs
     { stanArgsHiedir               :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath        :: ![FilePath]  -- ^ Path to @.cabal@ files.
     , stanArgsReportSettings       :: !ReportSettings  -- ^ Settings for report
-    , stanArgsUseDefaultConfigFile :: !Bool  -- ^ Use default @.stan.toml@ file
+    , stanArgsUseDefaultConfigFile :: !(TaggedTrial Text Bool)  -- ^ Use default @.stan.toml@ file
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
     , stanArgsConfig               :: !PartialConfig
     }
@@ -126,8 +127,8 @@ configFileP = optional $ strOption $ mconcat
     , help "Relative path to the .toml configurations file"
     ]
 
-useDefaultConfigFileP :: Parser Bool
-useDefaultConfigFileP = flag True False $ mconcat
+useDefaultConfigFileP :: Parser (TaggedTrial Text Bool)
+useDefaultConfigFileP = taggedTrialParser "no-default" $ flag' False $ mconcat
     [ long "no-default"
     , help "Ignore local .stan.toml configuration file"
     ]
