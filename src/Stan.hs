@@ -50,7 +50,7 @@ runStan StanArgs{..} = do
     EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
     putTextLn $ prettyPrintTaggedTrial defConfTrial
-    let useDefConfig = fromMaybe True (snd <$> trialToMaybe defConfTrial)
+    let useDefConfig = maybe True snd (trialToMaybe defConfTrial)
     -- config
     tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
     let config = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
