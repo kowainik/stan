@@ -25,10 +25,11 @@ import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command,
                             showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
                             strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
+import Trial (fiasco, withTag)
 
 import Stan.Category (Category (..))
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config,
-                    ConfigP (..))
+import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
+                    PartialConfig)
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
@@ -47,7 +48,7 @@ data StanArgs = StanArgs
     { stanArgsHiedir         :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath  :: ![FilePath]  -- ^ Path to @.cabal@ files.
     , stanArgsReportSettings :: !ReportSettings  -- ^ Settings for report
-    , stanArgsConfig         :: !Config
+    , stanArgsConfig         :: !PartialConfig
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -126,9 +127,13 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     , help "Hide verbose solution information for observations"
     ]
 
-configP :: Parser Config
-configP = fmap ConfigP $ many $ hsubparser $
-    command "check" (info checkP (progDesc "Specify list of checks"))
+configP :: Parser PartialConfig
+configP = do
+    checks <- many $ hsubparser $
+        command "check" (info checkP (progDesc "Specify list of checks"))
+    pure $ ConfigP $ withTag "CLI" $ case checks of
+        [] -> fiasco "No CLI option specified for 'checks'"
+        xs -> pure xs
 
 checkP :: Parser Check
 checkP = do
