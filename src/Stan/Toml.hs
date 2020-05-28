@@ -67,7 +67,7 @@ checksCodec :: TomlCodec (TaggedTrial Text [Check])
 checksCodec = do
     checks <- taggedTrialStrCodec (Toml.list checkCodec) "check"
     pure $ case checks of
-        Result _ (_, []) -> checks *> fiasco "No TOML value is specified for key 'check'"
+        Result _ (_, []) -> checks <> fiasco "No TOML value is specified for key 'check'"
         _                -> checks
 
 checkCodec :: TomlCodec Check

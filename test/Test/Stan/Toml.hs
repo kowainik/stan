@@ -2,14 +2,14 @@ module Test.Stan.Toml
     ( tomlSpec
     ) where
 
-import Hedgehog (Gen, forAll, tripping)
+import Hedgehog (Gen, forAll, (===))
 import Test.Hspec (Spec, describe, it, shouldReturn)
 import Test.Hspec.Hedgehog (hedgehog)
-import Trial (withTag)
+import Trial (Trial (..), withTag)
 
 import Stan.Category (Category, stanCategories)
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
-                    PartialConfig)
+import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config,
+                    ConfigP (..), PartialConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Severity (Severity)
@@ -42,10 +42,19 @@ tomlSpec = describe "TOML configuration tests" $ do
 configTomlRoundtripProperty :: Property
 configTomlRoundtripProperty = hedgehog $ do
     config <- forAll genConfig
-    tripping config (Toml.encode configCodec) (Toml.decode configCodec)
+    case (Toml.decode configCodec $ Toml.encode configCodec $ toPartialConfig config) of
+        Right partialConfig -> case finaliseConfig partialConfig of
+            Result _ res -> config === res
+            _            -> fail "Expected Result, but this is Fiasco, bro"
+        _                   -> fail "Expected Right"
 
-genConfig :: Gen PartialConfig
-genConfig = ConfigP . withTag "TOML" . pure <$> genSmallList genCheck
+toPartialConfig :: Config -> PartialConfig
+toPartialConfig ConfigP{..} = ConfigP
+    { configChecks = withTag "TOML" $ pure configChecks
+    }
+
+genConfig :: Gen Config
+genConfig = ConfigP <$> genSmallList genCheck
 
 genCheck :: Gen Check
 genCheck = Check
