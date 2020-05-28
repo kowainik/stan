@@ -82,7 +82,7 @@ runTomlToCli TomlToCliArgs{..} = do
     case finaliseConfig partialConfig of
         Result _ res -> putTextLn $ configToCliCommand res
         fiasco -> do
-            errorMessage $ "Could not get Configurations:"
+            errorMessage "Could not get Configurations:"
             putTextLn $ prettyPrintTrial fiasco
 
 {- | From a given path to cabal file and 'HieFile's create the map from modules
