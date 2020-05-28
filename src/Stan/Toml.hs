@@ -33,13 +33,18 @@ import Stan.Severity (Severity (..))
 import qualified Toml
 
 
-getTomlConfig :: IO PartialConfig
-getTomlConfig = defaultCurConfigFile >>= readToml >>= \case
-    Result _ r -> pure r
-    resCur -> defaultHomeConfigFile >>= readToml >>= \ resHome ->
-        pure $ case resCur <> resHome of
-            Fiasco f     -> ConfigP $ Fiasco f
-            Result _ res -> res
+getTomlConfig :: Bool -> Maybe FilePath -> IO PartialConfig
+getTomlConfig useDefault mTomlFile = do
+    def <-
+        if useDefault
+        then defaultCurConfigFile >>= readToml >>= \case
+            Result _ r -> pure r
+            resCur -> defaultHomeConfigFile >>= readToml >>= \ resHome ->
+                pure $ inline $ resCur <> resHome
+        else pure $ ConfigP $ fiasco "Selected NOT to use any default .stan.toml configuration files"
+    case mTomlFile of
+        Just tomlFile -> (def <>) . inline <$> readToml tomlFile
+        Nothing       -> pure def
   where
     readToml :: FilePath -> IO (Trial Text PartialConfig)
     readToml file = do
@@ -49,6 +54,11 @@ getTomlConfig = defaultCurConfigFile >>= readToml >>= \case
             infoMessage $ "Reading Configurations from " <> toText file <> " ..."
             pure <$> Toml.decodeFile configCodec file
         else pure $ fiasco $ "TOML Configurations file doesn't exist: " <> toText file
+
+    inline :: Trial Text PartialConfig -> PartialConfig
+    inline = \case
+        Fiasco f     -> ConfigP $ Fiasco f
+        Result _ res -> res
 
 defaultTomlFile :: FilePath
 defaultTomlFile = ".stan.toml"

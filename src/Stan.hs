@@ -46,7 +46,7 @@ run = runStanCli >>= \case
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     -- config
-    tomlConfig <- getTomlConfig
+    tomlConfig <- getTomlConfig stanArgsUseDefaultConfigFile stanArgsConfigFile
     let config = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     putTextLn $ prettyPrintTrial config
 
