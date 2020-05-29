@@ -155,6 +155,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
                        Test.Stan.Cli
+                       Test.Stan.Config
                        Test.Stan.Gen
                        Test.Stan.Number
                        Test.Stan.Observation
