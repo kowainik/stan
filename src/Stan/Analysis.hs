@@ -17,11 +17,14 @@ import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Analysis.Analyser (analysisByInspection)
+import Stan.Core.Id (Id)
 import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
-import Stan.Inspection.All (inspections)
+import Stan.Inspection (Inspection)
+import Stan.Inspection.All (lookupInspectionById)
 import Stan.Observation (Observations)
 
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Slist as S
@@ -99,26 +102,45 @@ updateFileMap fp fi = modify' $ over fileMapL (Map.insert fp fi)
 
 {- | Perform static analysis of given 'HieFile'.
 -}
-runAnalysis :: Map FilePath (Either ExtensionsError ParsedExtensions) -> [HieFile] -> Analysis
-runAnalysis cabalExtensionsMap = executingState initialAnalysis . analyse cabalExtensionsMap
+runAnalysis
+    :: Map FilePath (Either ExtensionsError ParsedExtensions)
+    -> HashMap FilePath (HashSet (Id Inspection))
+    -> [HieFile]
+    -> Analysis
+runAnalysis cabalExtensionsMap checksMap = executingState initialAnalysis .
+    analyse cabalExtensionsMap checksMap
 
 analyse
     :: Map FilePath (Either ExtensionsError ParsedExtensions)
+    -> HashMap FilePath (HashSet (Id Inspection))
     -> [HieFile]
     -> State Analysis ()
-analyse _extsMap [] = pass
-analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
+analyse _extsMap _checksMap [] = pass
+analyse cabalExtensions checksMap (hieFile@HieFile{..}:hieFiles) = do
+    case HM.lookup hie_hs_file checksMap of
+        Just insIds -> analyseHieFile hieFile cabalExtensions insIds
+        Nothing     -> pass
+    analyse cabalExtensions checksMap hieFiles
+
+analyseHieFile
+    :: HieFile
+    -> Map FilePath (Either ExtensionsError ParsedExtensions)
+    -> HashSet (Id Inspection)
+    -> State Analysis ()
+analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     -- traceM (hie_hs_file hieFile)
     let fileInfoLoc = countLinesOfCode hieFile
     let fileInfoCabalExtensions = fromMaybe
             (Left $ NotCabalModule hie_hs_file)
-            (Map.lookup hie_hs_file cabalExtensions)
+            (Map.lookup hie_hs_file cabalExts)
     let fileInfoExtensions = first (ModuleParseError hie_hs_file) $
             parseSourceWithPath hie_hs_file hie_hs_src
     let fileInfoPath = hie_hs_file
     -- merge cabal and module extensions and update overall exts
     let fileInfoMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
-    let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) inspections
+    -- get list of inspections for the file
+    let ins = mapMaybe lookupInspectionById (toList insIds)
+    let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) ins
 
     incModulesNum
     incLinesOfCode fileInfoLoc
@@ -126,8 +148,6 @@ analyse cabalExtensions (hieFile@HieFile{..}:hieFiles) = do
     whenRight_ fileInfoExtensions addExtensions
     whenRight_ fileInfoCabalExtensions addExtensions
     addObservations fileInfoObservations
-
-    analyse cabalExtensions hieFiles
   where
     merge
         :: Either ExtensionsError ParsedExtensions

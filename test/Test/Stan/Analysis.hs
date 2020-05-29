@@ -7,6 +7,7 @@ import Test.Hspec (Spec, describe, it, runIO, shouldBe)
 
 import Stan (createCabalExtensionsMap)
 import Stan.Analysis (Analysis (..), runAnalysis)
+import Stan.Config (mkDefaultChecks)
 import Test.Stan.Analysis.AntiPattern (analysisAntiPatternSpec)
 import Test.Stan.Analysis.Infinite (analysisInfiniteSpec)
 import Test.Stan.Analysis.Partial (analysisPartialSpec)
@@ -17,7 +18,8 @@ import qualified Data.Set as Set
 analysisSpec :: [HieFile] -> Spec
 analysisSpec hieFiles = describe "Static Analysis" $ do
     extensionsMap <- runIO $ createCabalExtensionsMap ["stan.cabal"] hieFiles
-    let analysis = runAnalysis extensionsMap hieFiles
+    let checksMap = mkDefaultChecks (map hie_hs_file hieFiles)
+    let analysis = runAnalysis extensionsMap checksMap hieFiles
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis
     analysisAntiPatternSpec analysis
