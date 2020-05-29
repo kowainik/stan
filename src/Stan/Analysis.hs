@@ -139,7 +139,7 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     -- merge cabal and module extensions and update overall exts
     let fileInfoMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file
-    let ins = catMaybes $ map lookupInspectionById $ toList insIds
+    let ins = mapMaybe lookupInspectionById (toList insIds)
     let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) ins
 
     incModulesNum
