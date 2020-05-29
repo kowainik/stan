@@ -67,7 +67,6 @@ genCheckScope :: Gen CheckScope
 genCheckScope = Gen.choice
     [ CheckScopeFile      <$> genSmallString
     , CheckScopeDirectory <$> genSmallString
-    , CheckScopeModule    <$> genModuleName
     ]
 
 genCheckType :: Gen CheckType

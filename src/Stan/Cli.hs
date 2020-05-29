@@ -215,10 +215,6 @@ checkScopeP =
         (long "directory"
         <> metavar "DIRECTORY_PATH"
         <> help "Directory to ignore or include")
-    <|> CheckScopeModule <$> strOption
-        (long "module"
-        <> metavar "MODULE"
-        <> help "Module to ignore or include")
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)

@@ -41,7 +41,6 @@ import Trial ((::-), Phase (..), Trial, withTag)
 
 import Stan.Category (Category (..))
 import Stan.Core.Id (Id (..))
-import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (inspections, inspectionsIds, lookupInspectionById)
 import Stan.Observation (Observation (..))
@@ -95,7 +94,6 @@ data CheckFilter
 data CheckScope
     = CheckScopeFile FilePath
     | CheckScopeDirectory FilePath
-    | CheckScopeModule ModuleName
     deriving stock (Show, Eq)
 
 defaultConfig :: PartialConfig
@@ -144,7 +142,6 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map chec
     checkScopeToCli = \case
         CheckScopeFile file -> " --file=" <> toText file
         CheckScopeDirectory dir -> " --directory=" <> toText dir
-        CheckScopeModule m -> " --module=" <> unModuleName m
 
 {- | Convert the list of 'Check's from 'Config' to data structure that
 allows filtering of 'Inspection's.
@@ -213,7 +210,6 @@ applyChecks paths = foldl' useCheck filesMap
             CheckScopeDirectory dir -> HashMap.mapWithKey
                 (\path -> if isInDir dir path then f else id)
                 hm
-            CheckScopeModule _moduleName -> hm  -- TODO: no info about modules here :(
 
     isInDir :: FilePath -> FilePath -> Bool
     isInDir dir path = dir `isPrefixOf` path

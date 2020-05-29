@@ -25,7 +25,6 @@ import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
                     PartialConfig)
 import Stan.Core.Id (Id (..))
-import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Observation (Observation (..))
 import Stan.Severity (Severity (..))
@@ -137,14 +136,7 @@ checkScopeDir = \case
     CheckScopeDirectory dir -> Just dir
     _ -> Nothing
 
-checkScopeMod :: CheckScope -> Maybe ModuleName
-checkScopeMod = \case
-    CheckScopeModule m -> Just m
-    _ -> Nothing
-
-
 checkScopeCodec :: TomlCodec CheckScope
 checkScopeCodec =
         Toml.dimatch checkScopeFile CheckScopeFile      (Toml.string "file")
     <|> Toml.dimatch checkScopeDir  CheckScopeDirectory (Toml.string "directory")
-    <|> Toml.dimatch checkScopeMod  CheckScopeModule    (Toml.diwrap $ Toml.text "module")
