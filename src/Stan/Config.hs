@@ -26,6 +26,7 @@ module Stan.Config
 
       -- * Default
     , defaultConfig
+    , defaultChecks
 
       -- * Final stage
     , finaliseConfig
@@ -145,6 +146,9 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map chec
         CheckScopeFile file -> " --file=" <> toText file
         CheckScopeDirectory dir -> " --directory=" <> toText dir
         CheckScopeModule m -> " --module=" <> unModuleName m
+
+defaultChecks :: [FilePath] -> HashMap FilePath (HashSet (Id Inspection))
+defaultChecks = HashMap.fromList . map (, inspectionsIds)
 
 {- | Convert the list of 'Check's from 'Config' to data structure that
 allows filtering of 'Inspection's.

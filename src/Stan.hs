@@ -28,7 +28,7 @@ import Stan.Analysis (runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
                  runStanCli)
-import Stan.Config (configToCliCommand, defaultConfig, finaliseConfig)
+import Stan.Config (ConfigP (..), applyChecks, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), getEnvVars)
 import Stan.Hie (readHieFiles)
@@ -55,14 +55,17 @@ runStan StanArgs{..} = do
     let useDefConfig = maybe True snd (trialToMaybe defConfTrial)
     -- config
     tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
-    let config = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
-    putTextLn $ prettyPrintTrial config
+    let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
+    putTextLn $ prettyPrintTrial configTrial
 
     hieFiles <- readHieFiles stanArgsHiedir
     -- create cabal default extensions map
     cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
+    -- get checks for each file
+    let config = fromMaybe (error "asd") $ trialToMaybe configTrial
+    let checksMap = applyChecks (map hie_hs_file hieFiles) (configChecks config)
 
-    let analysis = runAnalysis cabalExtensionsMap hieFiles
+    let analysis = runAnalysis cabalExtensionsMap checksMap hieFiles
     putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 
