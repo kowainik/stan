@@ -77,6 +77,7 @@ library
                          Stan.Analysis
                            Stan.Analysis.Analyser
                            Stan.Analysis.Pretty
+                         Stan.Cabal
                          Stan.Category
                          Stan.Cli
                          Stan.Config

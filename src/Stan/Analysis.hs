@@ -11,12 +11,13 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
-import Extensions (ExtensionsError (..), ExtensionsResult, OnOffExtension, ParsedExtensions (..),
-                   SafeHaskellExtension, mergeAnyExtensions, parseSourceWithPath)
+import Extensions (ExtensionsError (..), OnOffExtension, ParsedExtensions (..),
+                   SafeHaskellExtension, parseSourceWithPath)
 import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Analysis.Analyser (analysisByInspection)
+import Stan.Cabal (mergeParsedExtensions)
 import Stan.Core.Id (Id)
 import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
@@ -128,9 +129,8 @@ analyse
     -> State Analysis ()
 analyse _extsMap _checksMap [] = pass
 analyse cabalExtensions checksMap (hieFile@HieFile{..}:hieFiles) = do
-    case HM.lookup hie_hs_file checksMap of
-        Just insIds -> analyseHieFile hieFile cabalExtensions insIds
-        Nothing     -> pass
+    whenJust (HM.lookup hie_hs_file checksMap)
+        (analyseHieFile hieFile cabalExtensions)
     analyse cabalExtensions checksMap hieFiles
 
 analyseHieFile
@@ -148,7 +148,7 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
             parseSourceWithPath hie_hs_file hie_hs_src
     let fileInfoPath = hie_hs_file
     -- merge cabal and module extensions and update overall exts
-    let fileInfoMergedExtensions = merge fileInfoCabalExtensions fileInfoExtensions
+    let fileInfoMergedExtensions = mergeParsedExtensions fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file
     let ins = mapMaybe lookupInspectionById (toList insIds)
     let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) ins
@@ -160,11 +160,3 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     whenRight_ fileInfoCabalExtensions addExtensions
     addInspections insIds
     addObservations fileInfoObservations
-  where
-    merge
-        :: Either ExtensionsError ParsedExtensions
-        -> Either ExtensionsError ParsedExtensions
-        -> ExtensionsResult
-    merge (Left err) _                = Left err
-    merge _ (Left err)                = Left err
-    merge (Right exts1) (Right exts2) = mergeAnyExtensions exts1 exts2
