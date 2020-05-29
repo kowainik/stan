@@ -15,11 +15,11 @@ import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
-import Stan.Inspection.All (inspectionsMap)
 import Stan.Observation (Observation (..), Observations, prettyShowObservation)
 import Stan.Report (ReportSettings)
 
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Slist as S
@@ -51,7 +51,7 @@ prettyShowAnalysis Analysis{..} reportSettings = groupedObservations <> summary
         , mid
         , alignText "Total SafeHaskel extensions" <> alignNum (Set.size $ snd analysisUsedExtensions)
         , mid
-        , alignText "Total checked inspections" <> alignNum (HM.size inspectionsMap)
+        , alignText "Total checked inspections" <> alignNum (HS.size analysisInspections)
         , mid
         , alignText "Total found observations" <> alignNum (length analysisObservations)
         , bot

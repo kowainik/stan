@@ -36,6 +36,7 @@ data Analysis = Analysis
     { analysisModulesNum     :: !Int
     , analysisLinesOfCode    :: !Int
     , analysisUsedExtensions :: !(Set OnOffExtension, Set SafeHaskellExtension)
+    , analysisInspections    :: !(HashSet (Id Inspection))
     , analysisObservations   :: !Observations
     , analysisFileMap        :: !FileMap
     } deriving stock (Show)
@@ -55,6 +56,11 @@ extensionsL = lens
     analysisUsedExtensions
     (\analysis new -> analysis { analysisUsedExtensions = new })
 
+inspectionsL :: Lens' Analysis (HashSet (Id Inspection))
+inspectionsL = lens
+    analysisInspections
+    (\analysis new -> analysis { analysisInspections = new })
+
 observationsL :: Lens' Analysis Observations
 observationsL = lens
     analysisObservations
@@ -70,6 +76,7 @@ initialAnalysis = Analysis
     { analysisModulesNum     = 0
     , analysisLinesOfCode    = 0
     , analysisUsedExtensions = mempty
+    , analysisInspections    = mempty
     , analysisObservations   = mempty
     , analysisFileMap        = mempty
     }
@@ -82,6 +89,10 @@ analised lines of code.
 -}
 incLinesOfCode :: Int -> State Analysis ()
 incLinesOfCode num = modify' $ over linesOfCodeL (+ num)
+
+-- | Add set of 'Inspection' 'Id's to the existing set.
+addInspections :: HashSet (Id Inspection) -> State Analysis ()
+addInspections ins = modify' $ over inspectionsL (ins <>)
 
 -- | Add list of 'Observation's to the beginning of the existing list
 addObservations :: Observations -> State Analysis ()
@@ -147,6 +158,7 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     updateFileMap hie_hs_file FileInfo{..}
     whenRight_ fileInfoExtensions addExtensions
     whenRight_ fileInfoCabalExtensions addExtensions
+    addInspections insIds
     addObservations fileInfoObservations
   where
     merge
