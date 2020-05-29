@@ -57,16 +57,15 @@ runStan StanArgs{..} = do
     tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
     let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     putTextLn $ prettyPrintTrial configTrial
+    whenJust (trialToMaybe configTrial) $ \config -> do
+        hieFiles <- readHieFiles stanArgsHiedir
+        -- create cabal default extensions map
+        cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
+        -- get checks for each file
+        let checksMap = applyChecks (map hie_hs_file hieFiles) (configChecks config)
 
-    hieFiles <- readHieFiles stanArgsHiedir
-    -- create cabal default extensions map
-    cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
-    -- get checks for each file
-    let config = fromMaybe (error "asd") $ trialToMaybe configTrial
-    let checksMap = applyChecks (map hie_hs_file hieFiles) (configChecks config)
-
-    let analysis = runAnalysis cabalExtensionsMap checksMap hieFiles
-    putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
+        let analysis = runAnalysis cabalExtensionsMap checksMap hieFiles
+        putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 
 runInspection :: InspectionArgs -> IO ()
