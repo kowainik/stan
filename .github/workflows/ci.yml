@@ -44,3 +44,7 @@ jobs:
     - name: Test
       run: |
         cabal test --enable-tests --test-show-details=direct stan-test
+
+    - name: Dogfooding
+      run: |
+        cabal run stan
