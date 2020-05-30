@@ -6,6 +6,7 @@ import Test.Hspec (hspec)
 import Stan.Hie (readHieFiles)
 import Test.Stan.Analysis (analysisSpec)
 import Test.Stan.Cli (cliSpec)
+import Test.Stan.Config (configSpec)
 import Test.Stan.Number (linesOfCodeSpec, modulesNumSpec)
 import Test.Stan.Observation (observationSpec)
 import Test.Stan.Toml (tomlSpec)
@@ -26,6 +27,7 @@ main = do
                 modulesNumSpec $ length hieFiles
                 cliSpec
                 tomlSpec
+                configSpec
                 observationSpec
                 analysisSpec testHies
 
