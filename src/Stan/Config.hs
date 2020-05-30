@@ -37,6 +37,7 @@ module Stan.Config
 
       -- * Apply config
       -- $applyConfig
+    , applyConfig
     , applyChecks
     , applyChecksFor
     ) where
@@ -189,6 +190,36 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
 mkDefaultChecks :: [FilePath] -> HashMap FilePath (HashSet (Id Inspection))
 mkDefaultChecks = HashMap.fromList . map (, inspectionsIds)
 
+{- | Apply configuration to the given list of files to get the set of
+inspections for each file.
+
+The algorithm:
+
+1. Remove all files specified by the @remove@ option.
+2. Run 'applyChecks' on the remaining files.
+-}
+applyConfig
+    :: [FilePath]
+    -- ^ Paths to project files
+    -> Config
+    -- ^ Stan runtime configuration
+    -> HashMap FilePath (HashSet (Id Inspection))
+    -- ^ Resulting set of inspections for each file
+applyConfig paths ConfigP{..} =
+    applyChecks (filter notRemoved paths) configChecks
+  where
+    -- TODO: can be implemented efficiently, but the more efficient
+    -- implementation is required only if the @configRemoved@ can have
+    -- >= 1K entries
+    notRemoved :: FilePath -> Bool
+    notRemoved path = all (isNotInScope path) configRemoved
+
+    isNotInScope :: FilePath -> Scope -> Bool
+    isNotInScope path = \case
+        ScopeFile file -> path /= file
+        ScopeDirectory dir -> not $ isInDir dir path
+        ScopeAll -> False
+
 {- | Convert the list of 'Check's from 'Config' to data structure that
 allows filtering of 'Inspection's for given files.
 -}
@@ -266,8 +297,8 @@ applyChecksFor = foldl' useCheck
             hm
         ScopeAll -> f <$> hm
 
-    isInDir :: FilePath -> FilePath -> Bool
-    isInDir dir path = dir `isPrefixOf` path
+isInDir :: FilePath -> FilePath -> Bool
+isInDir dir path = dir `isPrefixOf` path
 
 {- $applyConfig
 

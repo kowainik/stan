@@ -22,7 +22,7 @@ import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cabal (createCabalExtensionsMap)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
                  runStanCli)
-import Stan.Config (ConfigP (..), applyChecks, configToCliCommand, defaultConfig, finaliseConfig)
+import Stan.Config (applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), getEnvVars)
 import Stan.Hie (readHieFiles)
@@ -54,7 +54,7 @@ runStan StanArgs{..} = do
         -- create cabal default extensions map
         cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
         -- get checks for each file
-        let checksMap = applyChecks (map hie_hs_file hieFiles) (configChecks config)
+        let checksMap = applyConfig (map hie_hs_file hieFiles) config
 
         let analysis = runAnalysis cabalExtensionsMap checksMap hieFiles
         putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings

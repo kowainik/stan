@@ -1,19 +1,22 @@
-# ignore everything in the test/ directory
-[[check]]
-type = "Ignore"
-directory = "test/"
+[[remove]]
+directory = "target/"
 
-[[check]]
-type = "Include"
-
-
-# ignore specific inspection everywhere
-[[check]]
-type = "Ignore"
-inspectionId = "STAN-0002"
-
-# ignore specific inspection only in a specific file
-[[check]]
-type = "Ignore"
-inspectionId = "STAN-0001"
-file = "src/MyFile.hs"
+# # ignore everything in the test/ directory
+# [[check]]
+# type = "Ignore"
+# directory = "test/"
+#
+# [[check]]
+# type = "Include"
+#
+#
+# # ignore specific inspection everywhere
+# [[check]]
+# type = "Ignore"
+# inspectionId = "STAN-0002"
+#
+# # ignore specific inspection only in a specific file
+# [[check]]
+# type = "Ignore"
+# inspectionId = "STAN-0001"
+# file = "src/MyFile.hs"
