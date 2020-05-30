@@ -1,6 +1,8 @@
 module Test.Stan.Gen
     ( Property
+    , genFilePath
     , genId
+    , genMediumList
     , genSmallList
     , genSmallString
     , genSmallText
@@ -17,11 +19,14 @@ module Test.Stan.Gen
     ) where
 
 import Hedgehog (Gen, PropertyT)
+import System.FilePath ((</>))
 
 import Stan.Category (Category, stanCategories)
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Config, ConfigP (..), Scope (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
+import Stan.Inspection (Inspection)
+import Stan.Inspection.All (inspectionsIds)
 import Stan.Severity (Severity)
 
 import qualified Hedgehog.Gen as Gen
@@ -35,9 +40,17 @@ type Property = PropertyT IO ()
 genId :: Gen (Id a)
 genId = Id <$> genSmallText
 
+-- | Generate valid 'Inspection' 'Id's.
+genInspectionId :: Gen (Id Inspection)
+genInspectionId = Gen.element $ toList inspectionsIds
+
 -- | Generate a small list of the given generated elements.
 genSmallList :: Gen a -> Gen [a]
 genSmallList = Gen.list (Range.linear 0 6)
+
+-- | Generate a medium-size list
+genMediumList :: Gen a -> Gen [a]
+genMediumList = Gen.list (Range.linear 0 50)
 
 genSmallText :: Gen Text
 genSmallText = Gen.text (Range.linear 0 10) Gen.alphaNum
@@ -58,7 +71,7 @@ genCheck = Check
 
 genCheckFilter :: Gen CheckFilter
 genCheckFilter = Gen.choice
-    [ CheckInspection  <$> genId
+    [ CheckInspection  <$> genInspectionId
     , CheckObservation <$> genId
     , CheckSeverity    <$> genSeverity
     , CheckCategory    <$> genCategory
@@ -67,9 +80,31 @@ genCheckFilter = Gen.choice
 
 genScope :: Gen Scope
 genScope = Gen.choice
-    [ ScopeFile      <$> genSmallString
-    , ScopeDirectory <$> genSmallString
+    [ ScopeFile      <$> genFilePath
+    , ScopeDirectory <$> genDirectory
     , pure ScopeAll
+    ]
+
+-- | Output one of the hardcoded directories
+genDirectory :: Gen FilePath
+genDirectory = Gen.element
+    [ "src"
+    , "app"
+    , "lib/"
+    , "test/"
+    , "benchmark/"
+    , "app/main/"
+    , "src/app"
+    , "src/lib/"
+    , "src/lib/foo"
+    , "src/lib/bar/"
+    ]
+
+-- | Generate a filepath either plain or from a predefined directory
+genFilePath :: Gen FilePath
+genFilePath = Gen.choice
+    [ genSmallString
+    , liftA2 (</>) genDirectory genSmallString
     ]
 
 genCheckType :: Gen CheckType

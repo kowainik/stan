@@ -2,12 +2,15 @@ module Test.Stan.Config
     ( configSpec
     ) where
 
-import Test.Hspec (Spec, describe, it, shouldBe)
+import Hedgehog (forAll, (===))
+import Test.Hspec (Spec, describe, it, parallel, shouldBe)
+import Test.Hspec.Hedgehog (hedgehog)
 
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Scope (..), applyChecks,
-                    mkDefaultChecks)
+                    applyChecksFor, mkDefaultChecks)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection)
+import Test.Stan.Gen (Property, genCheck, genFilePath, genMediumList, genSmallList)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
@@ -18,7 +21,12 @@ configSpec = describe "Stan Configuration Tests"
     applyChecksSpec
 
 applyChecksSpec :: Spec
-applyChecksSpec = describe "applyCheck tests" $ do
+applyChecksSpec = describe "Configuration checks aggregation" $ do
+    applyChecksUnitSpec
+    applyChecksPropertySpec
+
+applyChecksUnitSpec :: Spec
+applyChecksUnitSpec = describe "applyCheck: Unit Tests" $ do
     it "All inspections when empty Check list" $
         applyChecks files [] `shouldBe` defMap
     it "Including all inspections" $
@@ -63,3 +71,28 @@ applyChecksSpec = describe "applyCheck tests" $ do
 
     defMap :: HashMap FilePath (HashSet (Id Inspection))
     defMap = mkDefaultChecks files
+
+applyChecksPropertySpec :: Spec
+applyChecksPropertySpec = describe "applyCheck: Property Tests" $ parallel $ do
+    it "Idempotence: applyChecks . applyChecks ≡ applyChecks"
+        idempotenceProperty
+    it "CheckType Inversion: include c . ignore c ≡ id"
+        inversionProperty
+
+idempotenceProperty :: Property
+idempotenceProperty = hedgehog $ do
+    files  <- forAll $ genSmallList genFilePath
+    checks <- forAll $ genMediumList genCheck
+
+    let filesMap = mkDefaultChecks files
+
+    applyChecksFor (applyChecksFor filesMap checks) checks === applyChecksFor filesMap checks
+
+inversionProperty :: Property
+inversionProperty = hedgehog $ do
+    files <- forAll $ genSmallList genFilePath
+    ignoreCheck <- forAll $ genCheck <&> \c -> c { checkType = Ignore }
+    let includeCheck = ignoreCheck { checkType = Include }
+
+    let filesMap = mkDefaultChecks files
+    applyChecksFor (applyChecksFor filesMap [ignoreCheck]) [includeCheck] === filesMap
