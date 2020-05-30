@@ -234,7 +234,7 @@ The 'applyConfig' function transforms the list of rules defined in the
 each module.
 
 By default, @stan@ runs all 'Inspection's for all modules in the
-Haskell project and outputs all 'Observation's it found. Using
+Haskell project and outputs all 'Observation's it finds. Using
 'Config', you can adjust the default setting using your preferences.
 
 === Algorithm
@@ -245,7 +245,7 @@ module applies each 'Check' one-by-one in order of their appearance.
 When introducing a new 'Check' in the config, you must always specify
 the 'CheckType' (either 'Include' or 'Ignore'). 'CheckFilter' and
 'CheckScope' can be omitted. If they are not written explicitly, then
-the 'Check' applies to all entries. Specifically:
+the 'Check' is applied to all the entries. Specifically:
 
 * If 'CheckFilter' is not specified, 'Check' applies to all
   inspections for the given 'CheckScope' (either 'Ignore' or 'Include'
@@ -309,7 +309,7 @@ that have a category @Partial@.
     @
 
 5. Keep 'Inspection's only with the category @Partial@ for all files
-except single one.
+except a single one.
 
     @
     # ignore all inspections
