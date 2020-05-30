@@ -61,19 +61,22 @@ import qualified Data.Text as T
   directory, all)
 -}
 data ConfigP (p :: Phase Text) = ConfigP
-    { configChecks  :: !(p ::- [Check])
-    , configRemoved :: !(p ::- [Scope])
+    { configChecks       :: !(p ::- [Check])
+    , configRemoved      :: !(p ::- [Scope])
+    , configObservations :: !(p ::- [Id Observation])
     -- , configGroupBy :: !GroupBy
     }
 
 deriving stock instance
     ( Show (p ::- [Check])
     , Show (p ::- [Scope])
+    , Show (p ::- [Id Observation])
     ) => Show (ConfigP p)
 
 deriving stock instance
     ( Eq (p ::- [Check])
     , Eq (p ::- [Scope])
+    , Eq (p ::- [Id Observation])
     ) => Eq (ConfigP p)
 
 type Config = ConfigP 'Final
@@ -84,6 +87,7 @@ instance Semigroup PartialConfig where
     x <> y = ConfigP
         { configChecks = configChecks x <> configChecks y
         , configRemoved = configRemoved x <> configRemoved y
+        , configObservations = configObservations x <> configObservations y
         }
 
 -- | Type of 'Check': 'Include' or 'Ignore' 'Inspection's.
@@ -102,7 +106,6 @@ data Check = Check
 -- | Criterion for inspections filtering.
 data CheckFilter
     = CheckInspection (Id Inspection)
-    | CheckObservation (Id Observation)
     | CheckSeverity Severity
     | CheckCategory Category
     | CheckAll
@@ -119,12 +122,14 @@ defaultConfig :: PartialConfig
 defaultConfig = ConfigP
     { configChecks  = withTag "Default" $ pure []
     , configRemoved = withTag "Default" $ pure []
+    , configObservations = withTag "Default" $ pure []
     }
 
 finaliseConfig :: PartialConfig -> Trial Text Config
 finaliseConfig config = do
     configChecks  <- #configChecks config
     configRemoved <- #configRemoved config
+    configObservations <- #configObservations config
     pure ConfigP {..}
 
 
@@ -143,6 +148,7 @@ configToCliCommand :: Config -> Text
 configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
     (  map checkToCli configChecks
     <> map removedToCli configRemoved
+    <> map observationsToCli configObservations
     )
   where
     checkToCli :: Check -> Text
@@ -155,6 +161,13 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
     removedToCli scope = "remove"
         <> scopeToCli scope
 
+    observationsToCli :: Id Observation -> Text
+    observationsToCli obsId = "observation"
+        <> idToCli obsId
+
+    idToCli :: Id a -> Text
+    idToCli = (<>) " --id=" . unId
+
     checkTypeToCli :: CheckType -> Text
     checkTypeToCli = \case
         Include -> " --include"
@@ -162,8 +175,7 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
 
     checkFilterToCli :: CheckFilter -> Text
     checkFilterToCli = \case
-        CheckInspection insId -> " --inspectionId=" <> unId insId
-        CheckObservation obsId -> " --observationId=" <> unId obsId
+        CheckInspection insId -> idToCli insId
         CheckSeverity sev -> " --severity=" <> show sev
         CheckCategory cat -> " --category=" <> unCategory cat
         CheckAll -> " --filter-all"
@@ -223,7 +235,6 @@ applyChecksFor = foldl' useCheck
     includeFilter :: CheckFilter -> HashSet (Id Inspection) -> HashSet (Id Inspection)
     includeFilter cFilter ins = case cFilter of
         CheckInspection iId -> HashSet.insert iId ins
-        CheckObservation _ -> ins
         CheckSeverity sev ->
             let sevInspections = filter ((== sev) . inspectionSeverity) inspections
             in HashSet.fromList (map inspectionId sevInspections) <> ins
@@ -239,7 +250,6 @@ applyChecksFor = foldl' useCheck
         Nothing -> False  -- no such ID => doesn't satisfy
         Just Inspection{..} -> case cFilter of
             CheckInspection checkId -> iId == checkId
-            CheckObservation _      -> False
             CheckSeverity sev       -> sev == inspectionSeverity
             CheckCategory cat       -> cat `elem` inspectionCategory
             CheckAll                -> True
@@ -296,7 +306,7 @@ three key-value pairs:
     * 'CheckInspection': by specific 'Inspection' 'Id'
 
         @
-        inspectionId = "STAN-0001"
+        id = "STAN-0001"
         @
 
     * 'CheckSeverity': by specific 'Severity'
@@ -378,7 +388,7 @@ common cases.
     @
     [[check]]
     type = \"Ignore\"
-    inspectionId = "STAN-0001"
+    id = "STAN-0001"
     scope = "all"
     @
 

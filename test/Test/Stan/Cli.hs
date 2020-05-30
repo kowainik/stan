@@ -12,7 +12,7 @@ import Stan.Cli (StanArgs (..), StanCommand (..), stanCliParser, stanParserPrefs
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Config, ConfigP (..),
                     PartialConfig, Scope (..), configToCliCommand, finaliseConfig)
 import Stan.Core.Id (Id (..))
-import Test.Stan.Gen (Property, genCheck, genConfig, genScope)
+import Test.Stan.Gen (Property, genCheck, genConfig, genId, genScope)
 
 
 cliSpec :: Spec
@@ -28,12 +28,14 @@ cliSpec = describe "CLI configuration tests" $ do
     configExample = ConfigP
         { configChecks = checks
         , configRemoved = []
+        , configObservations = []
         }
 
     partialConfigExample :: PartialConfig
     partialConfigExample = ConfigP
         { configChecks = withTag "CLI" $ pure checks
         , configRemoved = withTag "CLI" $ fiasco "No CLI option specified for: remove"
+        , configObservations = withTag "CLI" $ fiasco "No CLI option specified for: observation"
         }
 
     checks :: [Check]
@@ -51,10 +53,12 @@ cliConfigRoundtripProperty :: Property
 cliConfigRoundtripProperty = hedgehog $ do
     check <- forAll genCheck
     scope <- forAll genScope
+    obs   <- forAll genId
     -- we need to have a non-empty list as empty list is Fiasco for CLI.
     config <- forAll $ genConfig <&> \c -> c
         { configChecks  = check : configChecks c
         , configRemoved = scope : configRemoved c
+        , configObservations = obs : configObservations c
         }
     case execParserPure stanParserPrefs stanCliParser (stanCommand config) of
         Success (Stan StanArgs{..}) ->

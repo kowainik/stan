@@ -20,6 +20,7 @@ module Stan.Cli
     ) where
 
 import Colourista (blue, bold, formatWith, reset, yellow)
+import Data.Char (toUpper)
 import Data.Version (showVersion)
 import Development.GitRev (gitCommitDate, gitHash)
 import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command, customExecParser,
@@ -37,6 +38,7 @@ import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), 
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
+import Stan.Observation (Observation)
 import Stan.Report (ReportSettings (..))
 
 import qualified Paths_stan as Meta (version)
@@ -164,22 +166,51 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     , help "Hide verbose solution information for observations"
     ]
 
+data ConfigCommand
+    = CheckCommand Check
+    | RemoveCommand Scope
+    | ObservationCommand (Id Observation)
+
+partitionCommands :: [ConfigCommand] -> ([Check], [Scope], [Id Observation])
+partitionCommands []                       = ([], [], [])
+partitionCommands (CheckCommand ch : rest) =
+    let (check, remove, obs) = partitionCommands rest
+    in (ch:check, remove, obs)
+partitionCommands (RemoveCommand r : rest) =
+    let (check, remove, obs) = partitionCommands rest
+    in (check, r:remove, obs)
+partitionCommands (ObservationCommand o : rest) =
+    let (check, remove, obs) = partitionCommands rest
+    in (check, remove, o:obs)
+
 configP :: Parser PartialConfig
 configP = do
     res <- many $ hsubparser $
-         command "check" (info (Left <$> checkP) (progDesc "Specify list of checks"))
-        <> command "remove" (info (Right <$> scopeP) (progDesc "Specify list of removed scope"))
+         command "check"
+             (info (CheckCommand <$> checkP) (progDesc "Specify list of checks"))
+        <> command "remove"
+             (info (RemoveCommand <$> scopeP) (progDesc "Specify list of removed scope"))
+        <> command "observation"
+             (info (ObservationCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
     pure $
-        let (checks, removed) = partitionEithers res
+        let (checks, removed, observations) = partitionCommands res
         in ConfigP
             { configChecks  = whenEmpty checks "checks"
             , configRemoved = whenEmpty removed "remove"
+            , configObservations = whenEmpty observations "observation"
             }
   where
     whenEmpty :: [a] -> Text -> TaggedTrial Text [a]
     whenEmpty res name = withTag "CLI" $ case res of
         [] -> fiasco $ "No CLI option specified for: " <> name
         xs -> pure xs
+
+-- | Parser of an 'Id'. Receives a string to specify in Help what kind of ID is this.
+idP :: String -> Parser (Id a)
+idP name = Id <$> strOption
+    (long "id"
+    <> metavar (map toUpper name <> "_ID")
+    <> help (name <> " ID to ignore or include"))
 
 checkP :: Parser Check
 checkP = do
@@ -196,14 +227,7 @@ checkTypeP =
 
 checkFilterP :: Parser CheckFilter
 checkFilterP =
-        CheckInspection . Id <$> strOption
-        (long "inspectionId"
-        <> metavar "INSPECTION_ID"
-        <> help "Inspection ID to ignore or include")
-    <|> CheckObservation . Id <$> strOption
-        (long "observationId"
-        <> metavar "OBSERVATION_ID"
-        <> help "Observation ID to ignore or include")
+        CheckInspection <$> idP "Inspection"
     <|> CheckSeverity <$> option auto
         -- TODO: how to specify all possible values here in help?
         (long "severity"

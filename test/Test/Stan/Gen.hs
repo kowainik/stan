@@ -62,6 +62,7 @@ genConfig :: Gen Config
 genConfig = ConfigP
     <$> genSmallList genCheck
     <*> genSmallList genScope
+    <*> genSmallList genId
 
 genCheck :: Gen Check
 genCheck = Check
@@ -72,7 +73,6 @@ genCheck = Check
 genCheckFilter :: Gen CheckFilter
 genCheckFilter = Gen.choice
     [ CheckInspection  <$> genInspectionId
-    , CheckObservation <$> genId
     , CheckSeverity    <$> genSeverity
     , CheckCategory    <$> genCategory
     , pure CheckAll
