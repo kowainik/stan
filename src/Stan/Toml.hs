@@ -17,7 +17,7 @@ module Stan.Toml
 import Colourista (infoMessage)
 import System.Directory (doesFileExist, getCurrentDirectory, getHomeDirectory)
 import System.FilePath ((</>))
-import Toml (Key, TomlCodec, (.=))
+import Toml (AnyValue, BiMap (..), Key, TomlBiMap, TomlCodec, (.=))
 import Trial (TaggedTrial, Trial (..), fiasco)
 import Trial.Tomland (taggedTrialStrCodec)
 
@@ -89,9 +89,9 @@ taggedTrialListCodec key aCodec = do
 
 checkCodec :: TomlCodec Check
 checkCodec = Check
-    <$> checkTypeCodec .= checkType
-    <*> Toml.dioptional checkFilterCodec .= checkFilter
-    <*> Toml.dioptional scopeCodec .= checkScope
+    <$> checkTypeCodec   .= checkType
+    <*> checkFilterCodec .= checkFilter
+    <*> scopeCodec       .= checkScope
 
 checkTypeCodec :: TomlCodec CheckType
 checkTypeCodec = Toml.enumBounded "type"
@@ -120,12 +120,18 @@ checkCategory = \case
     CheckCategory category -> Just category
     _ -> Nothing
 
+checkAll :: CheckFilter -> Maybe ()
+checkAll = \case
+    CheckAll -> Just ()
+    _ -> Nothing
+
 checkFilterCodec :: TomlCodec CheckFilter
 checkFilterCodec =
         Toml.dimatch checkInspection  CheckInspection  (idCodec "inspectionId")
     <|> Toml.dimatch checkObservation CheckObservation (idCodec "observationId")
     <|> Toml.dimatch checkSeverity    CheckSeverity    (Toml.enumBounded "severity")
     <|> Toml.dimatch checkCategory    CheckCategory    (Toml.diwrap (Toml.text "category"))
+    <|> Toml.dimatch checkAll         (const CheckAll) (allCodec "filter")
 
 idCodec :: Key -> TomlCodec (Id a)
 idCodec = Toml.diwrap . Toml.text
@@ -144,7 +150,32 @@ scopeDir = \case
     ScopeDirectory dir -> Just dir
     _ -> Nothing
 
+scopeAll :: Scope -> Maybe ()
+scopeAll = \case
+    ScopeAll -> Just ()
+    _ -> Nothing
+
 scopeCodec :: TomlCodec Scope
 scopeCodec =
-        Toml.dimatch scopeFile ScopeFile      (Toml.string "file")
-    <|> Toml.dimatch scopeDir  ScopeDirectory (Toml.string "directory")
+        Toml.dimatch scopeFile ScopeFile        (Toml.string "file")
+    <|> Toml.dimatch scopeDir  ScopeDirectory   (Toml.string "directory")
+    <|> Toml.dimatch scopeAll  (const ScopeAll) (allCodec "scope")
+
+----------------------------------------------------------------------------
+-- Helpers
+----------------------------------------------------------------------------
+
+-- | Helper 'BiMap' for the hardcoded string @"all"@.
+_All :: TomlBiMap () AnyValue
+_All = _AllText >>> Toml._Text
+  where
+    _AllText :: TomlBiMap () Text
+    _AllText = BiMap
+        { forward  = \() -> Right "all"
+        , backward = \case
+            "all" -> Right ()
+            t -> Left $ Toml.ArbitraryError $ "Expected Text value \"all\" but got: " <> t
+        }
+
+allCodec :: Key -> TomlCodec ()
+allCodec = Toml.match _All

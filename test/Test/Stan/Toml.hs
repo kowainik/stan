@@ -25,13 +25,13 @@ tomlSpec = describe "TOML configuration tests" $ do
     configExample :: PartialConfig
     configExample = ConfigP
         { configChecks = withTag "TOML" $ pure
-            [ Check Ignore Nothing (Just $ ScopeDirectory "test/")
-            , Check Include Nothing Nothing
-            , Check Ignore (Just $ CheckInspection $ Id "STAN-0002") Nothing
+            [ Check Ignore CheckAll (ScopeDirectory "test/")
+            , Check Include CheckAll ScopeAll
+            , Check Ignore (CheckInspection $ Id "STAN-0002") ScopeAll
             , Check
                 Ignore
-                (Just $ CheckInspection $ Id "STAN-0001")
-                (Just $ ScopeFile "src/MyFile.hs")
+                (CheckInspection $ Id "STAN-0001")
+                (ScopeFile "src/MyFile.hs")
             ]
         , configRemoved = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: remove"
         }
