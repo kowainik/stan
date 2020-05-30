@@ -32,8 +32,8 @@ import Trial (TaggedTrial, fiasco, withTag)
 import Trial.OptparseApplicative (taggedTrialParser)
 
 import Stan.Category (Category (..))
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
-                    PartialConfig)
+import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
+                    Scope (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
@@ -166,17 +166,26 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
 
 configP :: Parser PartialConfig
 configP = do
-    checks <- many $ hsubparser $
-        command "check" (info checkP (progDesc "Specify list of checks"))
-    pure $ ConfigP $ withTag "CLI" $ case checks of
-        [] -> fiasco "No CLI option specified for 'checks'"
+    res <- many $ hsubparser $
+         command "check" (info (Left <$> checkP) (progDesc "Specify list of checks"))
+        <> command "remove" (info (Right <$> scopeP) (progDesc "Specify list of removed scope"))
+    pure $
+        let (checks, removed) = partitionEithers res
+        in ConfigP
+            { configChecks  = whenEmpty checks "checks"
+            , configRemoved = whenEmpty removed "remove"
+            }
+  where
+    whenEmpty :: [a] -> Text -> TaggedTrial Text [a]
+    whenEmpty res name = withTag "CLI" $ case res of
+        [] -> fiasco $ "No CLI option specified for: " <> name
         xs -> pure xs
 
 checkP :: Parser Check
 checkP = do
     checkType <- checkTypeP
     checkFilter <- optional checkFilterP
-    checkScope  <- optional checkScopeP
+    checkScope  <- optional scopeP
     pure Check{..}
 
 checkTypeP :: Parser CheckType
@@ -205,13 +214,13 @@ checkFilterP =
         <> metavar "CATEGORY"
         <> help "Inspection Category to ignore or include")
 
-checkScopeP :: Parser CheckScope
-checkScopeP =
-        CheckScopeFile <$> strOption
+scopeP :: Parser Scope
+scopeP =
+        ScopeFile <$> strOption
         (long "file"
         <> metavar "FILE_PATH"
         <> help "File to ignore or include")
-    <|> CheckScopeDirectory <$> strOption
+    <|> ScopeDirectory <$> strOption
         (long "directory"
         <> metavar "DIRECTORY_PATH"
         <> help "Directory to ignore or include")

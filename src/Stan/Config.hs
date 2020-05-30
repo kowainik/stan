@@ -23,7 +23,7 @@ module Stan.Config
     , Check (..)
     , CheckType (..)
     , CheckFilter (..)
-    , CheckScope (..)
+    , Scope (..)
 
       -- * Default
     , defaultConfig
@@ -60,16 +60,19 @@ import qualified Data.Text as T
   directory, all)
 -}
 data ConfigP (p :: Phase Text) = ConfigP
-    { configChecks :: !(p ::- [Check])
+    { configChecks  :: !(p ::- [Check])
+    , configRemoved :: !(p ::- [Scope])
     -- , configGroupBy :: !GroupBy
     }
 
 deriving stock instance
     ( Show (p ::- [Check])
+    , Show (p ::- [Scope])
     ) => Show (ConfigP p)
 
 deriving stock instance
     ( Eq (p ::- [Check])
+    , Eq (p ::- [Scope])
     ) => Eq (ConfigP p)
 
 type Config = ConfigP 'Final
@@ -79,6 +82,7 @@ instance Semigroup PartialConfig where
     (<>) :: PartialConfig -> PartialConfig -> PartialConfig
     x <> y = ConfigP
         { configChecks = configChecks x <> configChecks y
+        , configRemoved = configRemoved x <> configRemoved y
         }
 
 -- | Type of 'Check': 'Include' or 'Ignore' 'Inspection's.
@@ -91,7 +95,7 @@ data CheckType
 data Check = Check
     { checkType   :: !CheckType
     , checkFilter :: !(Maybe CheckFilter)
-    , checkScope  :: !(Maybe CheckScope)
+    , checkScope  :: !(Maybe Scope)
     } deriving stock (Show, Eq)
 
 -- | Criterion for inspections filtering.
@@ -103,19 +107,21 @@ data CheckFilter
     deriving stock (Show, Eq)
 
 -- | Where to apply the rule for controlling inspection set.
-data CheckScope
-    = CheckScopeFile FilePath
-    | CheckScopeDirectory FilePath
+data Scope
+    = ScopeFile FilePath
+    | ScopeDirectory FilePath
     deriving stock (Show, Eq)
 
 defaultConfig :: PartialConfig
 defaultConfig = ConfigP
-    { configChecks = withTag "Default" $ pure []
+    { configChecks  = withTag "Default" $ pure []
+    , configRemoved = withTag "Default" $ pure []
     }
 
 finaliseConfig :: PartialConfig -> Trial Text Config
 finaliseConfig config = do
-    configChecks <- #configChecks config
+    configChecks  <- #configChecks config
+    configRemoved <- #configRemoved config
     pure ConfigP {..}
 
 
@@ -131,13 +137,20 @@ stan check --ignore --directory=test/ \\
 @
 -}
 configToCliCommand :: Config -> Text
-configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map checkToCli configChecks)
+configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
+    (  map checkToCli configChecks
+    <> map removedToCli configRemoved
+    )
   where
     checkToCli :: Check -> Text
     checkToCli Check{..} = "check"
         <> checkTypeToCli checkType
         <> maybe "" checkFilterToCli checkFilter
-        <> maybe "" checkScopeToCli checkScope
+        <> maybe "" scopeToCli checkScope
+
+    removedToCli :: Scope -> Text
+    removedToCli scope = "remove"
+        <> scopeToCli scope
 
     checkTypeToCli :: CheckType -> Text
     checkTypeToCli = \case
@@ -151,10 +164,10 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     " (map chec
         CheckSeverity sev -> " --severity=" <> show sev
         CheckCategory cat -> " --category=" <> unCategory cat
 
-    checkScopeToCli :: CheckScope -> Text
-    checkScopeToCli = \case
-        CheckScopeFile file -> " --file=" <> toText file
-        CheckScopeDirectory dir -> " --directory=" <> toText dir
+    scopeToCli :: Scope -> Text
+    scopeToCli = \case
+        ScopeFile file -> " --file=" <> toText file
+        ScopeDirectory dir -> " --directory=" <> toText dir
 
 mkDefaultChecks :: [FilePath] -> HashMap FilePath (HashSet (Id Inspection))
 mkDefaultChecks = HashMap.fromList . map (, inspectionsIds)
@@ -213,14 +226,14 @@ applyChecks paths = foldl' useCheck (mkDefaultChecks paths)
 
     applyForScope
         :: (HashSet (Id Inspection) -> HashSet (Id Inspection))
-        -> Maybe CheckScope
+        -> Maybe Scope
         -> HashMap FilePath (HashSet (Id Inspection))
         -> HashMap FilePath (HashSet (Id Inspection))
     applyForScope f mScope hm = case mScope of
         Nothing -> f <$> hm  -- no scope = apply for everything
         Just cScope -> case cScope of
-            CheckScopeFile path -> HashMap.adjust f path hm
-            CheckScopeDirectory dir -> HashMap.mapWithKey
+            ScopeFile path -> HashMap.adjust f path hm
+            ScopeDirectory dir -> HashMap.mapWithKey
                 (\path -> if isInDir dir path then f else id)
                 hm
 

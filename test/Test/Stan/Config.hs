@@ -4,7 +4,7 @@ module Test.Stan.Config
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), applyChecks,
+import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Scope (..), applyChecks,
                     mkDefaultChecks)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection)
@@ -36,13 +36,13 @@ applyChecksSpec = describe "applyCheck tests" $ do
     it "Ignoring single file works" $
         applyChecks
             files
-            [Check Ignore Nothing (Just $ CheckScopeFile "baz.hs")]
+            [Check Ignore Nothing (Just $ ScopeFile "baz.hs")]
           `shouldBe`
             HM.adjust (const mempty) "baz.hs" defMap
     it "Ignoring a directory works" $
         applyChecks
             files
-            [Check Ignore Nothing (Just $ CheckScopeDirectory "src/")]
+            [Check Ignore Nothing (Just $ ScopeDirectory "src/")]
           `shouldBe`
             ( HM.adjust (const mempty) "src/foo.hs"
             $ HM.adjust (const mempty) "src/bar.hs" defMap)
@@ -53,7 +53,7 @@ applyChecksSpec = describe "applyCheck tests" $ do
             [Check
                 Ignore
                 (Just $ CheckInspection iId)
-                (Just $ CheckScopeFile "baz.hs")
+                (Just $ ScopeFile "baz.hs")
             ]
           `shouldBe`
             HM.adjust (HS.delete iId) "baz.hs" defMap

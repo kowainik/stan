@@ -10,7 +10,7 @@ module Test.Stan.Gen
     , genCheck
     , genCheckType
     , genCheckFilter
-    , genCheckScope
+    , genScope
     , genSeverity
     , genCategory
     , genModuleName
@@ -19,8 +19,7 @@ module Test.Stan.Gen
 import Hedgehog (Gen, PropertyT)
 
 import Stan.Category (Category, stanCategories)
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), Config,
-                    ConfigP (..))
+import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Config, ConfigP (..), Scope (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Severity (Severity)
@@ -47,13 +46,15 @@ genSmallString :: Gen String
 genSmallString = Gen.string (Range.linear 0 10) Gen.alphaNum
 
 genConfig :: Gen Config
-genConfig = ConfigP <$> genSmallList genCheck
+genConfig = ConfigP
+    <$> genSmallList genCheck
+    <*> genSmallList genScope
 
 genCheck :: Gen Check
 genCheck = Check
     <$> genCheckType
     <*> Gen.maybe genCheckFilter
-    <*> Gen.maybe genCheckScope
+    <*> Gen.maybe genScope
 
 genCheckFilter :: Gen CheckFilter
 genCheckFilter = Gen.choice
@@ -63,10 +64,10 @@ genCheckFilter = Gen.choice
     , CheckCategory    <$> genCategory
     ]
 
-genCheckScope :: Gen CheckScope
-genCheckScope = Gen.choice
-    [ CheckScopeFile      <$> genSmallString
-    , CheckScopeDirectory <$> genSmallString
+genScope :: Gen Scope
+genScope = Gen.choice
+    [ ScopeFile      <$> genSmallString
+    , ScopeDirectory <$> genSmallString
     ]
 
 genCheckType :: Gen CheckType
