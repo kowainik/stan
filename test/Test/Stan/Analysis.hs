@@ -19,7 +19,7 @@ analysisSpec :: [HieFile] -> Spec
 analysisSpec hieFiles = describe "Static Analysis" $ do
     extensionsMap <- runIO $ createCabalExtensionsMap ["stan.cabal"] hieFiles
     let checksMap = mkDefaultChecks (map hie_hs_file hieFiles)
-    let analysis = runAnalysis extensionsMap checksMap hieFiles
+    let analysis = runAnalysis extensionsMap checksMap [] hieFiles
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis
     analysisAntiPatternSpec analysis

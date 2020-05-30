@@ -17,17 +17,18 @@ import Colourista (errorMessage, formatWith, italic)
 import HieTypes (HieFile (..))
 import Trial (Trial (..), prettyPrintTaggedTrial, prettyPrintTrial, trialToMaybe)
 
-import Stan.Analysis (runAnalysis)
+import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cabal (createCabalExtensionsMap)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
                  runStanCli)
-import Stan.Config (applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
+import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), getEnvVars)
 import Stan.Hie (readHieFiles)
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
+import Stan.Observation (prettyShowIgnoredObservations)
 import Stan.Toml (getTomlConfig)
 -- import Stan.Hie.Debug (debugHieFile)
 
@@ -56,7 +57,12 @@ runStan StanArgs{..} = do
         -- get checks for each file
         let checksMap = applyConfig (map hie_hs_file hieFiles) config
 
-        let analysis = runAnalysis cabalExtensionsMap checksMap hieFiles
+        let analysis = runAnalysis cabalExtensionsMap checksMap (configObservations config) hieFiles
+        -- show what observations are ignored
+        putTextLn $ prettyShowIgnoredObservations
+            (configObservations config)
+            (analysisIgnoredObservations analysis)
+        -- show the result
         putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 

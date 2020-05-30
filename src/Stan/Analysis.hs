@@ -23,7 +23,7 @@ import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
 import Stan.Inspection (Inspection)
 import Stan.Inspection.All (lookupInspectionById)
-import Stan.Observation (Observations)
+import Stan.Observation (Observation (..), Observations)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
@@ -34,12 +34,13 @@ import qualified Slist as S
 {- | This data type stores all information collected during static analysis.
 -}
 data Analysis = Analysis
-    { analysisModulesNum     :: !Int
-    , analysisLinesOfCode    :: !Int
-    , analysisUsedExtensions :: !(Set OnOffExtension, Set SafeHaskellExtension)
-    , analysisInspections    :: !(HashSet (Id Inspection))
-    , analysisObservations   :: !Observations
-    , analysisFileMap        :: !FileMap
+    { analysisModulesNum          :: !Int
+    , analysisLinesOfCode         :: !Int
+    , analysisUsedExtensions      :: !(Set OnOffExtension, Set SafeHaskellExtension)
+    , analysisInspections         :: !(HashSet (Id Inspection))
+    , analysisObservations        :: !Observations
+    , analysisIgnoredObservations :: !Observations
+    , analysisFileMap             :: !FileMap
     } deriving stock (Show)
 
 modulesNumL :: Lens' Analysis Int
@@ -67,6 +68,11 @@ observationsL = lens
     analysisObservations
     (\analysis new -> analysis { analysisObservations = new })
 
+ignoredObservationsL :: Lens' Analysis Observations
+ignoredObservationsL = lens
+    analysisIgnoredObservations
+    (\analysis new -> analysis { analysisIgnoredObservations = new })
+
 fileMapL :: Lens' Analysis FileMap
 fileMapL = lens
     analysisFileMap
@@ -74,12 +80,13 @@ fileMapL = lens
 
 initialAnalysis :: Analysis
 initialAnalysis = Analysis
-    { analysisModulesNum     = 0
-    , analysisLinesOfCode    = 0
-    , analysisUsedExtensions = mempty
-    , analysisInspections    = mempty
-    , analysisObservations   = mempty
-    , analysisFileMap        = mempty
+    { analysisModulesNum          = 0
+    , analysisLinesOfCode         = 0
+    , analysisUsedExtensions      = mempty
+    , analysisInspections         = mempty
+    , analysisObservations        = mempty
+    , analysisIgnoredObservations = mempty
+    , analysisFileMap             = mempty
     }
 
 incModulesNum :: State Analysis ()
@@ -99,6 +106,10 @@ addInspections ins = modify' $ over inspectionsL (ins <>)
 addObservations :: Observations -> State Analysis ()
 addObservations observations = modify' $ over observationsL (observations <>)
 
+-- | Add list of 'Observation's to the beginning of the existing list
+addIgnoredObservations :: Observations -> State Analysis ()
+addIgnoredObservations obs = modify' $ over ignoredObservationsL (obs <>)
+
 -- | Collect all unique used extensions.
 addExtensions :: ParsedExtensions -> State Analysis ()
 addExtensions ParsedExtensions{..} = modify' $ over extensionsL
@@ -117,28 +128,31 @@ updateFileMap fp fi = modify' $ over fileMapL (Map.insert fp fi)
 runAnalysis
     :: Map FilePath (Either ExtensionsError ParsedExtensions)
     -> HashMap FilePath (HashSet (Id Inspection))
+    -> [Id Observation]  -- ^ List of to-be-ignored Observations.
     -> [HieFile]
     -> Analysis
-runAnalysis cabalExtensionsMap checksMap = executingState initialAnalysis .
-    analyse cabalExtensionsMap checksMap
+runAnalysis cabalExtensionsMap checksMap obs = executingState initialAnalysis .
+    analyse cabalExtensionsMap checksMap obs
 
 analyse
     :: Map FilePath (Either ExtensionsError ParsedExtensions)
     -> HashMap FilePath (HashSet (Id Inspection))
+    -> [Id Observation]  -- ^ List of to-be-ignored Observations.
     -> [HieFile]
     -> State Analysis ()
-analyse _extsMap _checksMap [] = pass
-analyse cabalExtensions checksMap (hieFile@HieFile{..}:hieFiles) = do
+analyse _extsMap _checksMap _observations [] = pass
+analyse cabalExtensions checksMap observations (hieFile@HieFile{..}:hieFiles) = do
     whenJust (HM.lookup hie_hs_file checksMap)
-        (analyseHieFile hieFile cabalExtensions)
-    analyse cabalExtensions checksMap hieFiles
+        (analyseHieFile hieFile cabalExtensions observations)
+    analyse cabalExtensions checksMap observations hieFiles
 
 analyseHieFile
     :: HieFile
     -> Map FilePath (Either ExtensionsError ParsedExtensions)
+    -> [Id Observation]  -- ^ List of to-be-ignored Observations.
     -> HashSet (Id Inspection)
     -> State Analysis ()
-analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
+analyseHieFile hieFile@HieFile{..} cabalExts obs insIds = do
     -- traceM (hie_hs_file hieFile)
     let fileInfoLoc = countLinesOfCode hieFile
     let fileInfoCabalExtensions = fromMaybe
@@ -151,7 +165,8 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     let fileInfoMergedExtensions = mergeParsedExtensions fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file
     let ins = mapMaybe lookupInspectionById (toList insIds)
-    let fileInfoObservations = S.concatMap (`analysisByInspection` hieFile) ins
+    let allObservations = S.concatMap (`analysisByInspection` hieFile) ins
+    let (ignoredObs, fileInfoObservations) = S.partition ((`elem` obs) . observationId) allObservations
 
     incModulesNum
     incLinesOfCode fileInfoLoc
@@ -160,3 +175,4 @@ analyseHieFile hieFile@HieFile{..} cabalExts insIds = do
     whenRight_ fileInfoCabalExtensions addExtensions
     addInspections insIds
     addObservations fileInfoObservations
+    addIgnoredObservations ignoredObs

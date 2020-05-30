@@ -16,9 +16,11 @@ module Stan.Observation
 
       -- * Pretty print
     , prettyShowObservation
+    , prettyShowIgnoredObservations
     ) where
 
-import Colourista (bold, formatWith, green, italic, reset)
+import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
+import Data.List (partition)
 import HieTypes (HieFile (..))
 import Relude.Unsafe ((!!))
 import Slist (Slist)
@@ -39,6 +41,7 @@ import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as Text
+import qualified Slist as S
 
 
 {- | Data type to represent discovered by Stan vulnerabilities.
@@ -137,6 +140,44 @@ prettyShowObservation ReportSettings{..} Observation{..} = unlines $
             map ("    ⍟ " <>) sols
       where
         sols = inspectionSolution inspection
+
+
+{- Pretty shows the list of ignored and unrecognised 'Observation' 'Id's
+respectfully.
+
+@
+Ignored Observation IDs:
+    - OBS-STAN-0005-ZKmeC0-125:45
+Unrecognised Observation IDs:
+    - asd
+@
+-}
+prettyShowIgnoredObservations :: [Id Observation] -> Observations -> Text
+prettyShowIgnoredObservations [] _ = ""
+prettyShowIgnoredObservations ids obs = ignored <> unknown
+  where
+    ignored :: Text
+    ignored =
+        if null ignoredIds
+        then ""
+        else formatWith [bold, blue] "Ignored Observation IDs:\n"
+            <> showIds ignoredIds
+
+    unknown :: Text
+    unknown =
+        if null unknownIds
+        then ""
+        else formatWith [bold, yellow] "Unrecognised Observation IDs:\n"
+            <> showIds unknownIds
+
+    obsIds :: S.Slist (Id Observation)
+    obsIds = S.map observationId obs
+
+    ignoredIds, unknownIds :: [Id Observation]
+    (ignoredIds, unknownIds) = partition (`elem` obsIds) ids
+
+    showIds :: [Id Observation] -> Text
+    showIds = Text.unlines . map ((<>) "    - " . unId)
 
 {- | Create a stable 'Observation' 'Id' in a such way that:
 

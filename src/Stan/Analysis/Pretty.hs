@@ -54,6 +54,8 @@ prettyShowAnalysis Analysis{..} reportSettings = groupedObservations <> summary
         , alignText "Total checked inspections" <> alignNum (HS.size analysisInspections)
         , mid
         , alignText "Total found observations" <> alignNum (length analysisObservations)
+        , mid
+        , alignText "Total ignored observations" <> alignNum (length analysisIgnoredObservations)
         , bot
         ]
       where
