@@ -59,7 +59,7 @@ runStan StanArgs{..} = do
 
         let analysis = runAnalysis cabalExtensionsMap checksMap (configObservations config) hieFiles
         -- show what observations are ignored
-        putTextLn $ prettyShowIgnoredObservations
+        putText $ prettyShowIgnoredObservations
             (configObservations config)
             (analysisIgnoredObservations analysis)
         -- show the result

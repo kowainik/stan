@@ -39,6 +39,7 @@ import Stan.Severity (prettyShowSeverity, severityColour)
 import qualified Crypto.Hash.SHA1 as SHA1
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.HashSet as HS
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text as Text
 import qualified Slist as S
@@ -170,11 +171,11 @@ prettyShowIgnoredObservations ids obs = ignored <> unknown
         else formatWith [bold, yellow] "Unrecognised Observation IDs:\n"
             <> showIds unknownIds
 
-    obsIds :: S.Slist (Id Observation)
-    obsIds = S.map observationId obs
+    obsIds :: HashSet (Id Observation)
+    obsIds = fromList $ toList $ S.map observationId obs
 
     ignoredIds, unknownIds :: [Id Observation]
-    (ignoredIds, unknownIds) = partition (`elem` obsIds) ids
+    (ignoredIds, unknownIds) = partition (`HS.member` obsIds) ids
 
     showIds :: [Id Observation] -> Text
     showIds = Text.unlines . map ((<>) "    - " . unId)
