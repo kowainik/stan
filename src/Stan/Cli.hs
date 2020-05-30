@@ -172,16 +172,13 @@ data ConfigCommand
     | ObservationCommand (Id Observation)
 
 partitionCommands :: [ConfigCommand] -> ([Check], [Scope], [Id Observation])
-partitionCommands []                       = ([], [], [])
-partitionCommands (CheckCommand ch : rest) =
+partitionCommands [] = ([], [], [])
+partitionCommands (cmd : rest) =
     let (check, remove, obs) = partitionCommands rest
-    in (ch:check, remove, obs)
-partitionCommands (RemoveCommand r : rest) =
-    let (check, remove, obs) = partitionCommands rest
-    in (check, r:remove, obs)
-partitionCommands (ObservationCommand o : rest) =
-    let (check, remove, obs) = partitionCommands rest
-    in (check, remove, o:obs)
+    in case cmd of
+        CheckCommand ch      -> (ch:check, remove, obs)
+        RemoveCommand r      -> (check, r:remove, obs)
+        ObservationCommand o -> (check, remove, o:obs)
 
 configP :: Parser PartialConfig
 configP = do
@@ -210,7 +207,7 @@ idP :: String -> Parser (Id a)
 idP name = Id <$> strOption
     (long "id"
     <> metavar (map toUpper name <> "_ID")
-    <> help (name <> " ID to ignore or include"))
+    <> help (name <> " ID to be used"))
 
 checkP :: Parser Check
 checkP = do
