@@ -6,8 +6,8 @@ import Hedgehog (forAll, (===))
 import Test.Hspec (Spec, describe, it, parallel, shouldBe)
 import Test.Hspec.Hedgehog (hedgehog)
 
-import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Scope (..), applyChecks,
-                    applyChecksFor, mkDefaultChecks)
+import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Config, ConfigP (..), Scope (..),
+                    applyChecks, applyChecksFor, applyConfig, mkDefaultChecks)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection)
 import Test.Stan.Gen (Property, genCheck, genFilePath, genMediumList, genSmallList)
@@ -24,6 +24,7 @@ applyChecksSpec :: Spec
 applyChecksSpec = describe "Configuration checks aggregation" $ do
     applyChecksUnitSpec
     applyChecksPropertySpec
+    applyConfigSpec
 
 applyChecksUnitSpec :: Spec
 applyChecksUnitSpec = describe "applyCheck: Unit Tests" $ do
@@ -65,12 +66,6 @@ applyChecksUnitSpec = describe "applyCheck: Unit Tests" $ do
             ]
           `shouldBe`
             HM.adjust (HS.delete iId) "baz.hs" defMap
-  where
-    files :: [FilePath]
-    files = ["src/foo.hs", "src/bar.hs", "baz.hs"]
-
-    defMap :: HashMap FilePath (HashSet (Id Inspection))
-    defMap = mkDefaultChecks files
 
 applyChecksPropertySpec :: Spec
 applyChecksPropertySpec = describe "applyCheck: Property Tests" $ parallel $ do
@@ -81,18 +76,70 @@ applyChecksPropertySpec = describe "applyCheck: Property Tests" $ parallel $ do
 
 idempotenceProperty :: Property
 idempotenceProperty = hedgehog $ do
-    files  <- forAll $ genSmallList genFilePath
+    paths  <- forAll $ genSmallList genFilePath
     checks <- forAll $ genMediumList genCheck
 
-    let filesMap = mkDefaultChecks files
+    let filesMap = mkDefaultChecks paths
 
     applyChecksFor (applyChecksFor filesMap checks) checks === applyChecksFor filesMap checks
 
 inversionProperty :: Property
 inversionProperty = hedgehog $ do
-    files <- forAll $ genSmallList genFilePath
+    paths <- forAll $ genSmallList genFilePath
     ignoreCheck <- forAll $ genCheck <&> \c -> c { checkType = Ignore }
     let includeCheck = ignoreCheck { checkType = Include }
 
-    let filesMap = mkDefaultChecks files
+    let filesMap = mkDefaultChecks paths
     applyChecksFor (applyChecksFor filesMap [ignoreCheck]) [includeCheck] === filesMap
+
+applyConfigSpec :: Spec
+applyConfigSpec = describe "applyConfig tests" $ do
+    it "'applyConfig' with no removed files is the same as 'applyChecks'" $ do
+        let checks = [Check Ignore CheckAll ScopeAll]
+        applyConfig files (emptyConfig{ configChecks = checks })
+           `shouldBe` applyChecks files checks
+    it "Removes all files" $
+        applyConfig files removeAllConfig `shouldBe` mempty
+    it "Removes a single file" $
+        applyConfig files removeFileConfig
+          `shouldBe` HM.delete "baz.hs" defMap
+    it "Removes all files from a directory" $
+        applyConfig files removeDirectoryConfig
+          `shouldBe` HM.delete "src/foo.hs" (HM.delete "src/bar.hs" defMap)
+    it "Removes 2 files" $
+        applyConfig files removeTwoFilesConfig
+          `shouldBe` HM.delete "src/foo.hs" (HM.delete "baz.hs" defMap)
+    it "Removes all files when they are specified explicitly" $
+        applyConfig files removeAllExplicitConfig `shouldBe` mempty
+  where
+    emptyConfig :: Config
+    emptyConfig = ConfigP
+        { configChecks = []
+        , configRemoved = []
+        , configObservations = []
+        }
+
+    removeAllConfig :: Config
+    removeAllConfig = emptyConfig { configRemoved = [ScopeAll] }
+
+    removeFileConfig :: Config
+    removeFileConfig = emptyConfig { configRemoved = [ScopeFile "baz.hs"] }
+
+    removeDirectoryConfig :: Config
+    removeDirectoryConfig = emptyConfig { configRemoved = [ScopeDirectory "src/"] }
+
+    removeTwoFilesConfig :: Config
+    removeTwoFilesConfig = emptyConfig
+        { configRemoved = [ScopeFile "baz.hs", ScopeFile "src/foo.hs"]
+        }
+
+    removeAllExplicitConfig :: Config
+    removeAllExplicitConfig = emptyConfig
+        { configRemoved = [ScopeFile "baz.hs", ScopeDirectory "src"]
+        }
+
+files :: [FilePath]
+files = ["src/foo.hs", "src/bar.hs", "baz.hs"]
+
+defMap :: HashMap FilePath (HashSet (Id Inspection))
+defMap = mkDefaultChecks files
