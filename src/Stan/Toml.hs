@@ -41,7 +41,7 @@ getTomlConfig useDefault mTomlFile = do
             resCur -> defaultHomeConfigFile >>= readToml >>= \ resHome ->
                 pure $ inline $ resCur <> resHome
         else let e = fiasco "Selected NOT to use any default .stan.toml configuration files"
-             in pure $ ConfigP e e
+             in pure $ ConfigP e e e
     case mTomlFile of
         Just tomlFile -> (def <>) . inline <$> readToml tomlFile
         Nothing       -> pure def
@@ -57,7 +57,7 @@ getTomlConfig useDefault mTomlFile = do
 
     inline :: Trial Text PartialConfig -> PartialConfig
     inline = \case
-        Fiasco f     -> let e = Fiasco f in ConfigP e e
+        Fiasco f     -> let e = Fiasco f in ConfigP e e e
         Result _ res -> res
 
 defaultTomlFile :: FilePath
@@ -71,11 +71,15 @@ defaultCurConfigFile = (</> defaultTomlFile) <$> getCurrentDirectory
 
 configCodec :: TomlCodec PartialConfig
 configCodec = ConfigP
-    <$> checksCodec  .= configChecks
-    <*> removedCodec .= configRemoved
+    <$> checksCodec       .= configChecks
+    <*> removedCodec      .= configRemoved
+    <*> observationsCodec .= configObservations
 
 removedCodec :: TomlCodec (TaggedTrial Text [Scope])
 removedCodec = taggedTrialListCodec "remove" scopeCodec
+
+observationsCodec :: TomlCodec (TaggedTrial Text [Id Observation])
+observationsCodec = taggedTrialListCodec "observation" idCodec
 
 checksCodec :: TomlCodec (TaggedTrial Text [Check])
 checksCodec = taggedTrialListCodec "check" checkCodec
@@ -105,11 +109,6 @@ checkInspection = \case
     CheckInspection idI -> Just idI
     _ -> Nothing
 
-checkObservation :: CheckFilter -> Maybe (Id Observation)
-checkObservation = \case
-    CheckObservation idO -> Just idO
-    _ -> Nothing
-
 checkSeverity :: CheckFilter -> Maybe Severity
 checkSeverity = \case
     CheckSeverity sev -> Just sev
@@ -127,14 +126,13 @@ checkAll = \case
 
 checkFilterCodec :: TomlCodec CheckFilter
 checkFilterCodec =
-        Toml.dimatch checkInspection  CheckInspection  (idCodec "inspectionId")
-    <|> Toml.dimatch checkObservation CheckObservation (idCodec "observationId")
-    <|> Toml.dimatch checkSeverity    CheckSeverity    (Toml.enumBounded "severity")
-    <|> Toml.dimatch checkCategory    CheckCategory    (Toml.diwrap (Toml.text "category"))
-    <|> Toml.dimatch checkAll         (const CheckAll) (allCodec "filter")
+        Toml.dimatch checkInspection CheckInspection  idCodec
+    <|> Toml.dimatch checkSeverity   CheckSeverity    (Toml.enumBounded "severity")
+    <|> Toml.dimatch checkCategory   CheckCategory    (Toml.diwrap (Toml.text "category"))
+    <|> Toml.dimatch checkAll        (const CheckAll) (allCodec "filter")
 
-idCodec :: Key -> TomlCodec (Id a)
-idCodec = Toml.diwrap . Toml.text
+idCodec :: TomlCodec (Id a)
+idCodec = Toml.diwrap $ Toml.text "id"
 
 ----------------------------------------------------------------------------
 -- CheckScope

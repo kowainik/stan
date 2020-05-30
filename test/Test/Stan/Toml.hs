@@ -34,6 +34,7 @@ tomlSpec = describe "TOML configuration tests" $ do
                 (ScopeFile "src/MyFile.hs")
             ]
         , configRemoved = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: remove"
+        , configObservations = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: observation"
         }
 
 configTomlRoundtripProperty :: Property
@@ -49,4 +50,5 @@ toPartialConfig :: Config -> PartialConfig
 toPartialConfig ConfigP{..} = ConfigP
     { configChecks = withTag "TOML" $ pure configChecks
     , configRemoved = withTag "TOML" $ pure configRemoved
+    , configObservations = withTag "TOML" $ pure configObservations
     }
