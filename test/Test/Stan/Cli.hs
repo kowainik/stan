@@ -38,13 +38,13 @@ cliSpec = describe "CLI configuration tests" $ do
 
     checks :: [Check]
     checks =
-        [ Check Ignore Nothing (Just $ ScopeDirectory "test/")
-        , Check Include Nothing Nothing
-        , Check Ignore (Just $ CheckInspection $ Id "STAN-0002") Nothing
+        [ Check Ignore CheckAll (ScopeDirectory "test/")
+        , Check Include CheckAll ScopeAll
+        , Check Ignore (CheckInspection $ Id "STAN-0002") ScopeAll
         , Check
             Ignore
-            (Just $ CheckInspection $ Id "STAN-0001")
-            (Just $ ScopeFile "src/MyFile.hs")
+            (CheckInspection $ Id "STAN-0001")
+            (ScopeFile "src/MyFile.hs")
         ]
 
 cliConfigRoundtripProperty :: Property

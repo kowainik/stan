@@ -1,16 +1,19 @@
 # ignore everything in the test/ directory
 [[check]]
 type = "Ignore"
+filter = "all"
 directory = "test/"
 
 [[check]]
-type = "Include"
-
+type   = "Include"
+filter = "all"
+scope  = "all"
 
 # ignore specific inspection everywhere
 [[check]]
 type = "Ignore"
 inspectionId = "STAN-0002"
+scope = "all"
 
 # ignore specific inspection only in a specific file
 [[check]]

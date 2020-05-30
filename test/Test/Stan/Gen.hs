@@ -53,8 +53,8 @@ genConfig = ConfigP
 genCheck :: Gen Check
 genCheck = Check
     <$> genCheckType
-    <*> Gen.maybe genCheckFilter
-    <*> Gen.maybe genScope
+    <*> genCheckFilter
+    <*> genScope
 
 genCheckFilter :: Gen CheckFilter
 genCheckFilter = Gen.choice
@@ -62,12 +62,14 @@ genCheckFilter = Gen.choice
     , CheckObservation <$> genId
     , CheckSeverity    <$> genSeverity
     , CheckCategory    <$> genCategory
+    , pure CheckAll
     ]
 
 genScope :: Gen Scope
 genScope = Gen.choice
     [ ScopeFile      <$> genSmallString
     , ScopeDirectory <$> genSmallString
+    , pure ScopeAll
     ]
 
 genCheckType :: Gen CheckType

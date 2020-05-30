@@ -94,8 +94,8 @@ data CheckType
 -- | Rule to control the set of inspections per scope.
 data Check = Check
     { checkType   :: !CheckType
-    , checkFilter :: !(Maybe CheckFilter)
-    , checkScope  :: !(Maybe Scope)
+    , checkFilter :: !CheckFilter
+    , checkScope  :: !Scope
     } deriving stock (Show, Eq)
 
 -- | Criterion for inspections filtering.
@@ -104,12 +104,14 @@ data CheckFilter
     | CheckObservation (Id Observation)
     | CheckSeverity Severity
     | CheckCategory Category
+    | CheckAll
     deriving stock (Show, Eq)
 
 -- | Where to apply the rule for controlling inspection set.
 data Scope
     = ScopeFile FilePath
     | ScopeDirectory FilePath
+    | ScopeAll
     deriving stock (Show, Eq)
 
 defaultConfig :: PartialConfig
@@ -145,8 +147,8 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
     checkToCli :: Check -> Text
     checkToCli Check{..} = "check"
         <> checkTypeToCli checkType
-        <> maybe "" checkFilterToCli checkFilter
-        <> maybe "" scopeToCli checkScope
+        <> checkFilterToCli checkFilter
+        <> scopeToCli checkScope
 
     removedToCli :: Scope -> Text
     removedToCli scope = "remove"
@@ -163,11 +165,13 @@ configToCliCommand ConfigP{..} = "stan " <> T.intercalate " \\\n     "
         CheckObservation obsId -> " --observationId=" <> unId obsId
         CheckSeverity sev -> " --severity=" <> show sev
         CheckCategory cat -> " --category=" <> unCategory cat
+        CheckAll -> " --filter-all"
 
     scopeToCli :: Scope -> Text
     scopeToCli = \case
         ScopeFile file -> " --file=" <> toText file
         ScopeDirectory dir -> " --directory=" <> toText dir
+        ScopeAll -> " --scope-all"
 
 mkDefaultChecks :: [FilePath] -> HashMap FilePath (HashSet (Id Inspection))
 mkDefaultChecks = HashMap.fromList . map (, inspectionsIds)
@@ -187,55 +191,51 @@ applyChecks paths = foldl' useCheck (mkDefaultChecks paths)
 
     applyFilter
         :: CheckType
-        -> Maybe CheckFilter
+        -> CheckFilter
         -> HashSet (Id Inspection)
         -> HashSet (Id Inspection)
     applyFilter = \case
         Include -> includeFilter
         Ignore -> ignoreFilter
 
-    ignoreFilter :: Maybe CheckFilter -> HashSet (Id Inspection) -> HashSet (Id Inspection)
+    ignoreFilter :: CheckFilter -> HashSet (Id Inspection) -> HashSet (Id Inspection)
     ignoreFilter cFilter = HashSet.filter (not . satisfiesFilter cFilter)
 
-    includeFilter :: Maybe CheckFilter -> HashSet (Id Inspection) -> HashSet (Id Inspection)
-    includeFilter mFilter ins = case mFilter of
-         -- add all inspections to the existing ones
-         Nothing -> inspectionsIds <> ins
-         Just cFilter -> case cFilter of
-             CheckInspection iId -> HashSet.insert iId ins
-             CheckObservation _ -> ins
-             CheckSeverity sev ->
-                 let sevInspections = filter ((== sev) . inspectionSeverity) inspections
-                 in HashSet.fromList (map inspectionId sevInspections) <> ins
-             CheckCategory cat ->
-                 let catInspections = filter (elem cat . inspectionCategory) inspections
-                 in HashSet.fromList (map inspectionId catInspections) <> ins
+    includeFilter :: CheckFilter -> HashSet (Id Inspection) -> HashSet (Id Inspection)
+    includeFilter cFilter ins = case cFilter of
+        CheckInspection iId -> HashSet.insert iId ins
+        CheckObservation _ -> ins
+        CheckSeverity sev ->
+            let sevInspections = filter ((== sev) . inspectionSeverity) inspections
+            in HashSet.fromList (map inspectionId sevInspections) <> ins
+        CheckCategory cat ->
+            let catInspections = filter (elem cat . inspectionCategory) inspections
+            in HashSet.fromList (map inspectionId catInspections) <> ins
+        CheckAll -> inspectionsIds <> ins
 
     -- Returns 'True' if the given inspection satisfies 'CheckFilter'
-    satisfiesFilter :: Maybe CheckFilter -> Id Inspection -> Bool
-    satisfiesFilter mFilter iId = case mFilter of
-        Nothing -> True  -- no filter, always satisfies
+    satisfiesFilter :: CheckFilter -> Id Inspection -> Bool
+    satisfiesFilter cFilter iId = case lookupInspectionById iId of
         -- TODO: rewrite more efficiently after using GHC-8.10
-        Just cFilter -> case lookupInspectionById iId of
-            Nothing -> False  -- no such ID => doesn't satisfy
-            Just Inspection{..} -> case cFilter of
-                CheckInspection checkId -> iId == checkId
-                CheckObservation _      -> False
-                CheckSeverity sev       -> sev == inspectionSeverity
-                CheckCategory cat       -> cat `elem` inspectionCategory
+        Nothing -> False  -- no such ID => doesn't satisfy
+        Just Inspection{..} -> case cFilter of
+            CheckInspection checkId -> iId == checkId
+            CheckObservation _      -> False
+            CheckSeverity sev       -> sev == inspectionSeverity
+            CheckCategory cat       -> cat `elem` inspectionCategory
+            CheckAll                -> True
 
     applyForScope
         :: (HashSet (Id Inspection) -> HashSet (Id Inspection))
-        -> Maybe Scope
+        -> Scope
         -> HashMap FilePath (HashSet (Id Inspection))
         -> HashMap FilePath (HashSet (Id Inspection))
-    applyForScope f mScope hm = case mScope of
-        Nothing -> f <$> hm  -- no scope = apply for everything
-        Just cScope -> case cScope of
-            ScopeFile path -> HashMap.adjust f path hm
-            ScopeDirectory dir -> HashMap.mapWithKey
-                (\path -> if isInDir dir path then f else id)
-                hm
+    applyForScope f cScope hm = case cScope of
+        ScopeFile path -> HashMap.adjust f path hm
+        ScopeDirectory dir -> HashMap.mapWithKey
+            (\path -> if isInDir dir path then f else id)
+            hm
+        ScopeAll -> f <$> hm
 
     isInDir :: FilePath -> FilePath -> Bool
     isInDir dir path = dir `isPrefixOf` path
@@ -256,26 +256,80 @@ The algorithm for figuring out the resulting set of 'Inspection's per
 module applies each 'Check' one-by-one in order of their appearance.
 
 When introducing a new 'Check' in the config, you must always specify
-the 'CheckType' (either 'Include' or 'Ignore'). 'CheckFilter' and
-'CheckScope' can be omitted. If they are not written explicitly, then
-the 'Check' is applied to all the entries. Specifically:
+three key-value pairs:
 
-* If 'CheckFilter' is not specified, 'Check' applies to all
-  inspections for the given 'CheckScope' (either 'Ignore' or 'Include'
-  all 'Inspection's)
-* If 'CheckScope' is not specified, 'Check' applies given
-  'CheckFilter' to all files
+1. 'CheckType' — control inclusion and exclusion criteria
 
-As a result of this approach, when both 'CheckFilter' and 'CheckScope'
-are not specified explicitly, either all 'Inspection's are 'Ignore'd,
-or all inspections are 'Include'd back.
+    * 'Include'
+
+        @
+        type = \"Include\"
+        @
+
+    * 'Ignore'
+
+        @
+        type = \"Ignore\"
+        @
+
+2. 'CheckFilter' — how to filter inspections
+
+    * 'CheckInspection': by specific 'Inspection' 'Id'
+
+        @
+        inspectionId = "STAN-0001"
+        @
+
+    * 'CheckSeverity': by specific 'Severity'
+
+        @
+        severity = \"Warning\"
+        @
+
+    * 'CheckCategory': by specific 'Category'
+
+        @
+        category = \"Partial\"
+        @
+
+    * 'CheckAll': applied to all 'Inspection's
+
+        @
+        filter = "all"
+        @
+
+3. 'Scope' — where to apply check
+
+    * 'ScopeFile': only to the specific file
+
+        @
+        file = "src\/MyModule.hs"
+        @
+
+    * 'ScopeDirectory': to all files in the specified directory
+
+        @
+        directory = "text\/"
+        @
+
+    * 'ScopeAll': to all files
+
+        @
+        scope = "all"
+        @
 
 The algorithm doesn't remove any files or inspections from the
 consideration completely. So, for example, if you ignore all
 inspections in a specific file, new inspections can be added for this
-file later by the follow up rules. If you want to ignore some files or
-directories completely, put 'Check's for them at the end of your
-configuration.
+file later by the follow up rules.
+
+However, if you want to completely remove some files or directory from
+analysis, you can use the @remove@ key:
+
+@
+[[remove]]
+file = "src\/Autogenerated.hs"
+@
 
 === Common examples
 
@@ -286,7 +340,9 @@ common cases.
 
     @
     [[check]]
-    type = \"Ignore\"
+    type   = \"Ignore\"
+    filter = "all"
+    scope  = "all"
     @
 
 2. Ignore all 'Inspection's only for specific file.
@@ -294,6 +350,7 @@ common cases.
     @
     [[check]]
     type = \"Ignore\"
+    filter = "all"
     file = "src/MyModule.hs"
     @
 
@@ -303,6 +360,7 @@ common cases.
     [[check]]
     type = \"Ignore\"
     inspectionId = "STAN-0001"
+    scope = "all"
     @
 
 4. Ignore all 'Inspection's for specific file except 'Inspection's
@@ -312,6 +370,7 @@ that have a category @Partial@.
     # ignore all inspections for a file
     [[check]]
     type = \"Ignore\"
+    filter = "all"
     file = "src/MyModule.hs"
 
     # return back only required inspections
@@ -327,16 +386,20 @@ except a single one.
     @
     # ignore all inspections
     [[check]]
-    type = \"Ignore\"
+    type   = \"Ignore\"
+    filter = "all"
+    scope  = "all"
 
     # return back inspections with the category Partial
     [[check]]
     type = \"Include\"
     category = \"Partial\"
+    scope = "all"
 
     # finally, disable all inspections for a specific file
     [[check]]
     type = \"Ignore\"
+    filter = "all"
     file = "src/MyModule.hs"
     @
 -}

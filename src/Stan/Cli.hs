@@ -184,8 +184,8 @@ configP = do
 checkP :: Parser Check
 checkP = do
     checkType <- checkTypeP
-    checkFilter <- optional checkFilterP
-    checkScope  <- optional scopeP
+    checkFilter <- checkFilterP
+    checkScope  <- scopeP
     pure Check{..}
 
 checkTypeP :: Parser CheckType
@@ -213,6 +213,9 @@ checkFilterP =
         (long "category"
         <> metavar "CATEGORY"
         <> help "Inspection Category to ignore or include")
+    <|> flag' CheckAll
+        (long "filter-all"
+        <> help "Inspection ID to ignore or include")
 
 scopeP :: Parser Scope
 scopeP =
@@ -224,6 +227,9 @@ scopeP =
         (long "directory"
         <> metavar "DIRECTORY_PATH"
         <> help "Directory to ignore or include")
+    <|> flag' ScopeAll
+        (long "scope-all"
+        <> help "Apply check to all files")
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
