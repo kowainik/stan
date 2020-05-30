@@ -22,8 +22,8 @@ import Trial (TaggedTrial, Trial (..), fiasco)
 import Trial.Tomland (taggedTrialStrCodec)
 
 import Stan.Category (Category (..))
-import Stan.Config (Check (..), CheckFilter (..), CheckScope (..), CheckType (..), ConfigP (..),
-                    PartialConfig)
+import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
+                    Scope (..))
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Observation (Observation (..))
@@ -40,7 +40,8 @@ getTomlConfig useDefault mTomlFile = do
             Result _ r -> pure r
             resCur -> defaultHomeConfigFile >>= readToml >>= \ resHome ->
                 pure $ inline $ resCur <> resHome
-        else pure $ ConfigP $ fiasco "Selected NOT to use any default .stan.toml configuration files"
+        else let e = fiasco "Selected NOT to use any default .stan.toml configuration files"
+             in pure $ ConfigP e e
     case mTomlFile of
         Just tomlFile -> (def <>) . inline <$> readToml tomlFile
         Nothing       -> pure def
@@ -56,7 +57,7 @@ getTomlConfig useDefault mTomlFile = do
 
     inline :: Trial Text PartialConfig -> PartialConfig
     inline = \case
-        Fiasco f     -> ConfigP $ Fiasco f
+        Fiasco f     -> let e = Fiasco f in ConfigP e e
         Result _ res -> res
 
 defaultTomlFile :: FilePath
@@ -70,20 +71,27 @@ defaultCurConfigFile = (</> defaultTomlFile) <$> getCurrentDirectory
 
 configCodec :: TomlCodec PartialConfig
 configCodec = ConfigP
-    <$> checksCodec .= configChecks
+    <$> checksCodec  .= configChecks
+    <*> removedCodec .= configRemoved
+
+removedCodec :: TomlCodec (TaggedTrial Text [Scope])
+removedCodec = taggedTrialListCodec "remove" scopeCodec
 
 checksCodec :: TomlCodec (TaggedTrial Text [Check])
-checksCodec = do
-    checks <- taggedTrialStrCodec (Toml.list checkCodec) "check"
-    pure $ case checks of
-        Result _ (_, []) -> checks <> fiasco "No TOML value is specified for key 'check'"
-        _                -> checks
+checksCodec = taggedTrialListCodec "check" checkCodec
+
+taggedTrialListCodec :: Key -> TomlCodec a -> TomlCodec (TaggedTrial Text [a])
+taggedTrialListCodec key aCodec = do
+    res <- taggedTrialStrCodec (Toml.list aCodec) key
+    pure $ case res of
+        Result _ (_, []) -> res <> fiasco ("No TOML value is specified for key: " <> Toml.prettyKey key)
+        _                -> res
 
 checkCodec :: TomlCodec Check
 checkCodec = Check
     <$> checkTypeCodec .= checkType
     <*> Toml.dioptional checkFilterCodec .= checkFilter
-    <*> Toml.dioptional checkScopeCodec  .= checkScope
+    <*> Toml.dioptional scopeCodec .= checkScope
 
 checkTypeCodec :: TomlCodec CheckType
 checkTypeCodec = Toml.enumBounded "type"
@@ -126,17 +134,17 @@ idCodec = Toml.diwrap . Toml.text
 -- CheckScope
 ----------------------------------------------------------------------------
 
-checkScopeFile :: CheckScope -> Maybe FilePath
-checkScopeFile = \case
-    CheckScopeFile filePath -> Just filePath
+scopeFile :: Scope -> Maybe FilePath
+scopeFile = \case
+    ScopeFile filePath -> Just filePath
     _ -> Nothing
 
-checkScopeDir :: CheckScope -> Maybe FilePath
-checkScopeDir = \case
-    CheckScopeDirectory dir -> Just dir
+scopeDir :: Scope -> Maybe FilePath
+scopeDir = \case
+    ScopeDirectory dir -> Just dir
     _ -> Nothing
 
-checkScopeCodec :: TomlCodec CheckScope
-checkScopeCodec =
-        Toml.dimatch checkScopeFile CheckScopeFile      (Toml.string "file")
-    <|> Toml.dimatch checkScopeDir  CheckScopeDirectory (Toml.string "directory")
+scopeCodec :: TomlCodec Scope
+scopeCodec =
+        Toml.dimatch scopeFile ScopeFile      (Toml.string "file")
+    <|> Toml.dimatch scopeDir  ScopeDirectory (Toml.string "directory")
