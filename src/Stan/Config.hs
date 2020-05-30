@@ -38,6 +38,7 @@ module Stan.Config
       -- * Apply config
       -- $applyConfig
     , applyChecks
+    , applyChecksFor
     ) where
 
 import Trial ((::-), Phase (..), Trial, withTag)
@@ -177,10 +178,28 @@ mkDefaultChecks :: [FilePath] -> HashMap FilePath (HashSet (Id Inspection))
 mkDefaultChecks = HashMap.fromList . map (, inspectionsIds)
 
 {- | Convert the list of 'Check's from 'Config' to data structure that
-allows filtering of 'Inspection's.
+allows filtering of 'Inspection's for given files.
 -}
-applyChecks :: [FilePath] -> [Check] -> HashMap FilePath (HashSet (Id Inspection))
-applyChecks paths = foldl' useCheck (mkDefaultChecks paths)
+applyChecks
+    :: [FilePath]
+    -- ^ Paths to project files
+    -> [Check]
+    -- ^ List of rules
+    -> HashMap FilePath (HashSet (Id Inspection))
+    -- ^ Resulting set of inspections for each file
+applyChecks = applyChecksFor . mkDefaultChecks
+
+{- | Modify existing 'Check's for each file using the given list of
+'Check's.
+-}
+applyChecksFor
+    :: HashMap FilePath (HashSet (Id Inspection))
+    -- ^ Initial set of inspections for each file
+    -> [Check]
+    -- ^ List of rules
+    -> HashMap FilePath (HashSet (Id Inspection))
+    -- ^ Resulting set of inspections for each file
+applyChecksFor = foldl' useCheck
   where
     useCheck
         :: HashMap FilePath (HashSet (Id Inspection))
