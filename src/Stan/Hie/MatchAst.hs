@@ -77,4 +77,6 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         -> Bool
     matchNameAndType nameMeta patType ids =
         hieMatchNameMeta nameMeta ids
-        && any (hieMatchPatternType hie_types patType) (nodeType nodeInfo)
+        && case nodeType nodeInfo of
+            []    -> False
+            t : _ -> hieMatchPatternType hie_types patType t

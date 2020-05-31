@@ -2,7 +2,7 @@ module Test.Stan.Analysis.Partial
     ( analysisPartialSpec
     ) where
 
-import Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it, xit)
+import Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it)
 
 import Stan.Analysis (Analysis)
 import Stan.Inspection (Inspection (..), sortById)
@@ -25,8 +25,14 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
             "Target.Partial"
             analysis
 
-    xit "STAN-0011: doesn't trigger on 'pred :: Integer -> Integer'" $
-        noObservation Partial.stan0011 79
+    it "STAN-0010: doesn't trigger on 'succ :: Natural -> Natural'" $
+        noObservation Partial.stan0010 79
+    it "STAN-0011: doesn't trigger on 'pred :: Integer -> Integer'" $
+        noObservation Partial.stan0011 82
+
+-- TODO: configure message
+--    it "STAN-0011: triggers on polymorphic 'pred :: Enum a => a -> a'" $
+    checkObservation (Partial.stan0011, 85)
   where
     checkObservation :: (Inspection, Int) -> SpecWith (Arg Expectation)
     checkObservation (ins@Inspection{..}, line) = it (itShouldStr ins) $

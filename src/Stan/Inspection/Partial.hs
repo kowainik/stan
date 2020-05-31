@@ -212,9 +212,7 @@ stan0010 :: Inspection
 stan0010 = mkPartialInspectionEnum
     (Id "STAN-0010")
     "succ"
-    (?)
--- TODO: doesn't work currently, needs some patching
---    (neg (integerPattern |-> (?)) &&& neg (naturalPattern |-> (?)))
+    (neg (integerPattern |-> (?)) &&& neg (naturalPattern |-> (?)))
     [ "Use '(+ 1)' for integral types (but be aware of arithmetic overflow)"
     ]
 
@@ -223,9 +221,7 @@ stan0011 :: Inspection
 stan0011 = mkPartialInspectionEnum
     (Id "STAN-0011")
     "pred"
-    (?)
--- TODO: doesn't work currently, needs some patching
---    (neg (integerPattern |-> (?)))
+    (neg (integerPattern |-> (?)))
     [ "Use '(- 1)' for integral types (but be aware of arithmetic overflow)"
     ]
 

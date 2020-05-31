@@ -40,7 +40,7 @@ stanRead = read
 stanSucc :: Int -> Int
 stanSucc = succ
 
-stanPred :: Int -> Int
+stanPred :: Natural -> Natural
 stanPred = pred
 
 stanToEnum :: Int -> Bool
@@ -75,5 +75,11 @@ stanFromInteger = fromInteger
 
 -- Other tests
 
+stanSuccNatural :: Natural -> Natural
+stanSuccNatural = succ  -- no warning here
+
 stanPredInteger :: Integer -> Integer
 stanPredInteger = pred  -- no warning here
+
+stanPoly :: Enum a => a -> a
+stanPoly = pred
