@@ -11,8 +11,6 @@ module Stan.Pattern.Type
       PatternType (..)
 
       -- * eDSL
-    , (?)
-    , (|||)
     , (|->)
     , (|::)
 
@@ -25,6 +23,7 @@ module Stan.Pattern.Type
     ) where
 
 import Stan.NameMeta (NameMeta (..), baseNameFrom)
+import Stan.Pattern.Edsl (PatternBool (..))
 
 
 {- | Query pattern used to search types in HIE AST.
@@ -47,16 +46,24 @@ data PatternType
     | PatternTypeAnything
     -- | Choice between patterns. Should match either of them.
     | PatternTypeOr PatternType PatternType
+    -- | Union of patterns. Should match both of them.
+    | PatternTypeAnd PatternType PatternType
+    -- | Negation of pattern. Should match everything except this pattern.
+    | PatternTypeNeg PatternType
     deriving stock (Show, Eq)
 
--- | Short operator alias for 'PatternTypeAnything'.
-(?) :: PatternType
-(?) = PatternTypeAnything
+instance PatternBool PatternType where
+    (?) :: PatternType
+    (?) = PatternTypeAnything
 
--- | Short operator alias for 'PatternTypeOr'.
-infixr 3 |||
-(|||) :: PatternType -> PatternType -> PatternType
-(|||) = PatternTypeOr
+    neg :: PatternType -> PatternType
+    neg = PatternTypeNeg
+
+    (|||) :: PatternType -> PatternType -> PatternType
+    (|||) = PatternTypeOr
+
+    (&&&) :: PatternType -> PatternType -> PatternType
+    (&&&) = PatternTypeAnd
 
 -- | Short operator alias for 'PatternFun'.
 infixr 4 |->

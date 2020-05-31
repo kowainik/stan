@@ -17,7 +17,7 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
             "Target.AntiPattern"
             analysis
     let noObservation = noObservationAssert
-            "Target/AntiPattern.hs"
+            "target/Target/AntiPattern.hs"
             "Target.AntiPattern"
             analysis
 

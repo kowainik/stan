@@ -59,6 +59,7 @@ module Stan.Inspection.Partial
     , partialInspectionsMap
     ) where
 
+import Prelude hiding ((&&&))
 import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (mapToFst)
 
@@ -67,8 +68,9 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
                         descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
                       mkBaseOldListMeta)
+import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
-                          naturalPattern, nonEmptyPattern, (?), (|->))
+                          naturalPattern, nonEmptyPattern, (|->))
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -144,8 +146,9 @@ mkPartialInspectionList insId nameMeta = mkPartialInspection insId nameMeta "lis
 {- | Smart constructor to create partial 'Inspection' for functions
 that work with enumerable types.
 -}
-mkPartialInspectionEnum :: Id Inspection -> Text -> [Text] -> Inspection
-mkPartialInspectionEnum insId funName solution = mkPartialInspection insId enumMeta ""
+mkPartialInspectionEnum :: Id Inspection -> Text -> PatternType -> [Text] -> Inspection
+mkPartialInspectionEnum insId funName pat solution =
+    mkPartialInspectionPattern insId enumMeta pat ""
     & descriptionL .~ usage funName "enumerable types"
     & solutionL .~ solution
   where
@@ -206,19 +209,29 @@ stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
 
 -- | 'Inspection' — partial 'GHC.Enum.succ' @STAN-0010@.
 stan0010 :: Inspection
-stan0010 = mkPartialInspectionEnum (Id "STAN-0010") "succ"
+stan0010 = mkPartialInspectionEnum
+    (Id "STAN-0010")
+    "succ"
+    (?)
+-- TODO: doesn't work currently, needs some patching
+--    (neg (integerPattern |-> (?)) &&& neg (naturalPattern |-> (?)))
     [ "Use '(+ 1)' for integral types (but be aware of arithmetic overflow)"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.pred' @STAN-0011@.
 stan0011 :: Inspection
-stan0011 = mkPartialInspectionEnum (Id "STAN-0011") "pred"
+stan0011 = mkPartialInspectionEnum
+    (Id "STAN-0011")
+    "pred"
+    (?)
+-- TODO: doesn't work currently, needs some patching
+--    (neg (integerPattern |-> (?)))
     [ "Use '(- 1)' for integral types (but be aware of arithmetic overflow)"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.toEnum' @STAN-0012@.
 stan0012 :: Inspection
-stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" []
+stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" (?) []
 
 -- | 'Inspection' — partial 'Data.Foldable.maximum' @STAN-0013@.
 stan0013 :: Inspection

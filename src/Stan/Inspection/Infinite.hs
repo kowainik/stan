@@ -34,7 +34,8 @@ import Relude.Extra.Tuple (mapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta)
-import Stan.Pattern.Type (PatternType (..), listFunPattern, (?))
+import Stan.Pattern.Edsl (PatternBool (..))
+import Stan.Pattern.Type (PatternType (..), listFunPattern)
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category

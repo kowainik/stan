@@ -72,3 +72,8 @@ stanFromList = fromList
 
 stanFromInteger :: Integer -> Natural
 stanFromInteger = fromInteger
+
+-- Other tests
+
+stanPredInteger :: Integer -> Integer
+stanPredInteger = pred  -- no warning here

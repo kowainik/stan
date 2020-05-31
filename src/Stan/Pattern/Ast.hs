@@ -18,6 +18,7 @@ module Stan.Pattern.Ast
 import FastString (FastString)
 
 import Stan.NameMeta (NameMeta (..))
+import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType)
 
 
@@ -26,17 +27,36 @@ tries to mirror HIE AST to each future matching, so it's quite
 low-level, but helper functions are provided.
 -}
 data PatternAst
-    -- | AST wildcard, matches anything.
-    = PatternAstAnything
     -- | Integer constant in code.
-    | PatternAstConstant Int  -- TODO: support constants of different types
+    = PatternAstConstant Int  -- TODO: support constants of different types
     -- | Name of a specific function, variable or data type.
     | PatternAstName NameMeta PatternType
     -- | AST node with tags for current node and children patterns
     | PatternAstNode
         (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
         [PatternAst]  -- ^ Node children
+    -- | AST wildcard, matches anything.
+    | PatternAstAnything
+    -- | Choice between patterns. Should match either of them.
+    | PatternAstOr PatternAst PatternAst
+    -- | Union of patterns. Should match both of them.
+    | PatternAstAnd PatternAst PatternAst
+    -- | Negation of pattern. Should match everything except this pattern.
+    | PatternAstNeg PatternAst
     deriving stock (Show, Eq)
+
+instance PatternBool PatternAst where
+    (?) :: PatternAst
+    (?) = PatternAstAnything
+
+    neg :: PatternAst -> PatternAst
+    neg = PatternAstNeg
+
+    (|||) :: PatternAst -> PatternAst -> PatternAst
+    (|||) = PatternAstOr
+
+    (&&&) :: PatternAst -> PatternAst -> PatternAst
+    (&&&) = PatternAstAnd
 
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst

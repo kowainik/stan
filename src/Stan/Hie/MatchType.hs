@@ -59,9 +59,14 @@ hieMatchPatternType arr pat i = curFlat `satisfyPattern` pat
 
     satisfyPattern :: HieTypeFlat -> PatternType -> Bool
     satisfyPattern _ PatternTypeAnything = True
+    satisfyPattern t (PatternTypeNeg p) =
+        not (satisfyPattern t p)
     satisfyPattern t (PatternTypeOr p1 p2) =
            satisfyPattern t p1
         || satisfyPattern t p2
+    satisfyPattern t (PatternTypeAnd p1 p2) =
+           satisfyPattern t p1
+        && satisfyPattern t p2
     satisfyPattern (HTyVarTy name) (PatternTypeName nameMeta []) =
         compareNames nameMeta name
     satisfyPattern
