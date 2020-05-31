@@ -29,6 +29,7 @@ import Stan.Hie (readHieFiles)
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
 import Stan.Observation (prettyShowIgnoredObservations)
+import Stan.Report (generateReport)
 import Stan.Toml (getTomlConfig)
 -- import Stan.Hie.Debug (debugHieFile)
 
@@ -63,7 +64,11 @@ runStan StanArgs{..} = do
             (configObservations config)
             (analysisIgnoredObservations analysis)
         -- show the result
-        putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
+        let res = prettyShowAnalysis analysis stanArgsReportSettings
+        putTextLn res
+
+        when stanArgsReport $
+            putTextLn "Report is generated here -> stan.html" >> generateReport res
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 
 runInspection :: InspectionArgs -> IO ()
