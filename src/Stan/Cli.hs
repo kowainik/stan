@@ -160,7 +160,7 @@ reportP :: Parser Bool
 reportP = do
     res <- optional $ hsubparser $
         command "report"
-            (info (pass) (progDesc "Generate HTML Report"))
+            (info pass (progDesc "Generate HTML Report"))
     pure $ isJust res
 
 reportSettingsP :: Parser ReportSettings
