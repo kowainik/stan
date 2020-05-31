@@ -14,8 +14,6 @@ module Stan.Report
 
 import Stan.Core.Toggle (ToggleSolution)
 
-import qualified Data.Text as T
-
 
 {- | Settings for produced report.
 -}
@@ -25,4 +23,4 @@ data ReportSettings = ReportSettings
 
 generateReport :: Text -> IO ()
 generateReport = writeFileText "stan.html"
-    . T.unlines . ("<pre>":) . map (<> "<br/>") . T.lines
+    . unlines . ("<pre>":) . map (<> "<br/>") . lines

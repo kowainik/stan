@@ -32,35 +32,35 @@ applyChecksUnitSpec = describe "applyCheck: Unit Tests" $ do
         applyChecks files [] `shouldBe` defMap
     it "Including all inspections" $
         applyChecks files [Check Include CheckAll ScopeAll] `shouldBe` defMap
-    it "All inspections are ignored" $
-        applyChecks files [Check Ignore CheckAll ScopeAll]
+    it "All inspections are excluded" $
+        applyChecks files [Check Exclude CheckAll ScopeAll]
             `shouldBe` (mempty <$ defMap)
-    it "Ignoring single Inspection ID works" $ do
+    it "Excluding single Inspection ID works" $ do
         let iId = Id "STAN-0001"
         applyChecks
             files
-            [Check Ignore (CheckInspection iId) ScopeAll]
+            [Check Exclude (CheckInspection iId) ScopeAll]
           `shouldBe`
             (HS.delete iId <$> defMap)
-    it "Ignoring single file works" $
+    it "Excluding single file works" $
         applyChecks
             files
-            [Check Ignore CheckAll (ScopeFile "baz.hs")]
+            [Check Exclude CheckAll (ScopeFile "baz.hs")]
           `shouldBe`
             HM.adjust (const mempty) "baz.hs" defMap
-    it "Ignoring a directory works" $
+    it "Excluding a directory works" $
         applyChecks
             files
-            [Check Ignore CheckAll (ScopeDirectory "src/")]
+            [Check Exclude CheckAll (ScopeDirectory "src/")]
           `shouldBe`
-            ( HM.adjust (const mempty) "src/foo.hs"
-            $ HM.adjust (const mempty) "src/bar.hs" defMap)
-    it "Ignoring inspection in a single file" $ do
+              HM.adjust (const mempty) "src/foo.hs"
+            ( HM.adjust (const mempty) "src/bar.hs" defMap)
+    it "Excluding inspection in a single file" $ do
         let iId = Id "STAN-0001"
         applyChecks
             files
             [Check
-                Ignore
+                Exclude
                 (CheckInspection iId)
                 (ScopeFile "baz.hs")
             ]
@@ -71,7 +71,7 @@ applyChecksPropertySpec :: Spec
 applyChecksPropertySpec = describe "applyCheck: Property Tests" $ parallel $ do
     it "Idempotence: applyChecks . applyChecks ≡ applyChecks"
         idempotenceProperty
-    it "CheckType Inversion: include c . ignore c ≡ id"
+    it "CheckType Inversion: include c . exclude c ≡ id"
         inversionProperty
 
 idempotenceProperty :: Property
@@ -86,16 +86,16 @@ idempotenceProperty = hedgehog $ do
 inversionProperty :: Property
 inversionProperty = hedgehog $ do
     paths <- forAll $ genSmallList genFilePath
-    ignoreCheck <- forAll $ genCheck <&> \c -> c { checkType = Ignore }
-    let includeCheck = ignoreCheck { checkType = Include }
+    excludeCheck <- forAll $ genCheck <&> \c -> c { checkType = Exclude }
+    let includeCheck = excludeCheck { checkType = Include }
 
     let filesMap = mkDefaultChecks paths
-    applyChecksFor (applyChecksFor filesMap [ignoreCheck]) [includeCheck] === filesMap
+    applyChecksFor (applyChecksFor filesMap [excludeCheck]) [includeCheck] === filesMap
 
 applyConfigSpec :: Spec
 applyConfigSpec = describe "applyConfig tests" $ do
     it "'applyConfig' with no removed files is the same as 'applyChecks'" $ do
-        let checks = [Check Ignore CheckAll ScopeAll]
+        let checks = [Check Exclude CheckAll ScopeAll]
         applyConfig files (emptyConfig{ configChecks = checks })
            `shouldBe` applyChecks files checks
     it "Removes all files" $
@@ -116,7 +116,7 @@ applyConfigSpec = describe "applyConfig tests" $ do
     emptyConfig = ConfigP
         { configChecks = []
         , configRemoved = []
-        , configObservations = []
+        , configIgnored = []
         }
 
     removeAllConfig :: Config

@@ -71,15 +71,15 @@ defaultCurConfigFile = (</> defaultTomlFile) <$> getCurrentDirectory
 
 configCodec :: TomlCodec PartialConfig
 configCodec = ConfigP
-    <$> checksCodec       .= configChecks
-    <*> removedCodec      .= configRemoved
-    <*> observationsCodec .= configObservations
+    <$> checksCodec  .= configChecks
+    <*> removedCodec .= configRemoved
+    <*> ignoredCodec .= configIgnored
 
 removedCodec :: TomlCodec (TaggedTrial Text [Scope])
 removedCodec = taggedTrialListCodec "remove" scopeCodec
 
-observationsCodec :: TomlCodec (TaggedTrial Text [Id Observation])
-observationsCodec = taggedTrialListCodec "observation" idCodec
+ignoredCodec :: TomlCodec (TaggedTrial Text [Id Observation])
+ignoredCodec = taggedTrialListCodec "ignore" idCodec
 
 checksCodec :: TomlCodec (TaggedTrial Text [Check])
 checksCodec = taggedTrialListCodec "check" checkCodec
