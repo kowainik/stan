@@ -8,9 +8,13 @@ Report and report settings types.
 
 module Stan.Report
     ( ReportSettings (..)
+
+    , generateReport
     ) where
 
 import Stan.Core.Toggle (ToggleSolution)
+
+import qualified Data.Text as T
 
 
 {- | Settings for produced report.
@@ -18,3 +22,7 @@ import Stan.Core.Toggle (ToggleSolution)
 data ReportSettings = ReportSettings
     { reportSettingsSolutionVerbosity :: !ToggleSolution
     }
+
+generateReport :: Text -> IO ()
+generateReport = writeFileText "stan.html"
+    . T.unlines . ("<pre>":) . map (<> "<br/>") . T.lines

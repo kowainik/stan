@@ -55,6 +55,7 @@ data StanArgs = StanArgs
     { stanArgsHiedir               :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath        :: ![FilePath]  -- ^ Path to @.cabal@ files.
     , stanArgsReportSettings       :: !ReportSettings  -- ^ Settings for report
+    , stanArgsReport               :: !Bool  -- ^ Create @HTML@ report?
     , stanArgsUseDefaultConfigFile :: !(TaggedTrial Text Bool)  -- ^ Use default @.stan.toml@ file
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
     , stanArgsConfig               :: !PartialConfig
@@ -99,6 +100,7 @@ stanP = do
     stanArgsHiedir <- hiedirP
     stanArgsCabalFilePath <- cabalFilePathP
     stanArgsReportSettings <- reportSettingsP
+    stanArgsReport <- reportP
     stanArgsConfig <- configP
     stanArgsConfigFile <- configFileP
     stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
@@ -154,6 +156,13 @@ useDefaultConfigFileP = taggedTrialParser "no-default" $ flag' False $ mconcat
     , help "Ignore local .stan.toml configuration file"
     ]
 
+reportP :: Parser Bool
+reportP = do
+    res <- optional $ hsubparser $
+        command "report"
+            (info (pass) (progDesc "Generate HTML Report"))
+    pure $ isJust res
+
 reportSettingsP :: Parser ReportSettings
 reportSettingsP = do
     reportSettingsSolutionVerbosity <- toggleSolutionP
@@ -183,12 +192,12 @@ partitionCommands (cmd : rest) =
 configP :: Parser PartialConfig
 configP = do
     res <- many $ hsubparser $
-         command "check"
-             (info (CheckCommand <$> checkP) (progDesc "Specify list of checks"))
+        command "check"
+            (info (CheckCommand <$> checkP) (progDesc "Specify list of checks"))
         <> command "remove"
-             (info (RemoveCommand <$> scopeP) (progDesc "Specify list of removed scope"))
+            (info (RemoveCommand <$> scopeP) (progDesc "Specify list of removed scope"))
         <> command "observation"
-             (info (ObservationCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
+            (info (ObservationCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
     pure $
         let (checks, removed, observations) = partitionCommands res
         in ConfigP
