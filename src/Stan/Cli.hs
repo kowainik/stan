@@ -178,16 +178,16 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
 data ConfigCommand
     = CheckCommand Check
     | RemoveCommand Scope
-    | ObservationCommand (Id Observation)
+    | IgnoreCommand (Id Observation)
 
 partitionCommands :: [ConfigCommand] -> ([Check], [Scope], [Id Observation])
 partitionCommands [] = ([], [], [])
 partitionCommands (cmd : rest) =
     let (check, remove, obs) = partitionCommands rest
     in case cmd of
-        CheckCommand ch      -> (ch:check, remove, obs)
-        RemoveCommand r      -> (check, r:remove, obs)
-        ObservationCommand o -> (check, remove, o:obs)
+        CheckCommand ch -> (ch:check, remove, obs)
+        RemoveCommand r -> (check, r:remove, obs)
+        IgnoreCommand o -> (check, remove, o:obs)
 
 configP :: Parser PartialConfig
 configP = do
@@ -196,14 +196,14 @@ configP = do
             (info (CheckCommand <$> checkP) (progDesc "Specify list of checks"))
         <> command "remove"
             (info (RemoveCommand <$> scopeP) (progDesc "Specify list of removed scope"))
-        <> command "observation"
-            (info (ObservationCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
+        <> command "ignore"
+            (info (IgnoreCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
     pure $
-        let (checks, removed, observations) = partitionCommands res
+        let (checks, removed, ignored) = partitionCommands res
         in ConfigP
             { configChecks  = whenEmpty checks "checks"
             , configRemoved = whenEmpty removed "remove"
-            , configObservations = whenEmpty observations "observation"
+            , configIgnored = whenEmpty ignored "ignore"
             }
   where
     whenEmpty :: [a] -> Text -> TaggedTrial Text [a]
@@ -227,9 +227,9 @@ checkP = do
 
 checkTypeP :: Parser CheckType
 checkTypeP =
-    -- QUESTION: is it better than --type=Ignore or --type=Include
+    -- QUESTION: is it better than --type=Exclude or --type=Include
         flag' Include (long "include" <> help "Include check")
-    <|> flag' Ignore (long "ignore" <> help "Ignore check")
+    <|> flag' Exclude (long "exclude" <> help "Exclude check")
 
 checkFilterP :: Parser CheckFilter
 checkFilterP =
@@ -238,25 +238,25 @@ checkFilterP =
         -- TODO: how to specify all possible values here in help?
         (long "severity"
         <> metavar "SEVERITY"
-        <> help "Inspection Severity to ignore or include")
+        <> help "Inspection Severity to exclude or include")
     <|> CheckCategory . Category <$> strOption
         (long "category"
         <> metavar "CATEGORY"
-        <> help "Inspection Category to ignore or include")
+        <> help "Inspection Category to exclude or include")
     <|> flag' CheckAll
         (long "filter-all"
-        <> help "Inspection ID to ignore or include")
+        <> help "Exclude or include ALL inspections")
 
 scopeP :: Parser Scope
 scopeP =
         ScopeFile <$> strOption
         (long "file"
         <> metavar "FILE_PATH"
-        <> help "File to ignore or include")
+        <> help "File to exclude or include")
     <|> ScopeDirectory <$> strOption
         (long "directory"
         <> metavar "DIRECTORY_PATH"
-        <> help "Directory to ignore or include")
+        <> help "Directory to exclude or include")
     <|> flag' ScopeAll
         (long "scope-all"
         <> help "Apply check to all files")

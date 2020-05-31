@@ -28,23 +28,23 @@ cliSpec = describe "CLI configuration tests" $ do
     configExample = ConfigP
         { configChecks = checks
         , configRemoved = []
-        , configObservations = []
+        , configIgnored = []
         }
 
     partialConfigExample :: PartialConfig
     partialConfigExample = ConfigP
         { configChecks = withTag "CLI" $ pure checks
         , configRemoved = withTag "CLI" $ fiasco "No CLI option specified for: remove"
-        , configObservations = withTag "CLI" $ fiasco "No CLI option specified for: observation"
+        , configIgnored = withTag "CLI" $ fiasco "No CLI option specified for: ignore"
         }
 
     checks :: [Check]
     checks =
-        [ Check Ignore CheckAll (ScopeDirectory "test/")
+        [ Check Exclude CheckAll (ScopeDirectory "test/")
         , Check Include CheckAll ScopeAll
-        , Check Ignore (CheckInspection $ Id "STAN-0002") ScopeAll
+        , Check Exclude (CheckInspection $ Id "STAN-0002") ScopeAll
         , Check
-            Ignore
+            Exclude
             (CheckInspection $ Id "STAN-0001")
             (ScopeFile "src/MyFile.hs")
         ]
@@ -58,7 +58,7 @@ cliConfigRoundtripProperty = hedgehog $ do
     config <- forAll $ genConfig <&> \c -> c
         { configChecks  = check : configChecks c
         , configRemoved = scope : configRemoved c
-        , configObservations = obs : configObservations c
+        , configIgnored = obs : configIgnored c
         }
     case execParserPure stanParserPrefs stanCliParser (stanCommand config) of
         Success (Stan StanArgs{..}) ->

@@ -178,7 +178,7 @@ prettyShowIgnoredObservations ids obs = ignored <> unknown
     (ignoredIds, unknownIds) = partition (`HS.member` obsIds) ids
 
     showIds :: [Id Observation] -> Text
-    showIds = Text.unlines . map ((<>) "    - " . unId)
+    showIds = unlines . map ((<>) "    - " . unId)
 
 {- | Create a stable 'Observation' 'Id' in a such way that:
 

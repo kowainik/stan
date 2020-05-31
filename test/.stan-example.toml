@@ -1,6 +1,6 @@
-# ignore everything in the test/ directory
+# exclude everything in the test/ directory
 [[check]]
-type = "Ignore"
+type = "Exclude"
 filter = "all"
 directory = "test/"
 
@@ -9,14 +9,14 @@ type   = "Include"
 filter = "all"
 scope  = "all"
 
-# ignore specific inspection everywhere
+# exclude specific inspection everywhere
 [[check]]
-type = "Ignore"
+type = "Exclude"
 id = "STAN-0002"
 scope = "all"
 
-# ignore specific inspection only in a specific file
+# exclude specific inspection only in a specific file
 [[check]]
-type = "Ignore"
+type = "Exclude"
 id = "STAN-0001"
 file = "src/MyFile.hs"

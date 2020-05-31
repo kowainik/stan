@@ -58,10 +58,10 @@ runStan StanArgs{..} = do
         -- get checks for each file
         let checksMap = applyConfig (map hie_hs_file hieFiles) config
 
-        let analysis = runAnalysis cabalExtensionsMap checksMap (configObservations config) hieFiles
+        let analysis = runAnalysis cabalExtensionsMap checksMap (configIgnored config) hieFiles
         -- show what observations are ignored
         putText $ prettyShowIgnoredObservations
-            (configObservations config)
+            (configIgnored config)
             (analysisIgnoredObservations analysis)
         -- show the result
         let res = prettyShowAnalysis analysis stanArgsReportSettings

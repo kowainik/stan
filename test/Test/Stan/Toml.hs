@@ -25,22 +25,22 @@ tomlSpec = describe "TOML configuration tests" $ do
     configExample :: PartialConfig
     configExample = ConfigP
         { configChecks = withTag "TOML" $ pure
-            [ Check Ignore CheckAll (ScopeDirectory "test/")
+            [ Check Exclude CheckAll (ScopeDirectory "test/")
             , Check Include CheckAll ScopeAll
-            , Check Ignore (CheckInspection $ Id "STAN-0002") ScopeAll
+            , Check Exclude (CheckInspection $ Id "STAN-0002") ScopeAll
             , Check
-                Ignore
+                Exclude
                 (CheckInspection $ Id "STAN-0001")
                 (ScopeFile "src/MyFile.hs")
             ]
         , configRemoved = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: remove"
-        , configObservations = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: observation"
+        , configIgnored = withTag "TOML" $ pure [] <> fiasco "No TOML value is specified for key: ignore"
         }
 
 configTomlRoundtripProperty :: Property
 configTomlRoundtripProperty = hedgehog $ do
     config <- forAll genConfig
-    case (Toml.decode configCodec $ Toml.encode configCodec $ toPartialConfig config) of
+    case Toml.decode configCodec $ Toml.encode configCodec $ toPartialConfig config of
         Right partialConfig -> case finaliseConfig partialConfig of
             Result _ res -> config === res
             _            -> fail "Expected Result, but this is Fiasco, bro"
@@ -50,5 +50,5 @@ toPartialConfig :: Config -> PartialConfig
 toPartialConfig ConfigP{..} = ConfigP
     { configChecks = withTag "TOML" $ pure configChecks
     , configRemoved = withTag "TOML" $ pure configRemoved
-    , configObservations = withTag "TOML" $ pure configObservations
+    , configIgnored = withTag "TOML" $ pure configIgnored
     }
