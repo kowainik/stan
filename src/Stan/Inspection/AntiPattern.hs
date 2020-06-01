@@ -28,7 +28,7 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
                         solutionL)
 import Stan.NameMeta (mkBaseFoldableMeta)
 import Stan.Pattern.Ast (PatternAst (..), app, range)
-import Stan.Pattern.Type ((?))
+import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Severity (Severity (PotentialBug))
 
 import qualified Stan.Category as Category

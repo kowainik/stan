@@ -73,7 +73,9 @@ analyseNameMeta insId nameMeta patType hie@HieFile{..} =
             -- matches with the given nameMeta
             $ hieMatchNameMeta nameMeta hieId
             -- compatible with the given pattern
-            && any (hieMatchPatternType hie_types patType) typeIxs
+            && case typeIxs of
+                []    -> False
+                t : _ -> hieMatchPatternType hie_types patType t
 
         pure srcSpan
 

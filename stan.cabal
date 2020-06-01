@@ -99,6 +99,7 @@ library
                          Stan.NameMeta
                          Stan.Observation
                            Stan.Pattern.Ast
+                           Stan.Pattern.Edsl
                            Stan.Pattern.Type
                          Stan.Report
                          Stan.Severity

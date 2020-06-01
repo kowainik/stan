@@ -40,10 +40,18 @@ hieMatchPatternAst
     -> HieAST TypeIndex  -- ^ Current AST node to match
     -> PatternAst  -- ^ Pattern to match against
     -> Bool  -- ^ 'True' if pattern matches AST node
-hieMatchPatternAst hie@HieFile{..} Node{..} = \case
+hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstAnything -> True
+    PatternAstNeg p ->
+        not (hieMatchPatternAst hie node p)
+    PatternAstOr p1 p2 ->
+           hieMatchPatternAst hie node p1
+        || hieMatchPatternAst hie node p2
+    PatternAstAnd p1 p2 ->
+           hieMatchPatternAst hie node p1
+        && hieMatchPatternAst hie node p2
     PatternAstConstant n ->
-        Set.member ("HsOverLit", "HsExpr") (nodeAnnotations nodeInfo)
+           Set.member ("HsOverLit", "HsExpr") (nodeAnnotations nodeInfo)
         && readMaybe (decodeUtf8 $ slice nodeSpan) == Just n
     PatternAstName nameMeta patType ->
         any (matchNameAndType nameMeta patType)
@@ -69,4 +77,6 @@ hieMatchPatternAst hie@HieFile{..} Node{..} = \case
         -> Bool
     matchNameAndType nameMeta patType ids =
         hieMatchNameMeta nameMeta ids
-        && any (hieMatchPatternType hie_types patType) (nodeType nodeInfo)
+        && case nodeType nodeInfo of
+            []    -> False
+            t : _ -> hieMatchPatternType hie_types patType t
