@@ -83,7 +83,7 @@ noObservationAssert modulePath moduleName analysis Inspection{..} line =
     foundPartialObservation = find
         (\Observation{..} ->
             observationInspectionId == inspectionId
-            && observationFile == modulePath
+            && observationFile == "target" </> modulePath
             && observationModuleName == moduleName
             && srcSpanStartLine observationLoc == line
         )

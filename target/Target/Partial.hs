@@ -81,5 +81,5 @@ stanSuccNatural = succ  -- no warning here
 stanPredInteger :: Integer -> Integer
 stanPredInteger = pred  -- no warning here
 
-stanPoly :: Enum a => a -> a
-stanPoly = pred
+stanPredPoly :: Enum a => a -> a
+stanPredPoly = pred

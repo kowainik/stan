@@ -21,7 +21,7 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
     forM_ (zip (sortById partialInspectionsMap) [14, 17 ..]) checkObservation
 
     let noObservation = noObservationAssert
-            "target/Target/Partial.hs"
+            "Target/Partial.hs"
             "Target.Partial"
             analysis
 
@@ -29,17 +29,12 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         noObservation Partial.stan0010 79
     it "STAN-0011: doesn't trigger on 'pred :: Integer -> Integer'" $
         noObservation Partial.stan0011 82
-
--- TODO: configure message
---    it "STAN-0011: triggers on polymorphic 'pred :: Enum a => a -> a'" $
-    checkObservation (Partial.stan0011, 85)
+    it "STAN-0011: triggers on polymorphic 'pred :: Enum a => a -> a'" $
+        checkObservationFor Partial.stan0011 85 16 20
   where
     checkObservation :: (Inspection, Int) -> SpecWith (Arg Expectation)
     checkObservation (ins@Inspection{..}, line) = it (itShouldStr ins) $
-        observationAssert "Target/Partial.hs" "Target.Partial"
-            analysis
-            ins
-            line start end
+        checkObservationFor ins line start end
       where
         nameMeta :: NameMeta
         nameMeta = unsafeNameMeta inspectionAnalysis
@@ -48,3 +43,11 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         funLen = T.length $ nameMetaName nameMeta
         start = if nameMetaName nameMeta == "!!" then funLen + 14 else funLen + 8
         end = start + funLen
+
+    checkObservationFor :: Inspection -> Int -> Int -> Int -> Expectation
+    checkObservationFor ins line start end = observationAssert
+        "Target/Partial.hs"
+        "Target.Partial"
+        analysis
+        ins
+        line start end
