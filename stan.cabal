@@ -102,6 +102,8 @@ library
                            Stan.Pattern.Edsl
                            Stan.Pattern.Type
                          Stan.Report
+                           Stan.Report.Css
+                           Stan.Report.Html
                          Stan.Severity
                          Stan.Toml
 
@@ -111,6 +113,7 @@ library
   build-depends:       array ^>= 0.5
                      , base64 ^>= 0.4.1
                      , bytestring ^>= 0.10
+                     , clay ^>= 0.13
                      , colourista ^>= 0.1.0.0
                      , containers ^>= 0.6
                      , cryptohash-sha1 ^>= 0.11
@@ -129,6 +132,7 @@ library
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
+                     , type-of-html ^>= 1.5.1
                      , unordered-containers ^>= 0.2
 
 executable stan
