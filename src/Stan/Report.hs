@@ -12,7 +12,10 @@ module Stan.Report
     , generateReport
     ) where
 
+import Html (renderByteString)
+
 import Stan.Core.Toggle (ToggleSolution)
+import Stan.Report.Html (stanHtml)
 
 
 {- | Settings for produced report.
@@ -22,5 +25,4 @@ data ReportSettings = ReportSettings
     }
 
 generateReport :: Text -> IO ()
-generateReport = writeFileText "stan.html"
-    . unlines . ("<pre>":) . map (<> "<br/>") . lines
+generateReport = writeFileLBS "stan.html" . renderByteString . stanHtml

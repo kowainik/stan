@@ -29,48 +29,70 @@ import qualified Slist as S
 This functions groups 'Observation's by 'FilePath' they are found in.
 -}
 prettyShowAnalysis :: Analysis -> ReportSettings -> Text
-prettyShowAnalysis Analysis{..} reportSettings = groupedObservations <> summary
+prettyShowAnalysis an reportSettings = groupedObservations <> summary (analysisToNumbers an)
   where
     groupedObservations :: Text
     groupedObservations =
         Text.intercalate "\n\n"
         $ map (showByFile reportSettings)
         $ toPairs
-        $ groupObservationsByFile analysisObservations
+        $ groupObservationsByFile (analysisObservations an)
 
-    summary :: Text
-    summary = unlines
-        [ ""
-        , b "           Stan's Summary:"
-        , top
-        , alignText "Analysed modules" <> alignNum analysisModulesNum
-        , mid
-        , alignText "Analysed Lines of Code" <> alignNum analysisLinesOfCode
-        , mid
-        , alignText "Total Haskel2010 extensions" <> alignNum (Set.size $ fst analysisUsedExtensions)
-        , mid
-        , alignText "Total SafeHaskel extensions" <> alignNum (Set.size $ snd analysisUsedExtensions)
-        , mid
-        , alignText "Total checked inspections" <> alignNum (HS.size analysisInspections)
-        , mid
-        , alignText "Total found observations" <> alignNum (length analysisObservations)
-        , mid
-        , alignText "Total ignored observations" <> alignNum (length analysisIgnoredObservations)
-        , bot
-        ]
-      where
-        alignNum :: Int -> Text
-        alignNum x = " ┃ " <> Text.justifyLeft 6 ' ' (show x) <> " ┃"
+data AnalysisNumbers = AnalysisNumbers
+    { anModules    :: !Int
+    , anLoc        :: !Int
+    , anExts       :: !Int
+    , anSafeExts   :: !Int
+    , anIns        :: !Int
+    , anFoundObs   :: !Int
+    , anIgnoredObs :: !Int
+    }
 
-        alignText :: Text -> Text
-        alignText txt ="┃ " <> Text.justifyLeft 27 ' ' txt
+analysisToNumbers :: Analysis -> AnalysisNumbers
+analysisToNumbers Analysis{..} = AnalysisNumbers
+    { anModules    = analysisModulesNum
+    , anLoc        = analysisLinesOfCode
+    , anExts       = Set.size $ fst analysisUsedExtensions
+    , anSafeExts   = Set.size $ snd analysisUsedExtensions
+    , anIns        = HS.size analysisInspections
+    , anFoundObs   = length analysisObservations
+    , anIgnoredObs = length analysisIgnoredObservations
+    }
 
-        separator :: Text -> Text -> Text -> Text
-        separator l c r = l <> Text.replicate 29 "━" <> c <> Text.replicate 8 "━" <> r
-        top, mid, bot :: Text
-        top = separator "┏" "┳" "┓"
-        mid = separator "┣" "╋" "┫"
-        bot = separator "┗" "┻" "┛"
+
+summary :: AnalysisNumbers -> Text
+summary AnalysisNumbers{..} = unlines
+    [ ""
+    , b "           Stan's Summary:"
+    , top
+    , alignText "Analysed modules" <> alignNum anModules
+    , mid
+    , alignText "Analysed Lines of Code" <> alignNum anLoc
+    , mid
+    , alignText "Total Haskel2010 extensions" <> alignNum anExts
+    , mid
+    , alignText "Total SafeHaskel extensions" <> alignNum anSafeExts
+    , mid
+    , alignText "Total checked inspections" <> alignNum anIns
+    , mid
+    , alignText "Total found observations" <> alignNum anFoundObs
+    , mid
+    , alignText "Total ignored observations" <> alignNum anIgnoredObs
+    , bot
+    ]
+  where
+    alignNum :: Int -> Text
+    alignNum x = " ┃ " <> Text.justifyLeft 6 ' ' (show x) <> " ┃"
+
+    alignText :: Text -> Text
+    alignText txt ="┃ " <> Text.justifyLeft 27 ' ' txt
+
+    separator :: Text -> Text -> Text -> Text
+    separator l c r = l <> Text.replicate 29 "━" <> c <> Text.replicate 8 "━" <> r
+    top, mid, bot :: Text
+    top = separator "┏" "┳" "┓"
+    mid = separator "┣" "╋" "┫"
+    bot = separator "┗" "┻" "┛"
 
 showByFile :: ReportSettings -> (FilePath, Observations) -> Text
 showByFile reportSettings (file, obs) = unlines

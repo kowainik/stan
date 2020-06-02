@@ -1,33 +1,52 @@
-<pre>
-[3m  File:         [0m[1msrc/Stan/Hie.hs[0m<br/>
-[3m  Module:       [0m[1mStan.Hie[0m<br/>
-[3m  Observations: [0m[1m1[0m<br/>
- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br/>
- ┃  [3m✦ ID:            [0m[1mOBS-STAN-0103-W93KYS-47:32[0m<br/>
- ┃  [3m✦ Severity:      [0m[93m[1mWarning[0m<br/>
- ┃  [3m✦ Description:   [0mUsage of the 'length' function that hangs on infinite lists<br/>
- ┃  [3m✦ Inspection ID: [0mSTAN-0103<br/>
- ┃  [3m✦ Category:      [0m[105m#Infinite[0m [105m#List[0m<br/>
- ┃  [3m✦ File:          [0msrc/Stan/Hie.hs<br/>
- ┃  <br/>
- ┃    46 ┃ <br/>
- ┃    47 ┃ countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src<br/>
- ┃    48 ┃ [93m                               ^^^^^^[0m<br/>
- ┃  <br/>
-<br/>
-[1m           Stan's Summary:[0m<br/>
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓<br/>
-┃ Analysed modules            ┃ 43     ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Analysed Lines of Code      ┃ 3980   ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Total Haskel2010 extensions ┃ 26     ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Total SafeHaskel extensions ┃ 0      ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Total checked inspections   ┃ 28     ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Total found observations    ┃ 1      ┃<br/>
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫<br/>
-┃ Total ignored observations  ┃ 1      ┃<br/>
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━┛<br/>
+<!DOCTYPE html><html><head><meta httpEquiv="Content-Type" content="text/html; charset=UTF-8"><meta httpEquiv="X-UA-Compatible" content="IE=Edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Stan Report"><meta name="keywords" content="Haskell, Static Analysis"><meta name="author" content="Kowainik"><title>Stan Report</title><style>
+body
+{
+  margin      : 0% 0% 0% 0%;
+  font-family : sans-serif;
+  color       : hsl(0,0.0000%,38.0000%);
+}
+
+footer
+{
+  display          : block;
+  text-align       : center;
+  width            : 100%;
+  color            : #ffffff;
+  background-color : hsl(0,0.0000%,74.0000%);
+  border-top       : solid 8px hsl(0,0.0000%,38.0000%);
+}
+
+
+/* Generated with Clay, http://fvisser.nl/clay */</style></head><body><header><h1>Stan Report</h1></header><main><div id="general-info" class=""><div id="project-info" class=""><h2>Project Info</h2></div><div id="stan-info" class=""><h2>Stan Info</h2></div><div id="analysis-info" class=""><h2>Analysis Info</h2></div></div><div id="graphs" class=""><h2>Graphs</h2><p>Maybe later</p></div><div id="observations" class=""><h2>Observations</h2><pre>[3m  File:         [0m[1msrc/Stan/Hie.hs[0m
+[3m  Module:       [0m[1mStan.Hie[0m
+[3m  Observations: [0m[1m1[0m
+ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ┃  [3m✦ ID:            [0m[1mOBS-STAN-0103-W93KYS-47:32[0m
+ ┃  [3m✦ Severity:      [0m[93m[1mWarning[0m
+ ┃  [3m✦ Description:   [0mUsage of the &#39;length&#39; function that hangs on infinite lists
+ ┃  [3m✦ Inspection ID: [0mSTAN-0103
+ ┃  [3m✦ Category:      [0m[105m#Infinite[0m [105m#List[0m
+ ┃  [3m✦ File:          [0msrc/Stan/Hie.hs
+ ┃  
+ ┃    46 ┃ 
+ ┃    47 ┃ countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src
+ ┃    48 ┃ [93m                               ^^^^^^[0m
+ ┃  
+
+[1m           Stan&#39;s Summary:[0m
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Analysed modules            ┃ 46     ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Analysed Lines of Code      ┃ 4166   ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Total Haskel2010 extensions ┃ 27     ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Total SafeHaskel extensions ┃ 0      ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Total checked inspections   ┃ 28     ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Total found observations    ┃ 1      ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
+┃ Total ignored observations  ┃ 1      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━┛
+</pre></div><div id="configurations" class=""><h2>Configurations</h2><p>Later</p></div><div id="summary" class=""><h2>Summary</h2><p>Later</p></div><div id="inspections" class=""><h2>Inspections</h2><p>Later</p></div></main><footer>(c) Kowainik 2020</footer></body></html>
