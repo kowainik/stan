@@ -1,5 +1,7 @@
 # Stan
 
+<p align="center"><img alt="Stan Logo" src="https://user-images.githubusercontent.com/8126674/83521583-59383080-a4d7-11ea-8d9e-33be4677ecb3.png" width=300px height=300px/></p>
+
 [![GitHub CI](https://github.com/kowainik/stan/workflows/CI/badge.svg)](https://github.com/kowainik/stan/actions)
 [![Hackage](https://img.shields.io/hackage/v/stan.svg)](https://hackage.haskell.org/package/stan)
 [![MPL-2.0 license](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/kowainik/stan/blob/master/LICENSE)
