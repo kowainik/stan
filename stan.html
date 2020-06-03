@@ -16,37 +16,30 @@ footer
   border-top       : solid 8px hsl(0,0.0000%,38.0000%);
 }
 
+pre
+{
+  background-color : #000000;
+  color            : #ffffff;
+  margin           : 2% 10% 2% 10%;
+  padding          : 2% 2% 2% 2%;
+}
 
-/* Generated with Clay, http://fvisser.nl/clay */</style></head><body><header><h1>Stan Report</h1></header><main><div id="general-info" class=""><div id="project-info" class=""><h2>Project Info</h2></div><div id="stan-info" class=""><h2>Stan Info</h2></div><div id="analysis-info" class=""><h2>Analysis Info</h2></div></div><div id="graphs" class=""><h2>Graphs</h2><p>Maybe later</p></div><div id="observations" class=""><h2>Observations</h2><pre>[3m  File:         [0m[1msrc/Stan/Hie.hs[0m
-[3m  Module:       [0m[1mStan.Hie[0m
-[3m  Observations: [0m[1m1[0m
- ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- ┃  [3m✦ ID:            [0m[1mOBS-STAN-0103-W93KYS-47:32[0m
- ┃  [3m✦ Severity:      [0m[93m[1mWarning[0m
- ┃  [3m✦ Description:   [0mUsage of the &#39;length&#39; function that hangs on infinite lists
- ┃  [3m✦ Inspection ID: [0mSTAN-0103
- ┃  [3m✦ Category:      [0m[105m#Infinite[0m [105m#List[0m
- ┃  [3m✦ File:          [0msrc/Stan/Hie.hs
- ┃  
- ┃    46 ┃ 
- ┃    47 ┃ countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src
- ┃    48 ┃ [93m                               ^^^^^^[0m
- ┃  
+.solutions
+{
+  margin           : 1% 10% 1% 10%;
+  padding          : 1% 1% 1% 1%;
+  background-color : hsl(0,0.0000%,74.0000%);
+  border           : solid 2px hsl(0,0.0000%,38.0000%);
+}
 
-[1m           Stan&#39;s Summary:[0m
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Analysed modules            ┃ 46     ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Analysed Lines of Code      ┃ 4166   ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Total Haskel2010 extensions ┃ 27     ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Total SafeHaskel extensions ┃ 0      ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Total checked inspections   ┃ 28     ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Total found observations    ┃ 1      ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━┫
-┃ Total ignored observations  ┃ 1      ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━┛
-</pre></div><div id="configurations" class=""><h2>Configurations</h2><p>Later</p></div><div id="summary" class=""><h2>Summary</h2><p>Later</p></div><div id="inspections" class=""><h2>Inspections</h2><p>Later</p></div></main><footer>(c) Kowainik 2020</footer></body></html>
+
+/* Generated with Clay, http://fvisser.nl/clay */</style></head><body><header><h1>Stan Report</h1></header><main><div id="general-info" class=""><div id="project-info" class=""><h2>Project Info</h2></div><div id="stan-info" class=""><h2>Stan Info</h2></div><div id="analysis-info" class=""><h2>Analysis Info</h2></div></div><div id="graphs" class=""><h2>Graphs</h2><p>Maybe later</p></div><div id="observations" class=""><h2>Observations</h2><div id="" class=""><h3>src/Stan/Hie.hs</h3><p>Module: Stan.Hie</p><p>Lines of Code:47</p><div class="observations"><strong>Observations</strong><div id="OBS-STAN-0103-W93KYS-47:32" class="observation"><div class="observation-general"><ul><li>ID: <strong>OBS-STAN-0103-W93KYS-47:32</strong></li><li>Severity: Warning</li><li>Description: Usage of the &#39;length&#39; function that hangs on infinite lists</li><li>Inspection ID: <a href="#STAN-0103">STAN-0103</a></li><li>Category: #Infinite #List</li><li>File: src/Stan/Hie.hs</li></ul></div><pre>  46 ┃ 
+  47 ┃ countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src
+  48 ┃                                ^^^^^^
+</pre></div></div></div><div id="" class=""><h3>src/Stan/Observation.hs</h3><p>Module: Stan.Observation</p><p>Lines of Code:227</p><div class="observations"><strong>Observations</strong><div id="OBS-STAN-0005-ZKmeC0-139:41" class="observation"><div class="observation-general"><ul><li>ID: <strong>OBS-STAN-0005-ZKmeC0-139:41</strong></li><li>Severity: Warning</li><li>Description: Usage of partial function &#39;!!&#39; for lists</li><li>Inspection ID: <a href="#STAN-0005">STAN-0005</a></li><li>Category: #Partial #List</li><li>File: src/Stan/Observation.hs</li></ul></div><pre> 138 ┃ 
+ 139 ┃         BS.lines observationFileContent !! (n - 1)
+ 140 ┃                                         ^^
+</pre></div></div></div><div id="" class=""><h3>test/Spec.hs</h3><p>Module: Main</p><p>Lines of Code:35</p><div class="observations"><strong>Observations</strong><div id="OBS-STAN-0103-YrzpQi-27:34" class="observation"><div class="observation-general"><ul><li>ID: <strong>OBS-STAN-0103-YrzpQi-27:34</strong></li><li>Severity: Warning</li><li>Description: Usage of the &#39;length&#39; function that hangs on infinite lists</li><li>Inspection ID: <a href="#STAN-0103">STAN-0103</a></li><li>Category: #Infinite #List</li><li>File: test/Spec.hs</li></ul></div><pre>  26 ┃ 
+  27 ┃                 modulesNumSpec $ length hieFiles
+  28 ┃                                  ^^^^^^
+</pre></div></div></div></div><div id="configurations" class=""><h2>Configurations</h2><p>Later</p></div><div id="summary" class=""><h2>Summary</h2><p>Later</p></div><div id="inspections" class=""><h2>Inspections</h2><p>Later</p></div></main><footer>(c) Kowainik 2020</footer></body></html>

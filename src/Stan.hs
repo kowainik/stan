@@ -68,7 +68,7 @@ runStan StanArgs{..} = do
         putTextLn res
 
         when stanArgsReport $
-            putTextLn "Report is generated here -> stan.html" >> generateReport res
+            putTextLn "Report is generated here -> stan.html" >> generateReport analysis
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
 
 runInspection :: InspectionArgs -> IO ()

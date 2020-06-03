@@ -39,7 +39,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation)
-import Stan.Report (ReportSettings (..))
+import Stan.Report.Settings (ReportSettings (..))
 
 import qualified Paths_stan as Meta (version)
 
