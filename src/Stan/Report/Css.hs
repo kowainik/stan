@@ -13,10 +13,10 @@ module Stan.Report.Css
 
 import Prelude hiding ((**))
 
-import Clay (Color, Css, Percentage, Size, backgroundColor, black, block, body, border,
-             borderCollapse, borderTop, center, collapse, color, display, fontFamily, footer, hsl,
-             margin, padding, pre, px, sansSerif, solid, table, td, textAlign, tr, white, width,
-             (**), (?))
+import Clay (Css, Percentage, Size, backgroundColor, block, body, border, borderCollapse, borderTop,
+             center, collapse, color, display, fontFamily, footer, margin, padding, pre, px,
+             sansSerif, solid, table, td, textAlign, tr, width, (**), (?))
+import Clay.Color (Color, black, blue, cyan, hsl, magenta, pink, red, white, yellow)
 
 
 stanCss :: Css
@@ -37,6 +37,9 @@ stanCss = do
         color white
         margin (2%) (10%) (2%) (10%)
         paddingAll 2
+    ".inspection" ? do
+        margin (2%) (0%) (2%) (0%)
+        border solid (px 1) blue
     ".solutions" ? do
         margin (1%) (10%) (1%) (10%)
         paddingAll 1
@@ -45,6 +48,12 @@ stanCss = do
     ".observation" ** (table <> tr <> td) ? do
         border solid (px 1) darkGrey
         borderCollapse collapse
+    ".cat" ? backgroundColor pink
+    ".severityStyle" ? backgroundColor cyan
+    ".severityPerformance" ? backgroundColor blue
+    ".severityPotentialBug" ? backgroundColor magenta
+    ".severityWarning" ? backgroundColor yellow
+    ".severityError" ? backgroundColor red
 
   where
     marginAll :: Size Percentage -> Css
