@@ -104,6 +104,7 @@ library
                          Stan.Report
                            Stan.Report.Css
                            Stan.Report.Html
+                           Stan.Report.Settings
                          Stan.Severity
                          Stan.Toml
 

@@ -13,12 +13,14 @@ module Stan.FileInfo
 
 import Extensions (ExtensionsError, ExtensionsResult, ParsedExtensions)
 
+import Stan.Core.ModuleName (ModuleName)
 import Stan.Observation (Observations)
 
 
 -- | File specific information.
 data FileInfo = FileInfo
     { fileInfoPath             :: !FilePath
+    , fileInfoModuleName       :: !ModuleName
     , fileInfoLoc              :: !Int
     , fileInfoCabalExtensions  :: !(Either ExtensionsError ParsedExtensions)
     , fileInfoExtensions       :: !(Either ExtensionsError ParsedExtensions)

@@ -17,6 +17,7 @@ module Stan.Observation
       -- * Pretty print
     , prettyShowObservation
     , prettyShowIgnoredObservations
+    , prettyObservationSource
     ) where
 
 import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
@@ -33,7 +34,7 @@ import Stan.Core.Toggle (isHidden)
 import Stan.Hie.Debug ()
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
-import Stan.Report (ReportSettings (..))
+import Stan.Report.Settings (ReportSettings (..))
 import Stan.Severity (prettyShowSeverity, severityColour)
 
 import qualified Crypto.Hash.SHA1 as SHA1
@@ -79,10 +80,10 @@ mkObservation insId HieFile{..} srcSpan = Observation
 
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: ReportSettings -> Observation -> Text
-prettyShowObservation ReportSettings{..} Observation{..} = unlines $
+prettyShowObservation ReportSettings{..} o@Observation{..} = unlines $
     map (" ┃  " <>)
         $  observationTable
-        <> ("" : source)
+        <> ("" : prettyObservationSource True o)
         <> ("" : solution)
   where
     observationTable :: [Text]
@@ -108,32 +109,6 @@ prettyShowObservation ReportSettings{..} Observation{..} = unlines $
     categories = Text.intercalate " "
         $ map prettyShowCategory $ NE.toList $ inspectionCategory inspection
 
-    source :: [Text]
-    source =
-        [ alignLine (n - 1)
-        , alignLine n <> getSourceLine
-        , alignLine (n + 1) <> arrows
-        ]
-      where
-        n :: Int
-        n = srcSpanStartLine observationLoc
-
-        alignLine :: Int -> Text
-        alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
-
-        getSourceLine :: Text
-        getSourceLine = decodeUtf8 $
-            BS.lines observationFileContent !! (n - 1)
-
-        arrows :: Text
-        arrows = severityColour (inspectionSeverity inspection)
-            <> Text.replicate start " "
-            <> Text.replicate arrow "^"
-            <> reset
-          where
-            start = srcSpanStartCol observationLoc - 1
-            arrow = srcSpanEndCol observationLoc - start - 1
-
     solution :: [Text]
     solution
         | isHidden reportSettingsSolutionVerbosity || null sols = []
@@ -142,6 +117,41 @@ prettyShowObservation ReportSettings{..} Observation{..} = unlines $
       where
         sols = inspectionSolution inspection
 
+
+prettyObservationSource
+    :: Bool  -- ^ Use colouring
+    -> Observation
+    -> [Text]
+prettyObservationSource isColour Observation{..} =
+    [ alignLine (n - 1)
+    , alignLine n <> getSourceLine
+    , alignLine (n + 1) <> arrows
+    ]
+  where
+    n :: Int
+    n = srcSpanStartLine observationLoc
+
+    alignLine :: Int -> Text
+    alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
+
+    getSourceLine :: Text
+    getSourceLine = decodeUtf8 $
+        BS.lines observationFileContent !! (n - 1)
+
+    arrows :: Text
+    arrows = whenColour isColour (severityColour $ inspectionSeverity $ getInspectionById observationInspectionId)
+        <> Text.replicate start " "
+        <> Text.replicate arrow "^"
+        <> whenColour isColour reset
+      where
+        start = srcSpanStartCol observationLoc - 1
+        arrow = srcSpanEndCol observationLoc - start - 1
+
+{- | Checkes the predicate on colourfulness and returns an empty text when the
+colouroing is disabled.
+-}
+whenColour :: Bool -> Text -> Text
+whenColour = memptyIfFalse
 
 {- Pretty shows the list of ignored and unrecognised 'Observation' 'Id's
 respectfully.

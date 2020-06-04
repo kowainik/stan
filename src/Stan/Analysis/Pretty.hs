@@ -11,15 +11,15 @@ module Stan.Analysis.Pretty
     ) where
 
 import Colourista.Short (b, i)
-import Relude.Extra.Map (toPairs)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
-import Stan.Observation (Observation (..), Observations, prettyShowObservation)
-import Stan.Report (ReportSettings)
+import Stan.FileInfo (FileInfo (..))
+import Stan.Observation (Observation (..), prettyShowObservation)
+import Stan.Report.Settings (ReportSettings)
 
-import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Slist as S
@@ -34,9 +34,10 @@ prettyShowAnalysis an reportSettings = groupedObservations <> summary (analysisT
     groupedObservations :: Text
     groupedObservations =
         Text.intercalate "\n\n"
+        $ filter (/= "")
         $ map (showByFile reportSettings)
-        $ toPairs
-        $ groupObservationsByFile (analysisObservations an)
+        $ Map.elems
+        $ analysisFileMap an
 
 data AnalysisNumbers = AnalysisNumbers
     { anModules    :: !Int
@@ -94,29 +95,17 @@ summary AnalysisNumbers{..} = unlines
     mid = separator "┣" "╋" "┫"
     bot = separator "┗" "┻" "┛"
 
-showByFile :: ReportSettings -> (FilePath, Observations) -> Text
-showByFile reportSettings (file, obs) = unlines
-    [ i "  File:         " <> b (toText file)
-    , i "  Module:       " <> b (maybe "" (unModuleName . observationModuleName) $ S.safeHead obs)
-    , i "  Observations: " <> b (show $ length obs)
+showByFile :: ReportSettings -> FileInfo -> Text
+showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
+    [ i "  File:         " <> b (toText fileInfoPath)
+    , i "  Module:       " <> b (unModuleName fileInfoModuleName)
+    , i "  LoC:          " <> b (show fileInfoLoc)
+    , i "  Observations: " <> b (show len)
     , " ┏" <> Text.replicate 78 "━"
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
-        (toList $ prettyShowObservation reportSettings <$> S.sortOn observationLoc obs)
-
--- | Groups 'Observation's by the filepath.
-groupObservationsByFile
-    :: Observations
-    -> HashMap FilePath Observations
-groupObservationsByFile = flipfoldl' hmGroup mempty
+        (toList $ prettyShowObservation reportSettings <$> S.sortOn observationLoc fileInfoObservations)
   where
-    hmGroup
-        :: Observation
-        -> HashMap FilePath Observations
-        -> HashMap FilePath Observations
-    hmGroup obs =
-        let newObservations :: Maybe Observations -> Observations
-            newObservations Nothing     = S.one obs
-            newObservations (Just obss) = S.one obs <> obss
-        in HM.alter (Just . newObservations) (observationFile obs)
+    len :: Int
+    len = length fileInfoObservations
