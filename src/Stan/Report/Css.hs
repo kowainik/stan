@@ -48,7 +48,7 @@ stanCss = do
         paddingAll 1
         backgroundColor lightGrey
         border solid (px 2) darkGrey
-    (".observation" <> "#configurations") ** (table <> tr <> td <> th) ? do
+    (".observation" <> "#configurations" <> "#stan-info") ** (table <> tr <> td <> th) ? do
         border solid (px 1) darkGrey
         borderCollapse collapse
     ".cat" ? backgroundColor pink
@@ -62,6 +62,8 @@ stanCss = do
     ".include" ? color green
     ".exclude" ? color orange
     ".ignore" ? color yellow
+
+    ".centre" ? textAlign center
 
   where
     marginAll :: Size Percentage -> Css

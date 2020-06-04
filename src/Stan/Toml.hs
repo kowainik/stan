@@ -12,6 +12,8 @@ module Stan.Toml
     ( getTomlConfig
       -- * Codecs
     , configCodec
+      -- * Files
+    , usedTomlFiles
     ) where
 
 import Colourista (infoMessage)
@@ -31,6 +33,27 @@ import Stan.Severity (Severity (..))
 
 import qualified Toml
 
+
+{- | Based on the incoming settings returns the TOML configuration files that
+were used to get the final config.
+-}
+usedTomlFiles :: Bool -> Maybe FilePath -> IO [FilePath]
+usedTomlFiles useDefault mFile = do
+    def <-
+        if useDefault
+        then do
+            cur <- defaultCurConfigFile
+            ifM (doesFileExist cur) (pure [cur]) $ do
+                home <- defaultHomeConfigFile
+                memptyIfNotExist home
+        else pure []
+    custom <- case mFile of
+        Nothing -> pure []
+        Just f  -> memptyIfNotExist f
+    pure $ def <> custom
+  where
+    memptyIfNotExist :: FilePath -> IO [FilePath]
+    memptyIfNotExist fp = ifM (doesFileExist fp) (pure [fp]) (pure [])
 
 getTomlConfig :: Bool -> Maybe FilePath -> IO PartialConfig
 getTomlConfig useDefault mTomlFile = do

@@ -9,10 +9,12 @@ Environment variables for @stan@.
 module Stan.EnvVars
     ( EnvVars (..)
     , getEnvVars
+
+    , envVarsToText
     ) where
 
 import System.Environment (lookupEnv)
-import Trial (TaggedTrial, Trial, fiasco, withTag)
+import Trial (TaggedTrial, Trial (..), fiasco, withTag)
 
 
 data EnvVars = EnvVars
@@ -32,3 +34,8 @@ getEnvVars = do
         Nothing -> fiasco $ "No " <> toText var <> " Env Variable is set"
 
         Just s  -> act s
+
+envVarsToText :: EnvVars -> Text
+envVarsToText EnvVars{..} = case envVarsUseDefaultConfigFile of
+    Result _ (_, res) -> "STAN_USE_DEFAULT_CONFIG=" <> show res
+    _                 -> ""

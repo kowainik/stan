@@ -17,6 +17,7 @@ module Stan
 
 import Colourista (errorMessage, formatWith, infoMessage, italic)
 import HieTypes (HieFile (..))
+import System.Environment (getArgs)
 import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
               prettyPrintTrial, trialToMaybe)
 
@@ -27,13 +28,14 @@ import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCli
                  runStanCli)
 import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
-import Stan.EnvVars (EnvVars (..), getEnvVars)
+import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
+import Stan.Info (StanEnv (..))
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
 import Stan.Observation (prettyShowIgnoredObservations)
 import Stan.Report (generateReport)
-import Stan.Toml (getTomlConfig)
+import Stan.Toml (getTomlConfig, usedTomlFiles)
 -- import Stan.Hie.Debug (debugHieFile)
 
 
@@ -46,7 +48,7 @@ run = runStanCli >>= \case
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     -- ENV vars
-    EnvVars{..} <- getEnvVars
+    env@EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
     putTextLn $ prettyPrintTaggedTrial defConfTrial
     let useDefConfig = maybe True snd (trialToMaybe defConfTrial)
@@ -71,7 +73,13 @@ runStan StanArgs{..} = do
         putTextLn res
 
         when stanArgsReport $ do
-            generateReport analysis config warnings
+            seCliArgs <- getArgs
+            seTomlFiles <- usedTomlFiles useDefConfig stanArgsConfigFile
+            let stanEnv = StanEnv
+                    { seEnvVars = envVarsToText env
+                    , ..
+                    }
+            generateReport analysis config warnings stanEnv
             infoMessage "Report is generated here -> stan.html"
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
   where
