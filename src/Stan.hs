@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -13,9 +15,10 @@ module Stan
     , createCabalExtensionsMap
     ) where
 
-import Colourista (errorMessage, formatWith, italic)
+import Colourista (errorMessage, formatWith, infoMessage, italic)
 import HieTypes (HieFile (..))
-import Trial (Trial (..), prettyPrintTaggedTrial, prettyPrintTrial, trialToMaybe)
+import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
+              prettyPrintTrial, trialToMaybe)
 
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
@@ -51,7 +54,7 @@ runStan StanArgs{..} = do
     tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
     let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     putTextLn $ prettyPrintTrial configTrial
-    whenJust (trialToMaybe configTrial) $ \config -> do
+    whenResult configTrial $ \warnings config -> do
         hieFiles <- readHieFiles stanArgsHiedir
         -- create cabal default extensions map
         cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
@@ -67,9 +70,14 @@ runStan StanArgs{..} = do
         let res = prettyShowAnalysis analysis stanArgsReportSettings
         putTextLn res
 
-        when stanArgsReport $
-            putTextLn "Report is generated here -> stan.html" >> generateReport analysis
+        when stanArgsReport $ do
+            generateReport analysis config warnings
+            infoMessage "Report is generated here -> stan.html"
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
+  where
+    whenResult :: Trial e a -> ([e] -> a -> IO ()) -> IO ()
+    whenResult (FiascoL _) _      = pass
+    whenResult (ResultL es a) act = act es a
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of
