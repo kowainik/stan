@@ -57,7 +57,7 @@ stanMain an = main_
 
 stanObservations Analysis{..} =
     map stanPerFile
-    $ filter (not . null . fileInfoObservations)
+    $ filter (notNull . fileInfoObservations)
     $ Map.elems analysisFileMap
 
 stanPerFile FileInfo{..} = divIdClass "" ""
