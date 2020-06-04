@@ -21,7 +21,7 @@ module Stan.Inspection.AntiPattern
     ) where
 
 import Relude.Extra.Lens ((.~))
-import Relude.Extra.Tuple (mapToFst)
+import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, descriptionL,
@@ -36,7 +36,7 @@ import qualified Stan.Category as Category
 
 -- | All anti-pattern 'Inspection's map from 'Id's.
 antiPatternInspectionsMap :: InspectionsMap
-antiPatternInspectionsMap = fromList $ map (mapToFst inspectionId)
+antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0201
     ]
 

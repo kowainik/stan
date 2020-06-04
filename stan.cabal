@@ -60,7 +60,7 @@ common common-options
                        ViewPatterns
 
 common common-relude
-  build-depends:       relude ^>= 0.6.0.0
+  build-depends:       relude ^>= 0.7.0.0
   mixins:              base hiding (Prelude)
                      , relude (Relude as Prelude
                               , Relude.Extra.Lens

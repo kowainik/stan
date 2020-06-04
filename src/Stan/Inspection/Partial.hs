@@ -61,7 +61,7 @@ module Stan.Inspection.Partial
 
 import Prelude hiding ((&&&))
 import Relude.Extra.Lens ((%~), (.~))
-import Relude.Extra.Tuple (mapToFst)
+import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
@@ -78,7 +78,7 @@ import qualified Stan.Category as Category
 
 -- | All partial 'Inspection's.
 partialInspectionsMap :: InspectionsMap
-partialInspectionsMap = fromList $ map (mapToFst inspectionId)
+partialInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0001
     , stan0002
     , stan0003

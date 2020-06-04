@@ -12,7 +12,7 @@ module Stan.Cabal
     , mergeParsedExtensions
     ) where
 
-import Relude.Extra.Tuple (mapToSnd)
+import Relude.Extra.Tuple (toSnd)
 
 import Colourista (errorMessage, infoMessage, warningMessage)
 import Control.Exception (catch)
@@ -64,7 +64,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
         handleCabalErr err = do
             errorMessage "Error when parsing cabal file. Stan will continue without information from .cabal file"
             pure $ Map.fromList $
-                map (mapToSnd (const $ Left $ CabalError err) . hie_hs_file) hies
+                map (toSnd (const $ Left $ CabalError err) . hie_hs_file) hies
 
 {- | Recursively find all @.cabal@ files in the current directory and its
 subdirectories. It returns maximum 1 @.cabal@ file from each directory.
