@@ -20,6 +20,7 @@ module Stan.Category
     , list
     , partial
     , spaceLeak
+    , syntax
     ) where
 
 import Colourista (formatWith, magentaBg)
@@ -54,6 +55,11 @@ antiPattern = Category "AntiPattern"
 spaceLeak :: Category
 spaceLeak = Category "SpaceLeak"
 
+{- | @Syntax@ category of Stan inspections. Usually used in
+'Stan.Severity.Style' inspections.
+-}
+syntax :: Category
+syntax = Category "Syntax"
 
 -- | The list of all available Stan 'Category's.
 stanCategories :: [Category]
@@ -63,4 +69,5 @@ stanCategories =
     , list
     , partial
     , spaceLeak
+    , syntax
     ]

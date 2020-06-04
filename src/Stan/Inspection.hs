@@ -91,6 +91,8 @@ data InspectionAnalysis
     = FindName NameMeta PatternType
     -- | Find the specific part of the Haskell AST.
     | FindAst PatternAst
+    -- | Find all operators without matching @infix[r|l]@
+    | Infix
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.

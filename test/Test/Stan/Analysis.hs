@@ -11,6 +11,7 @@ import Stan.Config (mkDefaultChecks)
 import Test.Stan.Analysis.AntiPattern (analysisAntiPatternSpec)
 import Test.Stan.Analysis.Infinite (analysisInfiniteSpec)
 import Test.Stan.Analysis.Partial (analysisPartialSpec)
+import Test.Stan.Analysis.Style (analysisStyleSpec)
 
 import qualified Data.Set as Set
 
@@ -23,6 +24,7 @@ analysisSpec hieFiles = describe "Static Analysis" $ do
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis
     analysisAntiPatternSpec analysis
+    analysisStyleSpec analysis
     analysisExtensionsSpec analysis
 
 

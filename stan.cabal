@@ -98,6 +98,7 @@ library
                            Stan.Inspection.AntiPattern
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
+                           Stan.Inspection.Style
                          Stan.NameMeta
                          Stan.Observation
                            Stan.Pattern.Ast
@@ -150,6 +151,7 @@ library target
   exposed-modules:     Target.AntiPattern
                        Target.Infinite
                        Target.Partial
+                       Target.Style
 
 test-suite stan-test
   import:              common-options
@@ -162,6 +164,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Common
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
+                         Test.Stan.Analysis.Style
                        Test.Stan.Cli
                        Test.Stan.Config
                        Test.Stan.Gen

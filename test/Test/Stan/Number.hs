@@ -17,4 +17,5 @@ linesOfCodeSpec hieFile = describe "LoC tests" $
 modulesNumSpec :: Int -> Spec
 modulesNumSpec num = describe "Modules number tests" $
     it "should count correct number of modules" $
-        num `shouldBe` 52
+        num `shouldBe` 55
+        num `shouldBe` 54

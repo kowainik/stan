@@ -57,7 +57,9 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         any (matchNameAndType nameMeta patType)
         $ Map.assocs
         $ nodeIdentifiers nodeInfo
-    PatternAstNode tags patChildren ->
+    PatternAstNode tags ->
+        tags `Set.isSubsetOf` nodeAnnotations nodeInfo
+    PatternAstNodeExact tags patChildren ->
            tags `Set.isSubsetOf` nodeAnnotations nodeInfo
         && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
   where
