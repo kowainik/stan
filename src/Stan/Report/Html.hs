@@ -17,7 +17,7 @@ module Stan.Report.Html
 import Clay (render)
 import Data.Char (toLower)
 import Html (a_A, body_, div_A, doctype_, footer_, h1_, h2_, h3_, head_, header_, html_, li_, main_,
-             meta_A, p_, pre_, strong_, style_, title_, ul_, ( # ))
+             meta_A, p_, pre_, strong_, style_, table_, td_, title_, tr_, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
 import Stan.Category (Category (..))
@@ -33,7 +33,6 @@ import qualified Data.List as List (words)
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import qualified Html.Attribute as A
-import qualified Slist as S
 
 
 stanHtml an = doctype_ # html_ (stanHead # stanBody)
@@ -57,35 +56,35 @@ stanMain an = main_
 
 stanObservations Analysis{..} =
     map stanPerFile
-    $ filter (notNull . fileInfoObservations)
+    $ filter (not . null . fileInfoObservations)
     $ Map.elems analysisFileMap
 
-stanPerFile FileInfo{..} = divIdClass "" ""
-    ( h3_ (toText fileInfoPath)
-    # p_ ("Module: " # maybe mempty (unModuleName . observationModuleName) (S.safeHead fileInfoObservations))
-    # p_ ("Lines of Code:" <> show fileInfoLoc)
-    # divClass "observations"
-      ( strong_ "Observations" # map stanObservation (toList fileInfoObservations))
+stanPerFile FileInfo{..} = divIdClass "" "" ( h3_ fileInfoPath # ul_
+    ( li_ ("Module: " # unModuleName fileInfoModuleName)
+    # li_ ("Lines of Code:" <> show fileInfoLoc)
+    # li_ (divClass "observations"
+      ( strong_ "Observations" # map stanObservation (toList fileInfoObservations)))
+    )
     )
 
 stanObservation o@Observation{..} = divIdClass (unId observationId) "observation"
     ( general
     # pre_ (unlines $ prettyObservationSource False o)
-    # if null solutions then Nothing else Just $ divClass "solutions"
+    # nothingIfTrue (null solutions) (divClass "solutions"
         ( p_ "Possible solution"
         # ul_ (map li_ solutions)
-        )
+        ))
     )
   where
-    general = divClass "observation-general" $ ul_
-        ( li_ ("ID: " # strong_ (unId observationId))
-        # li_ ("Severity: " # show @Text (inspectionSeverity inspection))
-        # li_ ("Description: " # inspectionDescription inspection)
-        # li_ ("Inspection ID: " # a_A (A.href_ $ toText "#" <> insId) insId)
-        # li_ ("Category: #" # T.intercalate (toText " #")
-                  (map unCategory $ toList $ inspectionCategory inspection)
+    general = divClass "observation-general" $ table_
+        ( tr_ (td_ "ID " # td_ (strong_ $ unId observationId))
+        # tr_ (td_ "Severity" # td_ (show @Text $ inspectionSeverity inspection))
+        # tr_ (td_ "Description" # td_ (inspectionDescription inspection))
+        # tr_ (td_ "Inspection ID" # td_ (a_A (A.href_ $ toText "#" <> insId) insId))
+        # tr_ (td_ "Category" # td_ (toText "#" <> T.intercalate (toText " #")
+                  (map unCategory $ toList $ inspectionCategory inspection))
               )
-        # li_ ("File: " # observationFile)
+        # tr_ (td_ "File" # td_ observationFile)
         )
 
     inspection :: Inspection
@@ -120,3 +119,6 @@ stanHead = head_
     )
   where
     nameContent x y = meta_A (A.name_ x # A.content_ y)
+
+nothingIfTrue :: Bool -> a -> Maybe a
+nothingIfTrue p a = if p then Nothing else Just a

@@ -151,7 +151,7 @@ prettyObservationSource isColour Observation{..} =
 colouroing is disabled.
 -}
 whenColour :: Bool -> Text -> Text
-whenColour isColour txt = if isColour then txt else ""
+whenColour = memptyIfFalse
 
 {- Pretty shows the list of ignored and unrecognised 'Observation' 'Id's
 respectfully.

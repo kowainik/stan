@@ -19,6 +19,7 @@ import Relude.Extra.Lens (Lens', lens, over)
 import Stan.Analysis.Analyser (analysisByInspection)
 import Stan.Cabal (mergeParsedExtensions)
 import Stan.Core.Id (Id)
+import Stan.Core.ModuleName (fromGhcModule)
 import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
 import Stan.Inspection (Inspection)
@@ -161,6 +162,7 @@ analyseHieFile hieFile@HieFile{..} cabalExts obs insIds = do
     let fileInfoExtensions = first (ModuleParseError hie_hs_file) $
             parseSourceWithPath hie_hs_file hie_hs_src
     let fileInfoPath = hie_hs_file
+    let fileInfoModuleName = fromGhcModule hie_module
     -- merge cabal and module extensions and update overall exts
     let fileInfoMergedExtensions = mergeParsedExtensions fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file

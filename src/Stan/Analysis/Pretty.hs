@@ -98,7 +98,7 @@ summary AnalysisNumbers{..} = unlines
 showByFile :: ReportSettings -> FileInfo -> Text
 showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
     [ i "  File:         " <> b (toText fileInfoPath)
-    , i "  Module:       " <> b (maybe "" (unModuleName . observationModuleName) $ S.safeHead fileInfoObservations)
+    , i "  Module:       " <> b (unModuleName fileInfoModuleName)
     , i "  LoC:          " <> b (show fileInfoLoc)
     , i "  Observations: " <> b (show len)
     , " ┏" <> Text.replicate 78 "━"
