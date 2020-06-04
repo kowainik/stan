@@ -29,7 +29,7 @@ module Stan.Inspection.Infinite
     , infiniteInspectionsMap
     ) where
 
-import Relude.Extra.Tuple (mapToFst)
+import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
@@ -43,7 +43,7 @@ import qualified Stan.Category as Category
 
 -- | All infinite 'Inspection's map from 'Id's.
 infiniteInspectionsMap :: InspectionsMap
-infiniteInspectionsMap = fromList $ map (mapToFst inspectionId)
+infiniteInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0101
     , stan0102
     , stan0103
