@@ -13,8 +13,13 @@ module Stan.Report
 import Html (renderByteString)
 
 import Stan.Analysis (Analysis)
+import Stan.Config (Config)
 import Stan.Report.Html (stanHtml)
 
 
-generateReport :: Analysis -> IO ()
-generateReport = writeFileLBS "stan.html" . renderByteString . stanHtml
+generateReport
+    :: Analysis
+    -> Config
+    -> [Text]  -- ^ Warnings during Trial config selections
+    -> IO ()
+generateReport an c = writeFileLBS "stan.html" . renderByteString . stanHtml an c

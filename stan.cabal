@@ -81,6 +81,7 @@ library
                          Stan.Category
                          Stan.Cli
                          Stan.Config
+                           Stan.Config.Pretty
                          Stan.Core.Id
                          Stan.Core.List
                          Stan.Core.ModuleName

@@ -14,6 +14,8 @@ module Stan.Observation
     , mkObservation
     , mkObservationId
 
+    , ignoredObservations
+
       -- * Pretty print
     , prettyShowObservation
     , prettyShowIgnoredObservations
@@ -153,6 +155,22 @@ colouroing is disabled.
 whenColour :: Bool -> Text -> Text
 whenColour = memptyIfFalse
 
+{- Returns the list of ignored and unrecognised 'Observation' 'Id's
+respectfully.
+-}
+ignoredObservations
+    :: [Id Observation]
+    -> Observations
+    -> ([Id Observation], [Id Observation])
+      -- ^ Ignored         ^ Unknown
+ignoredObservations ids obs = (ignoredIds, unknownIds)
+  where
+    obsIds :: HashSet (Id Observation)
+    obsIds = fromList $ toList $ S.map observationId obs
+
+    ignoredIds, unknownIds :: [Id Observation]
+    (ignoredIds, unknownIds) = partition (`HS.member` obsIds) ids
+
 {- Pretty shows the list of ignored and unrecognised 'Observation' 'Id's
 respectfully.
 
@@ -181,14 +199,11 @@ prettyShowIgnoredObservations ids obs = ignored <> unknown
         else formatWith [bold, yellow] "Unrecognised Observation IDs:\n"
             <> showIds unknownIds
 
-    obsIds :: HashSet (Id Observation)
-    obsIds = fromList $ toList $ S.map observationId obs
-
-    ignoredIds, unknownIds :: [Id Observation]
-    (ignoredIds, unknownIds) = partition (`HS.member` obsIds) ids
-
     showIds :: [Id Observation] -> Text
     showIds = unlines . map ((<>) "    - " . unId)
+
+    ignoredIds, unknownIds :: [Id Observation]
+    (ignoredIds, unknownIds) = ignoredObservations ids obs
 
 {- | Create a stable 'Observation' 'Id' in a such way that:
 

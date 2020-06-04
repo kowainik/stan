@@ -16,18 +16,20 @@ module Stan.Report.Html
 
 import Clay (render)
 import Data.Char (toLower)
-import Html (a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, head_, header_, hr_,
-             html_, li_, main_, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, title_, tr_,
-             ul_, ( # ))
+import Html (a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_, header_,
+             hr_, html_, li_, main_, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, th_,
+             title_, tr_, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
 import Stan.Category (Category (..))
+import Stan.Config (Config, ConfigP (..))
+import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigAction)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
-import Stan.Observation (Observation (..), prettyObservationSource)
+import Stan.Observation (Observation (..), ignoredObservations, prettyObservationSource)
 import Stan.Report.Css (stanCss)
 
 import qualified Data.List as List (words)
@@ -35,13 +37,13 @@ import qualified Data.Map.Strict as Map
 import qualified Html.Attribute as A
 
 
-stanHtml an = doctype_ # html_ (stanHead # stanBody)
+stanHtml an (config :: Config) warnings = doctype_ # html_ (stanHead # stanBody)
   where
-    stanBody = body_ (stanHeader # stanMain an # stanFooter)
+    stanBody = body_ (stanHeader # stanMain an config warnings # stanFooter)
 
 stanHeader = header_ (h1_ "Stan Report" # hr_)
 
-stanMain an = main_
+stanMain an config warnings = main_
     ( divIdClass "general-info" ""
         ( divIdClassH "Project Info" "" ()
         # divIdClassH "Stan Info" "" ()
@@ -49,7 +51,7 @@ stanMain an = main_
         )
     # divIdClassH "Graphs" "" (p_ "Maybe later")
     # divIdClassH "Observations" "" (stanObservations an)
-    # divIdClassH "Configurations" "" (p_ "Later")
+    # divIdClassH "Configurations" "" (stanConfig an config warnings)
     # divIdClassH "Summary" "" (p_ "Later")
     # divIdClassH "Inspections" "" (stanInspections $ analysisInspections an)
     )
@@ -86,7 +88,7 @@ stanObservation o@Observation{..} = divIdClass (unId observationId) "observation
     inspection = getInspectionById observationInspectionId
 
     insId :: Text
-    insId = unId $ observationInspectionId
+    insId = unId observationInspectionId
 
 severity ins = span_A (A.class_ $ toText "severity" <> severityTxt) severityTxt
   where
@@ -116,7 +118,37 @@ stanInspection (getInspectionById -> ins@Inspection{..}) = divIdClass (unId insp
     # solutionsDiv ins
     )
 
-stanFooter = footer_ ("(c) Kowainik 2020")
+stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) =
+      table_
+        ( tr_ (th_ "Action" # th_ "Filter" # th_ "Scope")
+        # map toRows (configToTriples config)
+        )
+    # divClass "ignored-observations"
+        (toUl ignoredIds "Ignored Observations"
+        # toUl unknownIds "Unrecognised Observations"
+        )
+    # divClass "config-warnings"
+        ( h4_ "Warnings"
+        # ul_ (map li_ warnings)
+        )
+  where
+    toRows (act, fil, sc) = tr_
+      ( td_ (span_A (A.class_ $ configActionClass act) $ prettyConfigAction act)
+      # td_ fil
+      # td_ sc
+      )
+
+    toUl ids header = divClass "ignored-obs"
+        ( h4_ header
+        # ul_ (map (li_ . unId) ids)
+        )
+
+    ignoredIds, unknownIds :: [Id Observation]
+    (ignoredIds, unknownIds) = ignoredObservations
+        (configIgnored config)
+        analysisIgnoredObservations
+
+stanFooter = footer_ "(c) Kowainik 2020"
 
 stanHead = head_
     ( meta_A (A.httpEquiv_ "Content-Type" # A.content_ "text/html; charset=UTF-8")
