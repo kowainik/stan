@@ -11,16 +11,18 @@ module Stan.Report.Css
     ( stanCss
     ) where
 
-import Prelude hiding (rem, (**))
+import Prelude hiding (rem, (&), (**))
 
-import Clay (Css, Percentage, Selector, Size, after, auto, backgroundColor, block, body, border,
-             borderCollapse, borderTop, both, center, clear, collapse, color, content, display,
-             displayNone, displayTable, element, em, float, floatLeft, fontFamily, fontSize, footer,
-             height, html, left, lineHeight, main_, margin, marginBottom, marginLeft, marginRight,
-             marginTop, maxWidth, minHeight, padding, position, pre, px, query, relative, rem,
-             sansSerif, solid, stringContent, table, td, textAlign, th, top, tr, unitless, width,
-             ( # ), (**), (?))
-import Clay.Color (Color, black, blue, cyan, green, hsl, magenta, orange, pink, red, white, yellow)
+import Clay (Css, Percentage, Selector, Size, a, after, auto, backgroundColor, block, body, bold,
+             border, borderCollapse, borderTop, both, center, clear, collapse, color, content,
+             display, displayNone, displayTable, element, em, float, floatLeft, fontFamily,
+             fontSize, fontWeight, footer, h1, h2, h3, h4, h5, h6, header, height, html, left,
+             lineHeight, main_, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth,
+             minHeight, nav, nil, none, p, padding, position, pre, px, query, relative, rem,
+             sansSerif, solid, stringContent, table, td, textAlign, textDecoration, th, top, tr,
+             underline, unitless, weight, width, ( # ), (&), (**), (?), (|>))
+import Clay.Color (Color, black, blue, cyan, green, magenta, orange, pink, red, rgb, setA, white,
+                   yellow)
 
 import qualified Clay.Media as M
 import qualified Data.List.NonEmpty as NE
@@ -30,15 +32,27 @@ stanCss :: Css
 stanCss = do
     grid
     main_ ? marginAuto
-    footer ? do
+    nav ? do
+        backgroundColor darkGrey
+        color yellow
+        padding2 (1%) (0%)
+    -- ".nav-item" |> a ? do
+    a ? do
+        textDecoration none
+        color yellow
+        "@href" & do
+           textDecoration underline
+           ":hover" & fontWeight bold
+    footer <> header ? do
         display block
         textAlign center
         width (100%)
-        color white
+        maxWidth (100%)
         backgroundColor lightGrey
-        borderTop solid (px 8) darkGrey
+        borderTop solid (px 15) darkGrey
+    footer |> ".container" ? marginTopBottom (px 20)
     pre ? do
-        backgroundColor black
+        backgroundColor brown
         color white
         margin2 (2%) (10%)
         paddingAll 2
@@ -50,6 +64,8 @@ stanCss = do
         paddingAll 1
         backgroundColor lightGrey
         border solid (px 2) darkGrey
+    table ? width (100%)
+    td <> th ? padding2 nil (px 8)
     (".observation" <> "#configurations" <> "#stan-info") ** (table <> tr <> td <> th) ? do
         border solid (px 1) darkGrey
         borderCollapse collapse
@@ -60,10 +76,10 @@ stanCss = do
     ".severityWarning" ? backgroundColor yellow
     ".severityError" ? backgroundColor red
 
-    ".remove" ? color red
-    ".include" ? color green
-    ".exclude" ? color orange
-    ".ignore" ? color yellow
+    ".remove"  ? (color black >> backgroundColor (setA 0.5 red))
+    ".include" ? (color black >> backgroundColor (setA 0.5 green))
+    ".exclude" ? (color black >> backgroundColor (setA 0.5 orange))
+    ".ignore"  ? (color black >> backgroundColor (setA 0.5 yellow))
 
 grid :: Css
 grid = do
@@ -78,7 +94,14 @@ grid = do
         fontSize (100%)
         color darkGrey
         lineHeight (unitless 1.5)
-    ".centre" ? textAlign center
+    h1 ? fontSize (rem 2.5)
+    h2 ? fontSize (rem 2)
+    h3 ? fontSize (rem 1.375)
+    h4 ? fontSize (rem 1.125)
+    h5 ? fontSize (rem 1)
+    h6 ? fontSize (rem 0.875)
+    p ? (fontSize (rem 1.125) >> fontWeight (weight 200) >> lineHeight (unitless 1.8))
+    ".centre" ? (textAlign center >> marginAuto)
     ".container" ? (width (90%) >> marginAuto)
     ".row" ? (position relative >> width (100%))
     ".row [class^='col']" ? do
@@ -105,7 +128,7 @@ grid = do
     colClassesSm = fmap (element . (<> "-sm")) cols
 
     colsGrid :: NonEmpty Selector -> Css
-    colsGrid classes = sequence_ $ NE.zipWith (\cl p -> cl ? width (p %)) classes w
+    colsGrid classes = sequence_ $ NE.zipWith (\cl per -> cl ? width (per %)) classes w
 
     w :: NonEmpty Rational
     w = 4.33 :| [12.66, 21, 29.33, 37.66, 46, 54.33, 62.66, 71, 79.33, 87.66, 96]
@@ -131,9 +154,13 @@ marginLeftRight x = marginLeft x >> marginRight x
 paddingAll :: Size Percentage -> Css
 paddingAll x = padding x x x x
 
+padding2 :: Size a -> Size a -> Css
+padding2 x y = padding x y x y
+
 (%) :: Rational -> Size Percentage
 (%) = fromRational
 
-lightGrey, darkGrey :: Color
-lightGrey = hsl 0 0 74
-darkGrey = hsl 0 0 38
+lightGrey, darkGrey, brown :: Color
+lightGrey = rgb 189 189 189
+darkGrey = rgb 97 97 97
+brown = rgb 78 52 46
