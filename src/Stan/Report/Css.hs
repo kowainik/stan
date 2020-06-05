@@ -78,7 +78,7 @@ grid = do
         fontSize (100%)
         color darkGrey
         lineHeight (unitless 1.5)
-    ".centre" ? (textAlign center) -- >> marginAuto)
+    ".centre" ? textAlign center
     ".container" ? (width (90%) >> marginAuto)
     ".row" ? (position relative >> width (100%))
     ".row [class^='col']" ? do
@@ -105,7 +105,7 @@ grid = do
     colClassesSm = fmap (element . (<> "-sm")) cols
 
     colsGrid :: NonEmpty Selector -> Css
-    colsGrid classes = sequence_ $ NE.map (\(cl, p) -> cl ? width (p %)) $ NE.zip classes w
+    colsGrid classes = sequence_ $ NE.zipWith (\cl p -> cl ? width (p %)) classes w
 
     w :: NonEmpty Rational
     w = 4.33 :| [12.66, 21, 29.33, 37.66, 46, 54.33, 62.66, 71, 79.33, 87.66, 96]
