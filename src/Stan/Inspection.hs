@@ -12,6 +12,7 @@ module Stan.Inspection
     , categoryL
     , descriptionL
     , solutionL
+    , severityL
 
       -- * Inspection info
     , InspectionAnalysis (..)
@@ -67,6 +68,11 @@ categoryL :: Lens' Inspection (NonEmpty Category)
 categoryL = lens
     inspectionCategory
     (\inspection new -> inspection { inspectionCategory = new })
+
+severityL :: Lens' Inspection Severity
+severityL = lens
+    inspectionSeverity
+    (\inspection new -> inspection { inspectionSeverity = new })
 
 {- | Type alias for the 'HashMap' that contains pairs of inspections 'Id's and
 corresponding 'Inspection's.

@@ -25,3 +25,5 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0201 7 19 35
     it "STAN-0201: doesn't trigger on '[0 .. length xs - 1]'" $
         noObservation AntiPattern.stan0201 10
+    it "STAN-0202: finds usage of 'foldl'" $
+        checkObservation AntiPattern.stan0202 13 13 18
