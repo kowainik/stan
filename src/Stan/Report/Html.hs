@@ -17,51 +17,55 @@ module Stan.Report.Html
 import Clay (render)
 import Data.Char (toLower)
 import Html (a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_, header_,
-             hr_, html_, li_, main_, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, td_A,
+             hr_, html_, li_, main_A, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, td_A,
              th_, title_, tr_, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
+import Stan.Analysis.Pretty (AnalysisNumbers (..), analysisToNumbers)
 import Stan.Category (Category (..))
 import Stan.Config (Config, ConfigP (..))
 import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigAction)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..))
-import Stan.Info (StanEnv (..), StanSystem (..), StanVersion (..), stanSystem, stanVersion)
+import Stan.Info (ProjectInfo (..), StanEnv (..), StanSystem (..), StanVersion (..), stanSystem,
+                  stanVersion)
 import Stan.Inspection (Inspection (..))
-import Stan.Inspection.All (getInspectionById)
+import Stan.Inspection.All (getInspectionById, inspectionsMap)
 import Stan.Observation (Observation (..), ignoredObservations, prettyObservationSource)
 import Stan.Report.Css (stanCss)
 
+import qualified Data.HashMap.Strict as HM
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Html.Attribute as A
 
 
-stanHtml an (config :: Config) warnings env = doctype_ # html_ (stanHead # stanBody)
+stanHtml an (config :: Config) warnings env project =
+    doctype_ # html_ (stanHead # stanBody)
   where
     stanBody = body_
         ( stanHeader
-        # stanMain an config warnings env
+        # stanMain an config warnings env project
         # stanFooter
         )
 
 stanHeader = header_ (h1_ "Stan Report" # hr_)
 
-stanMain an config warnings env = main_
-    ( divIdClass "general-info" ""
-        ( divIdClassH "Project Info" "" stanProject
-        # divIdClassH "Stan Info" "" (stanInfo env)
-        # divIdClassH "Analysis Info" "" stanAnalysis
+stanMain an config warnings env project = main_A (A.class_ "container")
+    ( divIdClass "general-info" "row"
+        ( divIdClassH "Stan Info" "row" (stanInfo env)
+        # divClass "row"
+            ( divIdClassH "Project Info" "half" (stanProject project)
+            # divIdClassH "Analysis Info" "half" (stanAnalysis an)
+            )
         )
-    # divIdClassH "Graphs" "" (p_ "Maybe later")
+    -- # divIdClassH "Graphs" "" (p_ "Maybe later")
     # divIdClassH "Observations" "" (stanObservations an)
     # divIdClassH "Configurations" "" (stanConfig an config warnings)
-    # divIdClassH "Summary" "" (p_ "Later")
+    -- # divIdClassH "Summary" "" (p_ "Later")
     # divIdClassH "Inspections" "" (stanInspections $ analysisInspections an)
     )
-
-stanProject = ()
 
 stanInfo StanEnv{..} =
     let StanVersion{..} = stanVersion in
@@ -84,7 +88,23 @@ stanInfo StanEnv{..} =
   where
     tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre") $ strong_ x
 
-stanAnalysis = ()
+stanProject ProjectInfo{..} = table_
+    ( tr_ (td_ "Project name" # td_ piName)
+    # tr_ (td_ "Cabal Files"  # td_ (List.unwords piCabalFiles))
+    # tr_ (td_ "HIE Files Directory" # td_ piHieDir)
+    # tr_ (td_ "Files Number" # td_ piFileNumber)
+    )
+
+stanAnalysis (analysisToNumbers -> AnalysisNumbers{..}) = table_
+    ( tr_ (td_ "Modules" # td_ anModules)
+    # tr_ (td_ "LoC"     # td_ anLoc)
+    # tr_ (td_ "Extensions" # td_ anExts)
+    # tr_ (td_ "SafeHaskel Extensions" # td_ anSafeExts)
+    # tr_ (td_ "Available inspections" # td_ (HM.size inspectionsMap))
+    # tr_ (td_ "Checked inspections" # td_ anIns)
+    # tr_ (td_ "Found Observations" # td_ anFoundObs)
+    # tr_ (td_ "Ignored Observations" # td_ anIgnoredObs)
+    )
 
 stanObservations Analysis{..} =
     map stanPerFile

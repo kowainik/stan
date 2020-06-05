@@ -20,6 +20,9 @@ module Stan.Info
 
       -- * Env
     , StanEnv (..)
+
+      -- * Project Info
+    , ProjectInfo (..)
     ) where
 
 import Colourista (blue, bold, formatWith)
@@ -91,4 +94,12 @@ data StanEnv = StanEnv
     { seEnvVars   :: !Text
     , seTomlFiles :: ![FilePath]
     , seCliArgs   :: ![String]
+    } deriving stock (Show, Eq)
+
+
+data ProjectInfo = ProjectInfo
+    { piName       :: !String
+    , piCabalFiles :: ![FilePath]
+    , piHieDir     :: !FilePath
+    , piFileNumber :: !Int
     } deriving stock (Show, Eq)
