@@ -17,8 +17,8 @@ module Stan.Report.Html
 import Clay (render)
 import Data.Char (toLower)
 import Html (a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_, header_,
-             hr_, html_, li_, main_, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, th_,
-             title_, tr_, ul_, ( # ))
+             hr_, html_, li_, main_, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, td_A,
+             th_, title_, tr_, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
 import Stan.Category (Category (..))
@@ -27,27 +27,32 @@ import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigActio
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..))
+import Stan.Info (StanEnv (..), StanSystem (..), StanVersion (..), stanSystem, stanVersion)
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
 import Stan.Observation (Observation (..), ignoredObservations, prettyObservationSource)
 import Stan.Report.Css (stanCss)
 
-import qualified Data.List as List (words)
+import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Html.Attribute as A
 
 
-stanHtml an (config :: Config) warnings = doctype_ # html_ (stanHead # stanBody)
+stanHtml an (config :: Config) warnings env = doctype_ # html_ (stanHead # stanBody)
   where
-    stanBody = body_ (stanHeader # stanMain an config warnings # stanFooter)
+    stanBody = body_
+        ( stanHeader
+        # stanMain an config warnings env
+        # stanFooter
+        )
 
 stanHeader = header_ (h1_ "Stan Report" # hr_)
 
-stanMain an config warnings = main_
+stanMain an config warnings env = main_
     ( divIdClass "general-info" ""
-        ( divIdClassH "Project Info" "" ()
-        # divIdClassH "Stan Info" "" ()
-        # divIdClassH "Analysis Info" "" ()
+        ( divIdClassH "Project Info" "" stanProject
+        # divIdClassH "Stan Info" "" (stanInfo env)
+        # divIdClassH "Analysis Info" "" stanAnalysis
         )
     # divIdClassH "Graphs" "" (p_ "Maybe later")
     # divIdClassH "Observations" "" (stanObservations an)
@@ -55,6 +60,31 @@ stanMain an config warnings = main_
     # divIdClassH "Summary" "" (p_ "Later")
     # divIdClassH "Inspections" "" (stanInspections $ analysisInspections an)
     )
+
+stanProject = ()
+
+stanInfo StanEnv{..} =
+    let StanVersion{..} = stanVersion in
+    let StanSystem{..} = stanSystem in
+    table_
+        ( tr2 "Stan Version"
+        # tr_ (td_ "v"            # td_ svVersion)
+        # tr_ (td_ "Git Revision" # td_ svGitRevision)
+        # tr_ (td_ "Release Date" # td_ svCommitDate)
+        # tr2 "System Info"
+        # tr_ (td_ "Operating System" # td_ ssOs)
+        # tr_ (td_ "Architecture"     # td_ ssArch)
+        # tr_ (td_ "Compiler"         # td_ ssCompiler)
+        # tr_ (td_ "Compiler Version" # td_ ssCompilerVersion)
+        # tr2 "Environment"
+        # tr_ (td_ "Environment Variables"   # td_ seEnvVars)
+        # tr_ (td_ "TOML configuration files" # td_ seTomlFiles)
+        # tr_ (td_ "CLI arguments"           # td_ (List.unwords seCliArgs))
+        )
+  where
+    tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre") $ strong_ x
+
+stanAnalysis = ()
 
 stanObservations Analysis{..} =
     map stanPerFile

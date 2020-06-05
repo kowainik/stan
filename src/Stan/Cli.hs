@@ -21,8 +21,6 @@ module Stan.Cli
 
 import Colourista (blue, bold, formatWith, reset, yellow)
 import Data.Char (toUpper)
-import Data.Version (showVersion)
-import Development.GitRev (gitCommitDate, gitHash)
 import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command, customExecParser,
                             flag, flag', fullDesc, help, helpLongEquals, helper, hsubparser, info,
                             infoOption, long, metavar, option, prefs, progDesc, short,
@@ -37,11 +35,10 @@ import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), 
                     Scope (..))
 import Stan.Core.Id (Id (..))
 import Stan.Core.Toggle (ToggleSolution (..))
+import Stan.Info (prettyStanVersion, stanVersion)
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation)
 import Stan.Report.Settings (ReportSettings (..))
-
-import qualified Paths_stan as Meta (version)
 
 
 -- | Commands used in Stan CLI.
@@ -263,25 +260,10 @@ scopeP =
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
-versionP = infoOption stanVersion
+versionP = infoOption (prettyStanVersion stanVersion)
     $ long "version"
    <> short 'v'
    <> help "Show Stan's version"
-
-stanVersion :: String
-stanVersion = toString $ intercalate "\n"
-    [ sVersion
-    , sHash
-    , sDate
-    ]
-  where
-    fmt :: String -> String
-    fmt = formatWith [blue, bold]
-
-    sVersion, sHash, sDate :: String
-    sVersion = fmt $ "Stan " <> "v" <> showVersion Meta.version
-    sHash = " ➤ " <> fmt "Git revision: " <> $(gitHash)
-    sDate = " ➤ " <> fmt "Commit date:  " <> $(gitCommitDate)
 
 -- to put custom header which doesn't cut all spaces
 modifyHeader :: ParserInfo a -> ParserInfo a

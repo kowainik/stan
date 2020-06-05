@@ -92,6 +92,7 @@ library
                            Stan.Hie.Debug
                            Stan.Hie.MatchAst
                            Stan.Hie.MatchType
+                         Stan.Info
                          Stan.Inspection
                            Stan.Inspection.All
                            Stan.Inspection.AntiPattern
