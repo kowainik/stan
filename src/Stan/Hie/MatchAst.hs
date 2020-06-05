@@ -16,6 +16,7 @@ module Stan.Hie.MatchAst
     ( hieMatchPatternAst
     ) where
 
+import FastString (FastString)
 import HieTypes (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..), TypeIndex)
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
@@ -58,9 +59,9 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         $ Map.assocs
         $ nodeIdentifiers nodeInfo
     PatternAstNode tags ->
-        tags `Set.isSubsetOf` nodeAnnotations nodeInfo
+        matchAnnotations tags nodeInfo
     PatternAstNodeExact tags patChildren ->
-           tags `Set.isSubsetOf` nodeAnnotations nodeInfo
+           matchAnnotations tags nodeInfo
         && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
   where
     -- take sub-bytestring from src according to a given span
@@ -71,6 +72,9 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         $ BS.drop (srcSpanStartCol span - 1)
         $ Unsafe.at (srcSpanStartLine span - 1)
         $ BS8.lines hie_hs_src
+
+    matchAnnotations :: Set (FastString, FastString) -> NodeInfo TypeIndex -> Bool
+    matchAnnotations tags NodeInfo{..} = tags `Set.isSubsetOf` nodeAnnotations
 
     matchNameAndType
         :: NameMeta

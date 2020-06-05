@@ -29,6 +29,7 @@ import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (PatternAst, fixity, typeSig)
 import Stan.Pattern.Type (PatternType)
 
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
 import qualified Slist as S
 
@@ -115,7 +116,7 @@ analyseInfix
 analyseInfix insId hie =
     let opDecls = analyseAstWith (matchInfix <> matchOperator) hie
         (fixities, topOperators) = partitionDecls opDecls
-        operatorsWithoutFixity = Map.difference topOperators fixities
+        operatorsWithoutFixity = HM.difference topOperators fixities
     in mkObservation insId hie <$> slist (toList operatorsWithoutFixity)
   where
     -- returns list of operator names defined in a single fixity declaration:
@@ -173,16 +174,19 @@ data OperatorDecl
 
 'Map' is used to be able to use the nice @merge@ function.
 -}
-partitionDecls :: Foldable f => f OperatorDecl -> (Map Text (), Map Text RealSrcSpan)
+partitionDecls
+    :: Foldable f
+    => f OperatorDecl
+    -> (HashMap Text (), HashMap Text RealSrcSpan)
 partitionDecls = foldl' insertDecl mempty
   where
     insertDecl
-        :: (Map Text (), Map Text RealSrcSpan)
+        :: (HashMap Text (), HashMap Text RealSrcSpan)
         -> OperatorDecl
-        -> (Map Text (), Map Text RealSrcSpan)
+        -> (HashMap Text (), HashMap Text RealSrcSpan)
     insertDecl (!fixities, !topOperators) = \case
-        Fixity name -> (Map.insert name () fixities, topOperators)
-        Operator name srcSpan -> (fixities, Map.insert name srcSpan topOperators)
+        Fixity name -> (HM.insert name () fixities, topOperators)
+        Operator name srcSpan -> (fixities, HM.insert name srcSpan topOperators)
 
 analyseAstWith
   :: forall a

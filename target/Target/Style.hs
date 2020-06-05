@@ -5,3 +5,7 @@ module Target.Style where
 
 (???) :: Int -> Int -> Int
 (???) = (+)
+
+infixl 7 ***
+(***) :: Int -> Int -> Int
+(***) = (*)
