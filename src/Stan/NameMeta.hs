@@ -60,7 +60,7 @@ compareNames NameMeta{..} name =
         isExternalName name
         && occName    == nameMetaName
         && moduleName == nameMetaModuleName
-        && package    == nameMetaPackage
+        && nameMetaPackage `T.isPrefixOf` package
 
 {- | Check whether HIE 'Identifier' with details is a given 'NameMeta'.
 -}

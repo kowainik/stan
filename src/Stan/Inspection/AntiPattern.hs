@@ -17,6 +17,8 @@ module Stan.Inspection.AntiPattern
       stan0201
       -- *** Anti-pattern 'foldl'
     , stan0202
+      -- *** Anti-pattern 'Data.ByteString.Char8.pack'
+    , stan0203
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -28,7 +30,7 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (mkBaseFoldableMeta)
+import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta)
 import Stan.Pattern.Ast (PatternAst (..), app, range)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Severity (Severity (Error, PotentialBug))
@@ -42,6 +44,7 @@ antiPatternInspectionsMap :: InspectionsMap
 antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0201
     , stan0202
+    , stan0203
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -65,7 +68,7 @@ stan0201 = mkAntiPatternInspection (Id "STAN-0201") "[0 .. length xs]" (FindAst 
         , "Use 'zip [0 ..] xs` to work with list of pairs: index and element"
         ]
 
--- | 'Inspection' — 'foldl' @STAN-0201@.
+-- | 'Inspection' — 'foldl' @STAN-0202@.
 stan0202 :: Inspection
 stan0202 = mkAntiPatternInspection (Id "STAN-0202") "foldl"
     (FindName (mkBaseFoldableMeta "foldl") (?))
@@ -77,10 +80,28 @@ stan0202 = mkAntiPatternInspection (Id "STAN-0202") "foldl"
     & severityL .~ Error
     & categoryL %~ (Category.spaceLeak `NE.cons`)
 
+-- | 'Inspection' — 'Data.ByteString.Char8.pack' @STAN-0203@.
+stan0203 :: Inspection
+stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
+    (FindName packNameMeta (?))
+    & descriptionL .~ "Usage of 'pack' function that doesn't handle Unicode characters"
+    & solutionL .~
+        [ "Convert to 'Text' and use 'encodeUtf8' from 'Data.Text.Encoding'"
+        , "Use packages that provide UTF-8 encoding functions: 'utf8-string', 'relude'"
+        ]
+    & severityL .~ Error
+  where
+    packNameMeta :: NameMeta
+    packNameMeta = NameMeta
+        { nameMetaPackage    = "bytestring"
+        , nameMetaModuleName = "Data.ByteString.Char8"
+        , nameMetaName       = "pack"
+        }
+
 lenPatAst :: PatternAst
 lenPatAst = range
     (PatternAstConstant 0)
     (app
         (PatternAstName (mkBaseFoldableMeta "length") (?))
-        PatternAstAnything
+        (?)
     )
