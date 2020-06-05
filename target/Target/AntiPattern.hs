@@ -3,6 +3,7 @@
 module Target.AntiPattern where
 
 import qualified Data.ByteString.Char8 as BS8
+import qualified Data.HashMap.Strict as HM
 
 
 stanLengthXs :: [a] -> [Int]
@@ -16,3 +17,6 @@ stanFoldl = foldl
 
 stanPack8 :: String -> BS8.ByteString
 stanPack8 = BS8.pack
+
+stanHashMapSize :: HM.HashMap Int Int -> Int
+stanHashMapSize = HM.size
