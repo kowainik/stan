@@ -17,20 +17,22 @@ module Stan
 
 import Colourista (errorMessage, formatWith, infoMessage, italic)
 import HieTypes (HieFile (..))
+import System.Directory (getCurrentDirectory)
 import System.Environment (getArgs)
+import System.FilePath (takeFileName)
 import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
               prettyPrintTrial, trialToMaybe)
 
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
-import Stan.Cabal (createCabalExtensionsMap)
+import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
 import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
                  runStanCli)
 import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
-import Stan.Info (StanEnv (..))
+import Stan.Info (ProjectInfo (..), StanEnv (..))
 import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
 import Stan.Observation (prettyShowIgnoredObservations)
@@ -73,13 +75,19 @@ runStan StanArgs{..} = do
         putTextLn res
 
         when stanArgsReport $ do
+            -- Project Info
+            piName <- takeFileName <$> getCurrentDirectory
+            piCabalFiles <- usedCabalFiles stanArgsCabalFilePath
+            let piHieDir = stanArgsHiedir
+            let piFileNumber = length hieFiles
+            -- Stan Env Info
             seCliArgs <- getArgs
             seTomlFiles <- usedTomlFiles useDefConfig stanArgsConfigFile
             let stanEnv = StanEnv
                     { seEnvVars = envVarsToText env
                     , ..
                     }
-            generateReport analysis config warnings stanEnv
+            generateReport analysis config warnings stanEnv ProjectInfo{..}
             infoMessage "Report is generated here -> stan.html"
 --    debugHieFile "target/Target/Infinite.hs" hieFiles
   where

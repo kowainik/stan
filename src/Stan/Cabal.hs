@@ -8,6 +8,7 @@ Functions to work with cabal files and cabal extension maps.
 
 module Stan.Cabal
     ( createCabalExtensionsMap
+    , usedCabalFiles
 
     , mergeParsedExtensions
     ) where
@@ -26,11 +27,18 @@ import System.IO.Unsafe (unsafeInterleaveIO)
 import qualified Data.Map.Strict as Map
 
 
-{- | From a given path to cabal file and 'HieFile's create the map from modules
+{- | Gets the list of @.cabal@ file paths that were used in the project.
+-}
+usedCabalFiles :: [FilePath] -> IO [FilePath]
+usedCabalFiles = \case
+    [] -> findCabalFiles
+    files -> pure files
+
+{- | From a given path to cabal files and 'HieFile's create the map from modules
 (that are in .cabal file) to the resulting parsed extensions for each.
 -}
 createCabalExtensionsMap
-    :: [FilePath]
+    :: [FilePath]  -- ^ @.cabal@ files
     -> [HieFile]
     -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
 createCabalExtensionsMap cabalPath hies = case cabalPath of

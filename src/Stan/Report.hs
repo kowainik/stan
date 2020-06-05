@@ -14,7 +14,7 @@ import Html (renderByteString)
 
 import Stan.Analysis (Analysis)
 import Stan.Config (Config)
-import Stan.Info (StanEnv)
+import Stan.Info (ProjectInfo, StanEnv)
 import Stan.Report.Html (stanHtml)
 
 
@@ -23,6 +23,7 @@ generateReport
     -> Config
     -> [Text]  -- ^ Warnings during Trial config selections
     -> StanEnv  -- ^ Environment information
+    -> ProjectInfo  -- ^ Project related Information
     -> IO ()
-generateReport an c ws = writeFileLBS "stan.html" . renderByteString .
-    stanHtml an c ws
+generateReport an c ws env = writeFileLBS "stan.html" . renderByteString .
+    stanHtml an c ws env

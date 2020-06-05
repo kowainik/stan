@@ -8,6 +8,10 @@ Pretty printing of Stan's analysis.
 
 module Stan.Analysis.Pretty
     ( prettyShowAnalysis
+
+      -- * Numbers
+    , AnalysisNumbers (..)
+    , analysisToNumbers
     ) where
 
 import Colourista.Short (b, i)
