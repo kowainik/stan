@@ -12,7 +12,9 @@ module Stan.Pattern.Ast
 
       -- * eDSL
     , app
+    , fixity
     , range
+    , typeSig
     ) where
 
 import FastString (FastString)
@@ -31,8 +33,12 @@ data PatternAst
     = PatternAstConstant Int  -- TODO: support constants of different types
     -- | Name of a specific function, variable or data type.
     | PatternAstName NameMeta PatternType
-    -- | AST node with tags for current node and children patterns
+    -- | AST node with tags for current node and any children.
     | PatternAstNode
+        (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+    -- | AST node with tags for current node and children
+    -- patterns. This pattern should match the node exactly.
+    | PatternAstNodeExact
         (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
         [PatternAst]  -- ^ Node children
     -- | AST wildcard, matches anything.
@@ -60,8 +66,26 @@ instance PatternBool PatternAst where
 
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst
-app f x = PatternAstNode (one ("HsApp", "HsExpr")) [f, x]
+app f x = PatternAstNodeExact (one ("HsApp", "HsExpr")) [f, x]
 
 -- | @range a b@ is a pattern for @[a .. b]@
 range :: PatternAst -> PatternAst -> PatternAst
-range from to = PatternAstNode (one ("ArithSeq", "HsExpr")) [from, to]
+range from to = PatternAstNodeExact (one ("ArithSeq", "HsExpr")) [from, to]
+
+{- | Pattern for the top-level fixity declaration:
+
+@
+infixr 7 ***, +++, ???
+@
+-}
+fixity :: PatternAst
+fixity = PatternAstNode $ one ("FixitySig", "FixitySig")
+
+{- | Pattern for a type signature declaration:
+
+@
+foo :: Some -> Type
+@
+-}
+typeSig :: PatternAst
+typeSig = PatternAstNode $ one ("TypeSig", "Sig")

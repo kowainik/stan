@@ -21,6 +21,7 @@ import Stan.Inspection (Inspection (..), InspectionsMap)
 import Stan.Inspection.AntiPattern (antiPatternInspectionsMap)
 import Stan.Inspection.Infinite (infiniteInspectionsMap)
 import Stan.Inspection.Partial (partialInspectionsMap)
+import Stan.Inspection.Style (styleInspectionsMap)
 
 import qualified Data.HashMap.Strict as HM
 
@@ -31,6 +32,7 @@ inspectionsMap =
     partialInspectionsMap
     <> infiniteInspectionsMap
     <> antiPatternInspectionsMap
+    <> styleInspectionsMap
 
 {- | List of all inspections.
 -}
