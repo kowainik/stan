@@ -14,6 +14,7 @@ module Stan.Cli
     , StanArgs (..)
     , InspectionArgs (..)
     , TomlToCliArgs (..)
+    , CliToTomlArgs (..)
     , runStanCli
     , stanParserPrefs
     , stanCliParser
@@ -46,6 +47,7 @@ data StanCommand
     = Stan StanArgs  -- ^ Just @stan@ with its options.
     | StanInspection InspectionArgs  -- ^ @stan inspection@.
     | StanTomlToCli TomlToCliArgs  -- ^ @stan toml-to-cli@
+    | StanCliToToml CliToTomlArgs  -- ^ @stan cli-to-toml@
 
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
@@ -63,9 +65,15 @@ newtype InspectionArgs = InspectionArgs
     { inspectionArgsId :: Maybe (Id Inspection)
     }
 
--- | Options used for the @stan inspection@ command.
+-- | Options used for the @stan toml-to-cli@ command.
 newtype TomlToCliArgs = TomlToCliArgs
     { tomlToCliArgsFilePath :: Maybe FilePath
+    }
+
+-- | Options used for the @stan cli-to-toml@ command.
+data CliToTomlArgs = CliToTomlArgs
+    { cliToTomlArgsFilePath :: !(Maybe FilePath)
+    , cliToTomlArgsConfig   :: !PartialConfig
     }
 
 -- | Run main parser of the @stan@ command line tool.
@@ -89,7 +97,7 @@ stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
 command.
 -}
 stan :: Parser StanCommand
-stan = stanInspectionP <|> stanTomlToCliP <|> stanP
+stan = stanInspectionP <|> stanTomlToCliP <|> stanCliToTomlP <|> stanP
 
 -- | @stan@ command parser.
 stanP :: Parser StanCommand
@@ -123,6 +131,17 @@ stanTomlToCliP = hsubparser $ command "toml-to-cli" $
     tomlToCliP = do
         tomlToCliArgsFilePath <- configFileP
         pure $ StanTomlToCli TomlToCliArgs{..}
+
+stanCliToTomlP :: Parser StanCommand
+stanCliToTomlP = hsubparser $ command "cli-to-toml" $
+    info cliToTomlP
+        (progDesc "Convert CLI arguments into stan TOML configuration")
+  where
+    cliToTomlP :: Parser StanCommand
+    cliToTomlP = do
+        cliToTomlArgsFilePath <- configFileP
+        cliToTomlArgsConfig   <- configP
+        pure $ StanCliToToml CliToTomlArgs{..}
 
 hiedirP :: Parser FilePath
 hiedirP = strOption $ mconcat
