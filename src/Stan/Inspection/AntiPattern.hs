@@ -19,6 +19,8 @@ module Stan.Inspection.AntiPattern
     , stan0202
       -- *** Anti-pattern 'Data.ByteString.Char8.pack'
     , stan0203
+      -- *** Anti-pattern slow 'size' for 'HashMap'
+    , stan0204
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -33,7 +35,7 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta)
 import Stan.Pattern.Ast (PatternAst (..), app, range)
 import Stan.Pattern.Edsl (PatternBool (..))
-import Stan.Severity (Severity (Error, PotentialBug))
+import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
 import qualified Stan.Category as Category
@@ -45,6 +47,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0201
     , stan0202
     , stan0203
+    , stan0204
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -67,6 +70,14 @@ stan0201 = mkAntiPatternInspection (Id "STAN-0201") "[0 .. length xs]" (FindAst 
         [ "Replace '[0 .. length xs]' with '[0 .. length xs - 1]'"
         , "Use 'zip [0 ..] xs` to work with list of pairs: index and element"
         ]
+  where
+    lenPatAst :: PatternAst
+    lenPatAst = range
+        (PatternAstConstant 0)
+        (app
+            (PatternAstName (mkBaseFoldableMeta "length") (?))
+            (?)
+        )
 
 -- | 'Inspection' — 'foldl' @STAN-0202@.
 stan0202 :: Inspection
@@ -98,10 +109,20 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
         , nameMetaName       = "pack"
         }
 
-lenPatAst :: PatternAst
-lenPatAst = range
-    (PatternAstConstant 0)
-    (app
-        (PatternAstName (mkBaseFoldableMeta "length") (?))
-        (?)
-    )
+-- TODO: also warn on 'length'
+-- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0204@.
+stan0204 :: Inspection
+stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
+    (FindName sizeNameMeta (?))
+    & descriptionL .~ "Usage of 'size' for 'HashMap' that runs in linear time"
+    & solutionL .~
+        [ "Switch to 'Map' if this data type works for you"
+        ]
+    & severityL .~ Performance
+  where
+    sizeNameMeta :: NameMeta
+    sizeNameMeta = NameMeta
+        { nameMetaPackage    = "unordered-containers"
+        , nameMetaModuleName = "Data.HashMap.Base"
+        , nameMetaName       = "size"
+        }

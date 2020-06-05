@@ -149,6 +149,7 @@ library target
   import:              common-options
   hs-source-dirs:      target
   build-depends:       bytestring
+                     , unordered-containers
   exposed-modules:     Target.AntiPattern
                        Target.Infinite
                        Target.Partial
