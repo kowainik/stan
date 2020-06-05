@@ -14,11 +14,11 @@ module Stan.Report.Html
     ( stanHtml
     ) where
 
-import Clay (render)
+import Clay (compact, renderWith)
 import Data.Char (toLower)
-import Html (a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_, header_,
-             hr_, html_, li_, main_A, meta_A, p_, pre_, span_A, strong_, style_, table_, td_, td_A,
-             th_, title_, tr_, ul_, ( # ))
+import Html (Raw (..), a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_,
+             header_, hr_, html_, li_, main_A, meta_A, p_, pre_, span_A, strong_, style_, table_,
+             td_, td_A, th_, title_, tr_, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
 import Stan.Analysis.Pretty (AnalysisNumbers (..), analysisToNumbers)
@@ -53,18 +53,17 @@ stanHtml an (config :: Config) warnings env project =
 stanHeader = header_ (h1_ "Stan Report" # hr_)
 
 stanMain an config warnings env project = main_A (A.class_ "container")
-    ( divIdClass "general-info" "row"
-        ( divIdClassH "Stan Info" "row" (stanInfo env)
-        # divClass "row"
-            ( divIdClassH "Project Info" "half" (stanProject project)
-            # divIdClassH "Analysis Info" "half" (stanAnalysis an)
-            )
+    ( divRow (p_ "This is Stan report")
+    # divIdClassH "Stan Info" "row" (stanInfo env)
+    # divClass "row"
+        ( divIdClassH "Project Info" "col-6" (stanProject project)
+        # divIdClassH "Analysis Info" "col-6" (stanAnalysis an)
         )
-    -- # divIdClassH "Graphs" "" (p_ "Maybe later")
-    # divIdClassH "Observations" "" (stanObservations an)
-    # divIdClassH "Configurations" "" (stanConfig an config warnings)
-    -- # divIdClassH "Summary" "" (p_ "Later")
-    # divIdClassH "Inspections" "" (stanInspections $ analysisInspections an)
+    -- # divIdClassH "Graphs" "row" (p_ "Maybe later")
+    # divIdClassH "Observations" "row" (stanObservations an)
+    # divIdClassH "Configurations" "row" (stanConfig an config warnings)
+    -- # divIdClassH "Summary" "row" (p_ "Later")
+    # divIdClassH "Inspections" "row" (stanInspections $ analysisInspections an)
     )
 
 stanInfo StanEnv{..} =
@@ -198,7 +197,7 @@ stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) =
         (configIgnored config)
         analysisIgnoredObservations
 
-stanFooter = footer_ "(c) Kowainik 2020"
+stanFooter = footer_ $ divClass "container" $ divRow $ p_ "(c) Kowainik 2020"
 
 stanHead = head_
     ( meta_A (A.httpEquiv_ "Content-Type" # A.content_ "text/html; charset=UTF-8")
@@ -209,12 +208,13 @@ stanHead = head_
     # nameContent "author" "Kowainik"
     # title_ "Stan Report"
 
-    # style_ (render stanCss)
+    # style_ (Raw $ renderWith compact [] stanCss)
     )
   where
     nameContent x y = meta_A (A.name_ x # A.content_ y)
 
 divClass c = div_A (A.class_ c)
+divRow = divClass "row"
 divIdClass i c = div_A (A.id_ i # A.class_ c)
 
 divIdClassH h c rest = divIdClass i c (h2_ h # rest)
