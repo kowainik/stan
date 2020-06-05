@@ -19,6 +19,7 @@ module Stan.Category
     , infinite
     , list
     , partial
+    , spaceLeak
     ) where
 
 import Colourista (formatWith, magentaBg)
@@ -49,6 +50,11 @@ infinite = Category "Infinite"
 antiPattern :: Category
 antiPattern = Category "AntiPattern"
 
+-- | @SpaceLeak@ category of Stan inspections.
+spaceLeak :: Category
+spaceLeak = Category "SpaceLeak"
+
+
 -- | The list of all available Stan 'Category's.
 stanCategories :: [Category]
 stanCategories =
@@ -56,4 +62,5 @@ stanCategories =
     , infinite
     , list
     , partial
+    , spaceLeak
     ]
