@@ -11,10 +11,14 @@ module Stan.Analysis.Pretty
 
       -- * Numbers
     , AnalysisNumbers (..)
+    , ProjectHealth (..)
     , analysisToNumbers
+    , prettyHealth
+    , toProjectHealth
     ) where
 
 import Colourista.Short (b, i)
+import Text.Printf (printf)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
@@ -51,6 +55,7 @@ data AnalysisNumbers = AnalysisNumbers
     , anIns        :: !Int
     , anFoundObs   :: !Int
     , anIgnoredObs :: !Int
+    , anHealth     :: !Double
     }
 
 analysisToNumbers :: Analysis -> AnalysisNumbers
@@ -62,8 +67,49 @@ analysisToNumbers Analysis{..} = AnalysisNumbers
     , anIns        = HS.size analysisInspections
     , anFoundObs   = length analysisObservations
     , anIgnoredObs = length analysisIgnoredObservations
+    , anHealth     = calculatedHealth
     }
+  where
+    calculatedHealth :: Double
+    calculatedHealth =
+        -- all inspections ignored or no observations
+        if null analysisInspections || null analysisObservations
+        then 100
+        else
+            let totalInspections = fromIntegral $ HS.size analysisInspections
+                triggeredInspections =
+                    fromIntegral
+                    $ Set.size
+                    $ Set.fromList
+                    $ map observationInspectionId
+                    $ toList analysisObservations
 
+            in 100 * (1 - triggeredInspections / totalInspections)
+
+{- | Show project health as pretty text with 2 digits after dot.
+-}
+prettyHealth :: Double -> Text
+prettyHealth health =
+    if fromIntegral (floor health :: Int) == health  -- display without decimal part
+    then toText (printf "%.0f" health :: String) <> "%"
+    else toText (printf "%.2f" health :: String) <> "%"
+
+{- | Enum to describe project health depending on the value of
+'anHealth'.
+-}
+data ProjectHealth
+    = Unhealthy
+    | LowHealth
+    | MediumHealth
+    | Healthy
+
+-- | Calculate 'ProjectHealth'.
+toProjectHealth :: Double -> ProjectHealth
+toProjectHealth health
+    | health >= 100 = Healthy
+    | health >= 80  = MediumHealth
+    | health >= 40  = LowHealth
+    | otherwise     = Unhealthy
 
 summary :: AnalysisNumbers -> Text
 summary AnalysisNumbers{..} = unlines
@@ -83,11 +129,16 @@ summary AnalysisNumbers{..} = unlines
     , alignText "Total found observations" <> alignNum anFoundObs
     , mid
     , alignText "Total ignored observations" <> alignNum anIgnoredObs
+    , mid
+    , alignText "Project health" <> alignVal (prettyHealth anHealth)
     , bot
     ]
   where
     alignNum :: Int -> Text
-    alignNum x = " ┃ " <> Text.justifyLeft 6 ' ' (show x) <> " ┃"
+    alignNum = alignVal . show
+
+    alignVal :: Text -> Text
+    alignVal x = " ┃ " <> Text.justifyLeft 6 ' ' x <> " ┃"
 
     alignText :: Text -> Text
     alignText txt ="┃ " <> Text.justifyLeft 27 ' ' txt
