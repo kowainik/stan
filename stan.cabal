@@ -63,6 +63,7 @@ common common-relude
   build-depends:       relude ^>= 0.7.0.0
   mixins:              base hiding (Prelude)
                      , relude (Relude as Prelude
+                              , Relude.Extra.Enum
                               , Relude.Extra.Lens
                               , Relude.Extra.Map
                               , Relude.Extra.Tuple

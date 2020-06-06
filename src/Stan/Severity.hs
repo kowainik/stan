@@ -11,6 +11,7 @@ module Stan.Severity
     ( Severity (..)
 
       -- * Pretty printing
+    , severityDescription
     , severityColour
     , prettyShowSeverity
     ) where
@@ -47,6 +48,15 @@ data Severity
     -- | Dangerous behaviour.
     | Error
     deriving stock (Show, Read, Eq, Enum, Bounded)
+
+-- | Description of each 'Severity' level.
+severityDescription :: Severity -> Text
+severityDescription = \case
+    Style        -> "Code style issues. Usually harmless."
+    Performance  -> "Serious defects that could cause slowness and space leaking."
+    PotentialBug -> "Human errors in code."
+    Warning      -> "Potential runtime errors on some inputs."
+    Error        -> "Dangerous behaviour."
 
 -- | Get the colour of the severity level.
 severityColour :: Severity -> Text
