@@ -22,12 +22,14 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
             analysis
 
     it "STAN-0201: finds usage of '[0 .. length xs]'" $
-        checkObservation AntiPattern.stan0201 10 19 35
+        checkObservation AntiPattern.stan0201 11 19 35
     it "STAN-0201: doesn't trigger on '[0 .. length xs - 1]'" $
-        noObservation AntiPattern.stan0201 13
+        noObservation AntiPattern.stan0201 14
     it "STAN-0202: finds usage of 'foldl'" $
-        checkObservation AntiPattern.stan0202 16 13 18
+        checkObservation AntiPattern.stan0202 17 13 18
     it "STAN-0203: finds usage of 'Data.ByteString.Char8.pack'" $
-        checkObservation AntiPattern.stan0203 19 13 21
+        checkObservation AntiPattern.stan0203 20 13 21
     it "STAN-0204: finds usage of 'Data.HashMap.size'" $
-        checkObservation AntiPattern.stan0204 22 19 26
+        checkObservation AntiPattern.stan0204 23 19 26
+    it "STAN-0205: finds usage of 'Data.HashSet.size'" $
+        checkObservation AntiPattern.stan0205 26 19 26
