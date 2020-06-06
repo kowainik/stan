@@ -17,7 +17,7 @@ module Stan
 
 import Colourista (errorMessage, formatWith, infoMessage, italic)
 import HieTypes (HieFile (..))
-import System.Directory (getCurrentDirectory)
+import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
 import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
@@ -26,8 +26,8 @@ import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTri
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
 import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
-import Stan.Cli (InspectionArgs (..), StanArgs (..), StanCommand (..), TomlToCliArgs (..),
-                 runStanCli)
+import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), StanArgs (..), StanCommand (..),
+                 TomlToCliArgs (..), runStanCli)
 import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
@@ -37,8 +37,9 @@ import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (inspections, lookupInspectionById)
 import Stan.Observation (prettyShowIgnoredObservations)
 import Stan.Report (generateReport)
-import Stan.Toml (getTomlConfig, usedTomlFiles)
--- import Stan.Hie.Debug (debugHieFile)
+import Stan.Toml (configCodec, getTomlConfig, usedTomlFiles)
+
+import qualified Toml
 
 
 run :: IO ()
@@ -46,6 +47,7 @@ run = runStanCli >>= \case
     Stan stanArgs -> runStan stanArgs
     StanInspection inspectionArgs -> runInspection inspectionArgs
     StanTomlToCli tomlToCliArgs -> runTomlToCli tomlToCliArgs
+    StanCliToToml cliToTomlArgs -> runCliToToml cliToTomlArgs
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
@@ -89,7 +91,6 @@ runStan StanArgs{..} = do
                     }
             generateReport analysis config warnings stanEnv ProjectInfo{..}
             infoMessage "Report is generated here -> stan.html"
---    debugHieFile "target/Target/Infinite.hs" hieFiles
   where
     whenResult :: Trial e a -> ([e] -> a -> IO ()) -> IO ()
     whenResult (FiascoL _) _      = pass
@@ -113,3 +114,18 @@ runTomlToCli TomlToCliArgs{..} = do
         fiasco -> do
             errorMessage "Could not get Configurations:"
             putTextLn $ prettyPrintTrial fiasco
+
+runCliToToml :: CliToTomlArgs -> IO ()
+runCliToToml CliToTomlArgs{..} = do
+    let toml = Toml.encode configCodec cliToTomlArgsConfig
+    case cliToTomlArgsFilePath of
+        Nothing -> do
+            putTextLn toml
+            infoMessage "Copy-paste the above TOML into .stan.toml and stan will pick up this file on the next run"
+        Just path -> do
+            isFile <- doesFileExist path
+            if isFile
+            then errorMessage $ "Aborting writing to file because it already exists: " <> toText path
+            else do
+                writeFileText path toml
+                infoMessage $ "TOML configuration is written to file: " <> toText path
