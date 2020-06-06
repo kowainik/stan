@@ -47,7 +47,7 @@ stanCss = do
         color white
         margin2 (2%) (10%)
         paddingAll 2
-        overflowX scroll
+        overflowX auto
     ".solutions" ? do
         margin2 (1%) (10%)
         paddingAll 1
