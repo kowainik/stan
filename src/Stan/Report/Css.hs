@@ -80,6 +80,7 @@ stanCss = do
     blockquote ? do
         paddingLeft (2%)
         borderLeft solid (px 4) darkGrey
+        boxShadow $ one $ bsColor lightGrey $ shadow (px (-4)) 0
 
     ".remove"  ? (color black >> backgroundColor (setA 0.5 red))
     ".include" ? (color black >> backgroundColor (setA 0.5 green))
