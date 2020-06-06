@@ -17,7 +17,7 @@ module Stan
 
 import Colourista (errorMessage, formatWith, infoMessage, italic)
 import HieTypes (HieFile (..))
-import System.Directory (getCurrentDirectory)
+import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
 import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
@@ -119,7 +119,13 @@ runCliToToml :: CliToTomlArgs -> IO ()
 runCliToToml CliToTomlArgs{..} = do
     let toml = Toml.encode configCodec cliToTomlArgsConfig
     case cliToTomlArgsFilePath of
-        Nothing   -> putTextLn toml
+        Nothing -> do
+            putTextLn toml
+            infoMessage "Copy-paste the above TOML into .stan.toml and stan will pick up this file on the next run"
         Just path -> do
-            infoMessage $ "TOML configuration is written to file: " <> toText path
-            writeFileText path toml
+            isFile <- doesFileExist path
+            if isFile
+            then errorMessage $ "Aborting writing to file because it already exists: " <> toText path
+            else do
+                writeFileText path toml
+                infoMessage $ "TOML configuration is written to file: " <> toText path
