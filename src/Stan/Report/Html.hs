@@ -14,12 +14,11 @@ module Stan.Report.Html
     ( stanHtml
     ) where
 
+import Relude.Extra.Enum (universe)
+
 import Clay (compact, renderWith)
 import Data.Char (toLower)
 import Html
-import Html (Raw (..), a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_,
-             header_A, html_, li_, main_A, meta_A, nav_A, p_, pre_, span_, span_A, strong_, style_,
-             table_, td_, td_A, th_, title_, tr_, tr_A, ul_, ( # ))
 
 import Stan.Analysis (Analysis (..))
 import Stan.Analysis.Pretty (AnalysisNumbers (..), analysisToNumbers)
@@ -35,6 +34,7 @@ import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById, inspectionsMap)
 import Stan.Observation (Observation (..), ignoredObservations, prettyObservationSource)
 import Stan.Report.Css (stanCss)
+import Stan.Severity (Severity (..), severityDescription)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List as List
@@ -57,7 +57,7 @@ stanHeader = header_A (A.class_ "centre")
         ( navItem "General Info"
         # navItem "Observations"
         # navItem "Configurations"
-        # navItem "Inspections"
+        # navItem "Report Explained"
         )
     )
   where
@@ -74,9 +74,12 @@ stanMain an config warnings env project = main_A (A.class_ "container")
     # divIdClassH "Observations" "row" (stanObservations an)
     # divIdClassH "Configurations" "row" (stanConfig an config warnings)
     -- # divIdClassH "Summary" "row" (p_ "Later")
-    # divIdClassH "Inspections" "row"
-        ( divClass "row" (blockP "List of Inspections used for analysing the project")
-        # stanInspections (analysisInspections an)
+    # divIdClassH "Report Explained" ""
+        ( divIdClassH "Inspections" "row"
+            ( divClass "row" (blockP "List of Inspections used for analysing the project")
+            # stanInspections (analysisInspections an)
+            )
+        # divIdClassH "Severity" "row" (stanSeverityExplained)
         )
     )
 
@@ -153,7 +156,7 @@ stanObservation o@Observation{..} = divIdClass (unId observationId) "observation
   where
     general = divClass "observation-general" $ table_
         ( tr_ (td_ "ID " # td_ (strong_ $ unId observationId))
-        # tr_ (td_ "Severity" # td_ (severity inspection))
+        # tr_ (td_ "Severity" # td_ (severityFromIns inspection))
         # tr_ (td_ "Description" # td_ (inspectionDescription inspection))
         # tr_ (td_ "Inspection ID" # td_ (a_A (A.href_ $ toText "#" <> insId) insId))
         # tr_ (td_ "Category" # td_ (categories inspection))
@@ -166,12 +169,15 @@ stanObservation o@Observation{..} = divIdClass (unId observationId) "observation
     insId :: Text
     insId = unId observationInspectionId
 
-severity ins = span_A (A.class_ $ toText "severity" <> severityTxt) severityTxt
-  where
-    severityTxt :: Text
-    severityTxt = show $ inspectionSeverity ins
 
-categories ins = map (span_A (A.class_ "cat") . unCategory) $
+severityFromIns ins = severity $ show @Text $ inspectionSeverity ins
+
+severity severityTxt = span_A (A.class_ "severity")
+    ( span_A (A.class_ $ toText "severity" <> severityTxt) ""
+    # span_A (A.class_ "severityText") severityTxt
+    )
+
+categories ins = ul_A (A.class_ "cats") $ map (li_A (A.class_ "cat") . unCategory) $
     toList $ inspectionCategory ins
 
 solutionsDiv ins = nothingIfTrue (null solutions)
@@ -189,8 +195,8 @@ stanInspection (getInspectionById -> ins@Inspection{..}) = divIdClass (unId insp
     ( h3_ ("Inspection " # unId inspectionId)
     # p_ (strong_ inspectionName)
     # p_ (em_ inspectionDescription)
-    # p_ (severity ins)
-    # p_ (categories ins)
+    # div_ (severityFromIns ins)
+    # div_ (categories ins)
     # solutionsDiv ins
     )
 
@@ -225,6 +231,20 @@ stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-
     (ignoredIds, unknownIds) = ignoredObservations
         (configIgnored config)
         analysisIgnoredObservations
+
+stanSeverityExplained =
+      divClass "col-5"
+        (blockP "We are using the following severity system to indicate the observation level")
+
+    # table_A (A.class_ "col-7")
+        ( tr_ (th_ "Severity" # th_ "Description")
+        # map toSeverityRow (universe @Severity)
+        )
+  where
+    toSeverityRow s = tr_
+        ( td_ (severity $ show @Text s)
+        # td_ (severityDescription s)
+        )
 
 stanFooter = footer_
     ( divClass "container"

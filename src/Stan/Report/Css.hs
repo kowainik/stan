@@ -14,16 +14,6 @@ module Stan.Report.Css
 import Prelude hiding (rem, (&), (**))
 
 import Clay hiding (brown, cols, grid)
-import Clay (Css, Percentage, Selector, Size, a, after, auto, backgroundColor, block, body, bold,
-             border, borderCollapse, borderTop, both, center, clear, collapse, color, content,
-             display, displayNone, displayTable, element, em, float, floatLeft, fontFamily,
-             fontSize, fontWeight, footer, h1, h2, h3, h4, h5, h6, header, height, html, left,
-             lineHeight, main_, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth,
-             minHeight, nav, nil, none, p, padding, position, pre, px, query, relative, rem,
-             sansSerif, solid, stringContent, table, td, textAlign, textDecoration, th, top, tr,
-             underline, unitless, weight, width, ( # ), (&), (**), (?), (|>))
-import Clay.Color (Color, black, blue, cyan, green, magenta, orange, pink, red, rgb, setA, white,
-                   yellow)
 
 import qualified Clay.Media as M
 import qualified Data.List.NonEmpty as NE
@@ -67,25 +57,74 @@ stanCss = do
         border solid (px 2) darkGrey
     table ? width (100%)
     td <> th ? padding2 nil (px 8)
-    (".observation" <> "#configurations" <> "#stan-info") ** (table <> tr <> td <> th) ? do
+    (".observation" <> "#configurations" <> "#stan-info" <> "#severity") ** (table <> tr <> td <> th) ? do
         border solid (px 1) darkGrey
         borderCollapse collapse
-    ".cat" ? backgroundColor pink
-    ".severityStyle" ? backgroundColor cyan
-    ".severityPerformance" ? backgroundColor blue
-    ".severityPotentialBug" ? backgroundColor magenta
-    ".severityWarning" ? backgroundColor yellow
-    ".severityError" ? backgroundColor red
-
     blockquote ? do
         paddingLeft (2%)
         borderLeft solid (px 4) darkGrey
         boxShadow $ one $ bsColor lightGrey $ shadow (px (-4)) 0
 
-    ".remove"  ? (color black >> backgroundColor (setA 0.5 red))
-    ".include" ? (color black >> backgroundColor (setA 0.5 green))
-    ".exclude" ? (color black >> backgroundColor (setA 0.5 orange))
-    ".ignore"  ? (color black >> backgroundColor (setA 0.5 yellow))
+    -- Categories
+    ".cats" ? (listStyle none none none >> overflow hidden >> paddingAll 0)
+    ".cats" |> li ? float floatLeft
+    ".cat" ? do
+        backgroundColor pink
+        borderRadius (px 3) (px 0) (px 0) (px 3)
+        display inlineBlock
+        padding (px 0) (px 20) (px 0) (px 23)
+        textDecoration none
+        position relative
+        transitionProperty "color"
+        transitionDuration (sec 0.2)
+    ".cat" # before ? do
+        backgroundColor white
+        borderRadius (px 10) (px 10) (px 10) (px 10)
+        boxShadow $ one $ bsInset $ bsColor (rgba 0 0 0 0.25) $ shadow (px 0) (px 1)
+        content (stringContent "")
+        height (px 6)
+        left (px 10)
+        position absolute
+        width (px 6)
+        top (px 10)
+    ".cat" # after ? do
+        backgroundColor white
+        borderBottom solid (px 13) transparent
+        borderLeft   solid (px 10) pink
+        borderTop    solid (px 13) transparent
+        content (stringContent "")
+        position absolute
+        right (0%) >> top (0%)
+
+    ".severity" ? do
+        display inlineBlock
+        padding (px 1) 0 0 0
+        border solid (px 1) darkGrey
+        borderRadius (px 4) (px 4) (px 4) (px 4)
+        lineHeight (unitless 1)
+    ".severityText" ? padding2 (px 0) (px 15)
+    ".severityStyle"        ? severityCss cyan
+    ".severityPerformance"  ? severityCss blue
+    ".severityPotentialBug" ? severityCss magenta
+    ".severityWarning"      ? severityCss yellow
+    ".severityError"        ? severityCss red
+
+    ".remove"  ? configActionsCss red
+    ".include" ? configActionsCss green
+    ".exclude" ? configActionsCss yellow
+    ".ignore"  ? configActionsCss orange
+  where
+    configActionsCss :: Color -> Css
+    configActionsCss c = color black >> backgroundColor (setA 0.5 c)
+
+    severityCss :: Color -> Css
+    severityCss c = do
+        padding2 (px 0) (px 15)
+        height (100%)
+        backgroundColor c
+        backgroundClip $ boxClip paddingBox
+        borderRadius (px 4) (px 0) (px 0) (px 4)
+        borderRight solid (px 1) darkGrey
 
 grid :: Css
 grid = do
