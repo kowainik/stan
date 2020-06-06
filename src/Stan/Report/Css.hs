@@ -13,6 +13,7 @@ module Stan.Report.Css
 
 import Prelude hiding (rem, (&), (**))
 
+import Clay hiding (brown, cols, grid)
 import Clay (Css, Percentage, Selector, Size, a, after, auto, backgroundColor, block, body, bold,
              border, borderCollapse, borderTop, both, center, clear, collapse, color, content,
              display, displayNone, displayTable, element, em, float, floatLeft, fontFamily,
@@ -75,6 +76,10 @@ stanCss = do
     ".severityPotentialBug" ? backgroundColor magenta
     ".severityWarning" ? backgroundColor yellow
     ".severityError" ? backgroundColor red
+
+    blockquote ? do
+        paddingLeft (2%)
+        borderLeft solid (px 4) darkGrey
 
     ".remove"  ? (color black >> backgroundColor (setA 0.5 red))
     ".include" ? (color black >> backgroundColor (setA 0.5 green))

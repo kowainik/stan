@@ -16,6 +16,7 @@ module Stan.Report.Html
 
 import Clay (compact, renderWith)
 import Data.Char (toLower)
+import Html
 import Html (Raw (..), a_A, body_, div_, div_A, doctype_, em_, footer_, h1_, h2_, h3_, h4_, head_,
              header_A, html_, li_, main_A, meta_A, nav_A, p_, pre_, span_, span_A, strong_, style_,
              table_, td_, td_A, th_, title_, tr_, tr_A, ul_, ( # ))
@@ -73,52 +74,68 @@ stanMain an config warnings env project = main_A (A.class_ "container")
     # divIdClassH "Observations" "row" (stanObservations an)
     # divIdClassH "Configurations" "row" (stanConfig an config warnings)
     -- # divIdClassH "Summary" "row" (p_ "Later")
-    # divIdClassH "Inspections" "row" (stanInspections $ analysisInspections an)
+    # divIdClassH "Inspections" "row"
+        ( divClass "row" (blockP "List of Inspections used for analysing the project")
+        # stanInspections (analysisInspections an)
+        )
     )
 
 stanInfo StanEnv{..} =
     let StanVersion{..} = stanVersion in
-    let StanSystem{..} = stanSystem in divClass "col-9" $
-    table_
-        ( tr2 "Stan Version"
-        # tr_ (td_ "v"            # td_ svVersion)
-        # tr_ (td_ "Git Revision" # td_ svGitRevision)
-        # tr_ (td_ "Release Date" # td_ svCommitDate)
-        # tr2 "System Info"
-        # tr_ (td_ "Operating System" # td_ ssOs)
-        # tr_ (td_ "Architecture"     # td_ ssArch)
-        # tr_ (td_ "Compiler"         # td_ ssCompiler)
-        # tr_ (td_ "Compiler Version" # td_ ssCompilerVersion)
-        # tr2 "Environment"
-        # tr_ (td_ "Environment Variables"   # td_ seEnvVars)
-        # tr_ (td_ "TOML configuration files" # td_ seTomlFiles)
-        # tr_ (td_ "CLI arguments"           # td_ (List.unwords seCliArgs))
+    let StanSystem{..} = stanSystem in
+    ( divClass "row" (blockP "General information about Stan and its compile time and runtime environments: how and where it was built and executed")
+    # divClass "col-9"
+        ( table_
+            ( tr2 "Stan Version"
+            # tr_ (td_ "v"            # td_ svVersion)
+            # tr_ (td_ "Git Revision" # td_ svGitRevision)
+            # tr_ (td_ "Release Date" # td_ svCommitDate)
+            # tr2 "System Info"
+            # tr_ (td_ "Operating System" # td_ ssOs)
+            # tr_ (td_ "Architecture"     # td_ ssArch)
+            # tr_ (td_ "Compiler"         # td_ ssCompiler)
+            # tr_ (td_ "Compiler Version" # td_ ssCompilerVersion)
+            # tr2 "Environment"
+            # tr_ (td_ "Environment Variables"   # td_ seEnvVars)
+            # tr_ (td_ "TOML configuration files" # td_ seTomlFiles)
+            # tr_ (td_ "CLI arguments"           # td_ (List.unwords seCliArgs))
+            )
         )
+    )
   where
     tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre") $ strong_ x
 
-stanProject ProjectInfo{..} = table_
-    ( tr_ (td_ "Project name" # td_ piName)
-    # tr_ (td_ "Cabal Files"  # td_ (List.unwords piCabalFiles))
-    # tr_ (td_ "HIE Files Directory" # td_ piHieDir)
-    # tr_ (td_ "Files Number" # td_ piFileNumber)
+stanProject ProjectInfo{..} =
+    ( divClass "row" (blockP "Information about the analysed project")
+    # table_
+        ( tr_ (td_ "Project name" # td_ piName)
+        # tr_ (td_ "Cabal Files"  # td_ (List.unwords piCabalFiles))
+        # tr_ (td_ "HIE Files Directory" # td_ piHieDir)
+        # tr_ (td_ "Files Number" # td_ piFileNumber)
+        )
     )
 
-stanAnalysis (analysisToNumbers -> AnalysisNumbers{..}) = table_
-    ( tr_ (td_ "Modules" # td_ anModules)
-    # tr_ (td_ "LoC"     # td_ anLoc)
-    # tr_ (td_ "Extensions" # td_ anExts)
-    # tr_ (td_ "SafeHaskel Extensions" # td_ anSafeExts)
-    # tr_ (td_ "Available inspections" # td_ (HM.size inspectionsMap))
-    # tr_ (td_ "Checked inspections" # td_ anIns)
-    # tr_ (td_ "Found Observations" # td_ anFoundObs)
-    # tr_ (td_ "Ignored Observations" # td_ anIgnoredObs)
+stanAnalysis (analysisToNumbers -> AnalysisNumbers{..}) =
+    ( divClass "row" (blockP "Short stats from the static analysis")
+    # table_
+        ( tr_ (td_ "Modules" # td_ anModules)
+        # tr_ (td_ "LoC"     # td_ anLoc)
+        # tr_ (td_ "Extensions" # td_ anExts)
+        # tr_ (td_ "SafeHaskel Extensions" # td_ anSafeExts)
+        # tr_ (td_ "Available inspections" # td_ (HM.size inspectionsMap))
+        # tr_ (td_ "Checked inspections" # td_ anIns)
+        # tr_ (td_ "Found Observations" # td_ anFoundObs)
+        # tr_ (td_ "Ignored Observations" # td_ anIgnoredObs)
+        )
     )
 
 stanObservations Analysis{..} =
-    map stanPerFile
-    $ filter (not . null . fileInfoObservations)
-    $ Map.elems analysisFileMap
+    ( divClass "row" (blockP "List of found vulnerabilities per file")
+    # map stanPerFile
+      ( filter (not . null . fileInfoObservations)
+      $ Map.elems analysisFileMap
+      )
+    )
 
 stanPerFile FileInfo{..} = divIdClass "" "row" ( h3_ fileInfoPath # ul_
     ( li_ ("Module: " # unModuleName fileInfoModuleName)
@@ -178,7 +195,8 @@ stanInspection (getInspectionById -> ins@Inspection{..}) = divIdClass (unId insp
     )
 
 stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-12 "
-    ( divClass "row" (table_
+    ( divClass "row" (blockP "Description of the custom Stan configuration and explanation of how it was assembled")
+    # divClass "row" (table_
         ( tr_ (th_ "Action" # th_ "Filter" # th_ "Scope")
         # map toRows (configToTriples config)
         ))
@@ -240,6 +258,8 @@ divClass c = div_A (A.class_ c)
 divIdClass i c = div_A (A.id_ i # A.class_ c)
 
 divIdClassH h c rest = divIdClass (hToId h) c (h2_ h # rest)
+
+blockP t = blockquote_ (p_ t)
 
 hToId :: String -> String
 hToId = intercalate "-" . map (map toLower) . List.words
