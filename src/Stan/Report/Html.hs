@@ -49,6 +49,7 @@ stanHtml an (config :: Config) warnings env project =
         ( stanHeader
         # stanMain an config warnings env project
         # stanFooter
+        # stanJs
         )
 
 stanHeader = header_A (A.class_ "centre")
@@ -191,14 +192,20 @@ solutionsDiv ins = nothingIfTrue (null solutions)
     solutions = inspectionSolution ins
 
 stanInspections = div_ . map stanInspection . sortWith unId . toList
-stanInspection (getInspectionById -> ins@Inspection{..}) = divIdClass (unId inspectionId) "inspection"
-    ( h3_ ("Inspection " # unId inspectionId)
-    # p_ (strong_ inspectionName)
-    # p_ (em_ inspectionDescription)
-    # div_ (severityFromIns ins)
-    # div_ (categories ins)
-    # solutionsDiv ins
+stanInspection (getInspectionById -> ins@Inspection{..}) =
+    button_A (A.class_ "collapsible" # A.id_ insId) ("Explore Inspection " # insId)
+    # divClass "content row" ( divIdClass (insId <> toText "-content") "inspection col-12"
+        ( h3_ ("Inspection " # unId inspectionId)
+        # p_ (strong_ inspectionName)
+        # p_ (em_ inspectionDescription)
+        # div_ (severityFromIns ins)
+        # div_ (categories ins)
+        # solutionsDiv ins
+        )
     )
+  where
+    insId :: Text
+    insId = unId inspectionId
 
 stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-12 "
     ( divClass "row" (blockP "Description of the custom Stan configuration and explanation of how it was assembled")
@@ -273,6 +280,23 @@ stanHead = head_
     )
   where
     nameContent x y = meta_A (A.name_ x # A.content_ y)
+
+stanJs = script_ $ Raw $ List.unlines
+    [ "var coll = document.getElementsByClassName(\"collapsible\");"
+    , "var i;"
+    , ""
+    , "for (i = 0; i < coll.length; i++) {"
+    , "  coll[i].addEventListener(\"click\", function() {"
+    , "    this.classList.toggle(\"active\");"
+    , "    var content = this.nextElementSibling;"
+    , "    if (content.style.maxHeight){"
+    , "      content.style.maxHeight = null;"
+    , "    } else {"
+    , "      content.style.maxHeight = content.scrollHeight + \"px\";"
+    , "    }"
+    , "  });"
+    , "}"
+    ]
 
 divClass c = div_A (A.class_ c)
 divIdClass i c = div_A (A.id_ i # A.class_ c)

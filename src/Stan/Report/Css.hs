@@ -11,7 +11,7 @@ module Stan.Report.Css
     ( stanCss
     ) where
 
-import Prelude hiding (rem, (&), (**))
+import Prelude hiding (div, rem, (&), (**))
 
 import Clay hiding (brown, cols, grid)
 
@@ -47,9 +47,7 @@ stanCss = do
         color white
         margin2 (2%) (10%)
         paddingAll 2
-    ".inspection" ? do
-        margin2 (2%) (0%)
-        border solid (px 1) blue
+        overflowX scroll
     ".solutions" ? do
         margin2 (1%) (10%)
         paddingAll 1
@@ -80,7 +78,8 @@ stanCss = do
     ".cat" # before ? do
         backgroundColor white
         borderRadius (px 10) (px 10) (px 10) (px 10)
-        boxShadow $ one $ bsInset $ bsColor (rgba 0 0 0 0.25) $ shadow (px 0) (px 1)
+        boxShadow $ one $ bsInset $ bsColor (rgba 0 0 0 0.25) $
+            shadow (px 0) (px 1)
         content (stringContent "")
         height (px 6)
         left (px 10)
@@ -88,7 +87,7 @@ stanCss = do
         width (px 6)
         top (px 10)
     ".cat" # after ? do
-        backgroundColor white
+        backgroundColor veryLightGrey
         borderBottom solid (px 13) transparent
         borderLeft   solid (px 10) pink
         borderTop    solid (px 13) transparent
@@ -113,6 +112,8 @@ stanCss = do
     ".include" ? configActionsCss green
     ".exclude" ? configActionsCss yellow
     ".ignore"  ? configActionsCss orange
+
+    collapsible
   where
     configActionsCss :: Color -> Css
     configActionsCss c = color black >> backgroundColor (setA 0.5 c)
@@ -125,6 +126,39 @@ stanCss = do
         backgroundClip $ boxClip paddingBox
         borderRadius (px 4) (px 0) (px 0) (px 4)
         borderRight solid (px 1) darkGrey
+
+collapsible :: Css
+collapsible = do
+    ".collapsible" ? do
+        width (100%)
+        fontSize (rem 1.125)
+        important (marginLeft (0%) >> marginBottom (0%) >> marginRight (0%))
+        backgroundColor darkGrey
+        color white
+        cursor pointer
+        textAlign (alignSide sideLeft)
+
+    ".active" <> (".collapsible" # hover) ? do
+        backgroundColor lightGrey
+
+    ".collapsible" # after ? do
+        content (stringContent "\\002B")
+        color white
+        fontWeight bold
+        float floatRight
+        marginLeft (px 5)
+
+    ".active" # after ? content (stringContent "\\2212")
+
+    ".content" ? do
+        maxHeight nil
+        overflow hidden
+        transitionProperty "max-height"
+        transitionTimingFunction easeOut
+        transitionDuration (sec 0.2)
+        backgroundColor veryLightGrey
+    ".content" |> div ?
+        padding 0 0 0 (px 18)
 
 grid :: Css
 grid = do
@@ -205,7 +239,8 @@ padding2 x y = padding x y x y
 (%) :: Rational -> Size Percentage
 (%) = fromRational
 
-lightGrey, darkGrey, brown :: Color
+lightGrey, darkGrey, veryLightGrey, brown :: Color
 lightGrey = rgb 189 189 189
 darkGrey = rgb 97 97 97
+veryLightGrey = rgb 241 241 241
 brown = rgb 78 52 46
