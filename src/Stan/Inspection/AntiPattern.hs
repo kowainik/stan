@@ -21,6 +21,8 @@ module Stan.Inspection.AntiPattern
     , stan0203
       -- *** Anti-pattern slow 'size' for 'HashMap'
     , stan0204
+      -- *** Anti-pattern slow 'size' for 'HashSet'
+    , stan0205
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -48,6 +50,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0202
     , stan0203
     , stan0204
+    , stan0205
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -116,7 +119,7 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
     (FindName sizeNameMeta (?))
     & descriptionL .~ "Usage of 'size' for 'HashMap' that runs in linear time"
     & solutionL .~
-        [ "Switch to 'Map' if this data type works for you"
+        [ "Switch to 'Map' from 'containers' if this data type works for you"
         ]
     & severityL .~ Performance
   where
@@ -124,5 +127,23 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
     sizeNameMeta = NameMeta
         { nameMetaPackage    = "unordered-containers"
         , nameMetaModuleName = "Data.HashMap.Base"
+        , nameMetaName       = "size"
+        }
+
+-- TODO: also warn on 'length'
+-- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0205@.
+stan0205 :: Inspection
+stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
+    (FindName sizeNameMeta (?))
+    & descriptionL .~ "Usage of 'size' for 'HashSet' that runs in linear time"
+    & solutionL .~
+        [ "Switch to 'Set' from 'containers' if this data type works for you"
+        ]
+    & severityL .~ Performance
+  where
+    sizeNameMeta :: NameMeta
+    sizeNameMeta = NameMeta
+        { nameMetaPackage    = "unordered-containers"
+        , nameMetaModuleName = "Data.HashSet.Base"
         , nameMetaName       = "size"
         }

@@ -4,6 +4,7 @@ module Target.AntiPattern where
 
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 
 
 stanLengthXs :: [a] -> [Int]
@@ -20,3 +21,6 @@ stanPack8 = BS8.pack
 
 stanHashMapSize :: HM.HashMap Int Int -> Int
 stanHashMapSize = HM.size
+
+stanHashSetSize :: HS.HashSet Int -> Int
+stanHashSetSize = HS.size
