@@ -20,7 +20,7 @@ import qualified Module as GHC
 newtype ModuleName = ModuleName
     { unModuleName :: Text
     } deriving stock (Show)
-      deriving newtype (Eq, IsString)
+      deriving newtype (Eq, Hashable, IsString)
 
 -- | Convert 'GHC.ModuleName' to 'ModuleName'.
 fromGhcModuleName :: GHC.ModuleName -> ModuleName
