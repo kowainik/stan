@@ -18,11 +18,12 @@ module Stan.Analysis.Pretty
     ) where
 
 import Colourista.Short (b, i)
+import Extensions (ExtensionsError, ParsedExtensions)
 import Text.Printf (printf)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
-import Stan.FileInfo (FileInfo (..))
+import Stan.FileInfo (FileInfo (..), extensionsToText)
 import Stan.Observation (Observation (..), prettyShowObservation)
 import Stan.Report.Settings (ReportSettings)
 
@@ -156,6 +157,8 @@ showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
     , i "  Module:       " <> b (unModuleName fileInfoModuleName)
     , i "  LoC:          " <> b (show fileInfoLoc)
     , i "  Observations: " <> b (show len)
+    , i "  Extensions from .cabal: " <> b (showExts fileInfoCabalExtensions)
+    , i "  Extensions from module: " <> b (showExts fileInfoExtensions)
     , " ┏" <> Text.replicate 78 "━"
     ]
 
@@ -164,3 +167,6 @@ showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
   where
     len :: Int
     len = length fileInfoObservations
+
+    showExts :: Either ExtensionsError ParsedExtensions -> Text
+    showExts = Text.intercalate ", " . extensionsToText

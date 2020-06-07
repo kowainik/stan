@@ -9,9 +9,11 @@ File (or module) specific information.
 module Stan.FileInfo
     ( FileMap
     , FileInfo (..)
+
+    , extensionsToText
     ) where
 
-import Extensions (ExtensionsError, ExtensionsResult, ParsedExtensions)
+import Extensions (ExtensionsError, ExtensionsResult, ParsedExtensions (..), showOnOffExtension)
 
 import Stan.Core.ModuleName (ModuleName)
 import Stan.Observation (Observations)
@@ -29,3 +31,13 @@ data FileInfo = FileInfo
     } deriving stock (Show, Eq)
 
 type FileMap = Map FilePath FileInfo
+
+-- | Return the list of pretty-printed extensions.
+extensionsToText :: Either ExtensionsError ParsedExtensions -> [Text]
+extensionsToText = \case
+    Left _ -> ["Unable to extract extensions"]
+    Right ParsedExtensions{..} ->
+        let exts = map showOnOffExtension parsedExtensionsAll in
+        case parsedExtensionsSafe of
+            Just s  -> show s : exts
+            Nothing -> exts
