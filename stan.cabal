@@ -78,6 +78,7 @@ library
                          Stan.Analysis
                            Stan.Analysis.Analyser
                            Stan.Analysis.Pretty
+                           Stan.Analysis.Summary
                          Stan.Cabal
                          Stan.Category
                          Stan.Cli

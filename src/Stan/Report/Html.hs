@@ -18,10 +18,12 @@ import Relude.Extra.Enum (universe)
 
 import Clay (compact, renderWith)
 import Data.Char (toLower)
-import Html
+import Html hiding (Summary)
 
 import Stan.Analysis (Analysis (..))
-import Stan.Analysis.Pretty (AnalysisNumbers (..), analysisToNumbers)
+import Stan.Analysis.Pretty (AnalysisNumbers (..), ProjectHealth (..), analysisToNumbers,
+                             prettyHealth, toProjectHealth)
+import Stan.Analysis.Summary (Summary (..), createSummary)
 import Stan.Category (Category (..))
 import Stan.Config (Config, ConfigP (..))
 import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigAction)
@@ -69,8 +71,9 @@ stanMain an config warnings env project = main_A (A.class_ "container")
     # divIdClassH "Stan Info" "row" (stanInfo env)
     # divIdClass "general-info" "row"
         ( divIdClassH "Project Info" "col-6" (stanProject project)
-        # divIdClassH "Analysis Info" "col-6" (stanAnalysis an)
+        # divIdClassH "Analysis Info" "col-6" (stanAnalysis analysisNumbers)
         )
+    # divIdClassH "Static Analysis Summary" "row" (stanSummary an analysisNumbers)
     -- # divIdClassH "Graphs" "row" (p_ "Maybe later")
     # divIdClassH "Observations" "row" (stanObservations an)
     # divIdClassH "Configurations" "row" (stanConfig an config warnings)
@@ -83,6 +86,9 @@ stanMain an config warnings env project = main_A (A.class_ "container")
         # divIdClassH "Severity" "row" (stanSeverityExplained)
         )
     )
+  where
+    analysisNumbers :: AnalysisNumbers
+    analysisNumbers = analysisToNumbers an
 
 stanInfo StanEnv{..} =
     let StanVersion{..} = stanVersion in
@@ -119,7 +125,7 @@ stanProject ProjectInfo{..} =
         )
     )
 
-stanAnalysis (analysisToNumbers -> AnalysisNumbers{..}) =
+stanAnalysis AnalysisNumbers{..} =
     ( divClass "row" (blockP "Short stats from the static analysis")
     # table_
         ( tr_ (td_ "Modules" # td_ anModules)
@@ -132,6 +138,38 @@ stanAnalysis (analysisToNumbers -> AnalysisNumbers{..}) =
         # tr_ (td_ "Ignored Observations" # td_ anIgnoredObs)
         )
     )
+
+stanSummary analysis AnalysisNumbers{..} =
+    ( divClass "row" (blockP "Summary of the static analysis report")
+    # ul_
+        ( li_ (strong_ "Project health: " # prettyHealth anHealth)
+        # li_ ("The project " # showProjectHealth (toProjectHealth anHealth))
+        # summary
+        )
+    )
+  where
+    showProjectHealth :: ProjectHealth -> Text
+    showProjectHealth = toText . \case
+        Unhealthy    -> "is unhealthy"
+        LowHealth    -> "has low health"
+        MediumHealth -> "has medium health"
+        Healthy      -> "is healthy"
+
+    summary = case createSummary analysis of
+        Nothing -> Left $ li_ "Congratulations! Your project has zero vulnerabilities!"
+        Just Summary{..} ->
+            Right
+            $ li_ ("Most common inspection is " # unId summaryInspectionId)
+            # li_ ("The " # unModuleName summaryModule # " module is the most vulnerable")
+            # li_
+                ( "The project has the most problems with inspections from the "
+                # unCategory summaryCategory
+                # " category"
+                )
+            # li_
+                ( "The highest severity of found vulnerabilities is "
+                # show @Text summarySeverity
+                )
 
 stanObservations Analysis{..} =
     ( divClass "row" (blockP "List of found vulnerabilities per file")

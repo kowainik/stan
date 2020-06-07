@@ -47,7 +47,7 @@ data Severity
     | Warning
     -- | Dangerous behaviour.
     | Error
-    deriving stock (Show, Read, Eq, Enum, Bounded)
+    deriving stock (Show, Read, Eq, Ord, Enum, Bounded)
 
 -- | Description of each 'Severity' level.
 severityDescription :: Severity -> Text
