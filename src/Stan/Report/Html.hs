@@ -27,7 +27,7 @@ import Stan.Config (Config, ConfigP (..))
 import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigAction)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
-import Stan.FileInfo (FileInfo (..))
+import Stan.FileInfo (FileInfo (..), extensionsToText)
 import Stan.Info (ProjectInfo (..), StanEnv (..), StanSystem (..), StanVersion (..), stanSystem,
                   stanVersion)
 import Stan.Inspection (Inspection (..))
@@ -144,9 +144,20 @@ stanObservations Analysis{..} =
 stanPerFile FileInfo{..} = divIdClass "" "row" ( h3_ fileInfoPath # ul_
     ( li_ ("Module: " # unModuleName fileInfoModuleName)
     # li_ ("Lines of Code:" <> show fileInfoLoc)
-    # li_ (divClass "observations"
-      ( strong_ "Observations" # map stanObservation (toList fileInfoObservations)))
+    # li_ (divClass "extensions"
+          ( divClass "col-12" (strong_ "Extensions")
+          # stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
+          # stanExtensions "module" (extensionsToText fileInfoExtensions)
+          )
+          )
+    # li_A (A.class_ "col-12 obs-li") (divClass "observations col-12"
+        ( strong_ "Observations" # map stanObservation (toList fileInfoObservations)))
+          )
     )
+
+stanExtensions from exts = divClass "col-6"
+    ( button_A (A.class_ "collapsible") ("Extensions from " # from)
+    # ol_A (A.class_ "content") (map li_ exts)
     )
 
 stanObservation o@Observation{..} = divIdClass (unId observationId) "observation col-12"

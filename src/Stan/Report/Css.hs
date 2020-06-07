@@ -113,6 +113,8 @@ stanCss = do
     ".exclude" ? configActionsCss yellow
     ".ignore"  ? configActionsCss orange
 
+    ".obs-li" ? important (marginAll 0)
+
     collapsible
   where
     configActionsCss :: Color -> Css
