@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
-
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -66,7 +64,7 @@ stanHeader = header ! (A.class_ "centre") $ do
   where
     navItem :: Text -> Html
     navItem h = divClass "col-3 nav-item"
-        (a ! (A.href $ fromString $ "#" <> hToId h) $ toHtml h)
+        (a ! (A.href $ fromText $ "#" <> hToId h) $ toHtml h)
 
 stanMain :: Analysis -> Config -> [Text] -> StanEnv -> ProjectInfo -> Html
 stanMain an config warnings env project = main  ! (A.class_ "container") $ do
@@ -208,13 +206,13 @@ stanExtensions from exts = divClass "col-6" $ do
     ol ! (A.class_ "content") $ sequence_ $ map (li . toHtml) exts
 
 inspectionLink :: Id Inspection -> Html
-inspectionLink ins = a ! A.class_ "ins-link" ! A.href (fromString $ "#" <> toString insId) $ toHtml insId
+inspectionLink ins = a ! A.class_ "ins-link" ! A.href (fromText $ "#" <> insId) $ toHtml insId
   where
     insId :: Text
     insId = unId ins
 
 stanObservation :: Observation -> Html
-stanObservation o@Observation{..} = divIdClass (toString $ unId observationId) "observation row" $ do
+stanObservation o@Observation{..} = divIdClass (unId observationId) "observation row" $ do
     general
     pre $ toHtml (unlines $ prettyObservationSource False o)
     solutionsDiv inspection
@@ -240,17 +238,17 @@ severityFromIns ins = severity $ show @Text $ inspectionSeverity ins
 
 severity :: Text -> Html
 severity severityTxt = span ! (A.class_ "severity") $ do
-    span ! (A.class_ $ fromString $ "severity" <> toString severityTxt) $ toHtml @Text ""
+    span ! (A.class_ $ fromText $ "severity" <> severityTxt) $ toHtml @Text ""
     span ! (A.class_ "severityText") $ toHtml severityTxt
 
 categories :: Text -> NonEmpty Category -> Html
-categories cl cats = ul ! (A.class_ $ fromString $ toString $ "cats " <> cl) $ sequence_ $
+categories cl cats = ul ! (A.class_ $ fromText $ "cats " <> cl) $ sequence_ $
     map ((li ! (A.class_ "cat")) . toHtml . unCategory) $ toList cats
 
 solutionsDiv :: Inspection -> Html
 solutionsDiv ins = memptyIfTrue (null solutions) $ divClass ("solutions border-shadow") $ do
     h4 "Possible solutions"
-    ul (sequence_ $ map (li . toHtml) solutions)
+    uList solutions
   where
     solutions :: [Text]
     solutions = inspectionSolution ins
@@ -262,9 +260,9 @@ stanInspections ins = do
 
 stanInspection :: Id Inspection -> Html
 stanInspection (getInspectionById -> ins@Inspection{..}) = do
-    button ! A.class_ "collapsible" ! A.id (fromString $ toString insId) $
+    button ! A.class_ "collapsible" ! A.id (fromText insId) $
       toHtml ("Explore Inspection " <> insId)
-    divClass "content row" $ divIdClass (toString insId <> "-content") "inspection col-12" $ do
+    divClass "content row" $ divIdClass (insId <> "-content") "inspection col-12" $ do
         h3 $ toHtml ("Inspection " <> insId)
         p $ strong $ toHtml inspectionName
         p $ em $ toHtml inspectionDescription
@@ -291,11 +289,11 @@ stanConfig Analysis{..} config warnings = divClass "col-12" $ do
         p $
             "Information and warnings that were gathered during the configuration assemble process. "
           <> "This helps to understand how different parts of the configurations were retrieved."
-        ul (sequence_ $ map (li . toHtml) warnings)
+        uList warnings
   where
     toRows :: (ConfigAction, Text, Text) -> Html
     toRows (act, fil, sc) = tr !
-      (A.class_ $ fromString $ toString $ configActionClass act) $ do
+      (A.class_ $ fromText $ configActionClass act) $ do
         td ! (A.class_ "centre") $ span $ strong $ toHtml $ prettyConfigAction act
         td $ toHtml fil
         td $ toHtml sc
@@ -304,7 +302,7 @@ stanConfig Analysis{..} config warnings = divClass "col-12" $ do
     toUl ids headerTxt desc = memptyIfTrue (null ids) $ divClass "ignored-obs" $ do
         h4 $ toHtml headerTxt
         p $ toHtml desc
-        ul (sequence_ $ map (li . toHtml . unId) ids)
+        uList $ map unId ids
 
     ignoredIds, unknownIds :: [Id Observation]
     (ignoredIds, unknownIds) = ignoredObservations
@@ -351,6 +349,7 @@ stanHead = head $ do
   where
     nameContent x y = meta ! (A.name x <> A.content y)
 
+stanJs :: Html
 stanJs = script $ toHtml $ List.unlines
     [ "var coll = document.getElementsByClassName(\"collapsible\");"
     , "var i;"
@@ -368,13 +367,13 @@ stanJs = script $ toHtml $ List.unlines
     , "}"
     ]
 
-divClass :: String -> Html -> Html
-divClass c = div ! (A.class_ (fromString c))
+divClass :: Text -> Html -> Html
+divClass c = div ! (A.class_ (fromText c))
 
-divIdClass :: String -> String -> Html -> Html
-divIdClass aId c = div ! (A.id (fromString aId) <> A.class_ (fromString c))
+divIdClass :: Text -> Text -> Html -> Html
+divIdClass aId c = div ! (A.id (fromText aId) <> A.class_ (fromText c))
 
-divIdClassH :: Text -> String -> Html -> Html
+divIdClassH :: Text -> Text -> Html -> Html
 divIdClassH h c rest = divIdClass (hToId h) c (h2 (toHtml h) >> rest)
 
 blockP :: Text -> Html
@@ -385,11 +384,17 @@ tableRow name val = tr $ do
     td ! (A.class_ "info-name") $ toHtml name
     td ! (A.class_ "info-data very-light-bg") $ toHtml val
 
-tableWithShadow :: String -> Html -> Html
-tableWithShadow cl = table ! (A.class_ $ fromString $ "border-shadow " <> cl)
+tableWithShadow :: Text -> Html -> Html
+tableWithShadow cl = table ! (A.class_ $ fromText $ "border-shadow " <> cl)
+
+uList :: ToMarkup a => [a] -> Html
+uList = ul . traverse_ (li . toHtml)
 
 greyBg :: Attribute
 greyBg = A.class_ "grey-bg"
 
-hToId :: Text -> String
-hToId = toString . T.intercalate "-" . map T.toLower . words
+hToId :: Text -> Text
+hToId = T.intercalate "-" . map T.toLower . words
+
+fromText :: IsString s => Text -> s
+fromText = fromString . toString
