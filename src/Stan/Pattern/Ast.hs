@@ -120,6 +120,7 @@ cases:
 * Type in parenthesis: (Int)
 * Tuples: (Int, Bool)
 * List type: [Int]
+* Function type: Int -> Bool
 -}
 type_ :: PatternAst
 type_ =
@@ -132,6 +133,8 @@ type_ =
     PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple types: (Int, Bool)
     |||
     PatternAstNode (one ("HsListTy", "HsType"))  -- list types: [Int]
+    |||
+    PatternAstNode (one ("HsFunTy", "HsType"))  -- function types: Int -> Bool
 
 {- | Pattern for the field without the explicit bang pattern:
 

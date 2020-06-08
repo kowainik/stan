@@ -53,5 +53,5 @@ isExtensionDisabled :: Extension -> ExtensionsResult -> Bool
 isExtensionDisabled ext = \case
     Left _ -> True  -- no info about extensions, consider it disabled
     Right Extensions{..} ->
-           Set.member (Off ext) extensionsAll
-        || Set.notMember (On ext) extensionsAll
+           Set.notMember (On ext) extensionsAll
+        || Set.member (Off ext) extensionsAll
