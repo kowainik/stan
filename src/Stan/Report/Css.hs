@@ -34,6 +34,7 @@ stanCss = do
         "@href" & do
            textDecoration underline
            ":hover" & fontWeight bold
+
     footer <> header ? do
         display block
         textAlign center
@@ -41,31 +42,66 @@ stanCss = do
         maxWidth (100%)
         backgroundColor lightGrey
         borderTop solid (px 15) darkGrey
+    footer ? marginTop (2%)
     footer |> ".container" ? marginTopBottom (px 20)
-    pre ? do
-        backgroundColor brown
+    ".footer-link" ** (a # hover) ? (fontWeight normal >> textDecoration none)
+    ".ins-link" ? do
+        important (textDecoration none)
+        padding2 (px 2) (px 10)
+        backgroundColor darkGrey
         color white
+    ".ins-link" # hover ? (color darkGrey >> backgroundColor transparent)
+    pre  <> code ? (backgroundColor brown >> color white >> padding (px 1) 2 1 2)
+    pre ? do
         margin2 (2%) (10%)
         paddingAll 2
         overflowX auto
     ".solutions" ? do
         margin2 (1%) (10%)
         paddingAll 1
-        backgroundColor lightGrey
-        border solid (px 2) darkGrey
-    table ? width (100%)
-    td <> th ? padding2 nil (px 8)
-    (".observation" <> "#configurations" <> "#stan-info" <> "#severity") ** (table <> tr <> td <> th) ? do
-        border solid (px 1) darkGrey
+        backgroundColor (rgba 255 246 143 0.4)
+        important $ borderRadius (px 4) 4 4 4
+    (".solutions" <> ".config-warnings") ** ul ? listStyleType none
+    ".solutions" ** (li # before) ? content (stringContent "💡")
+    ".config-warnings" ** (li # before) ? content (stringContent "⚙️")
+    table ? do
+        width (100%) -- >> tableLayout fixed)
+        important $ borderRadius (px 4) 4 4 4
         borderCollapse collapse
+    th # firstChild ? borderRadius (px 4) 0 0 0
+    th # lastChild ? borderRadius 0 (px 4) 0 0
+
+    td <> th ? padding2 nil (px 8)
+    (".observation" <> "#configurations" <> "#stan-info" <> "#severity") ** (tr <> td <> th) ?
+        border solid (px 1) lightGrey
+    ".border-shadow" ? do
+        boxShadow $ one $ bsColor (setA 0.3 darkGrey) $ shadowWithSpread (px 0) 0 4 4
+        borderStyle (other $ Value $ Plain "hidden")
+
+    ".info-name" ? fontStyle italic
+    ".info-data" ? fontWeight bold
+
+    "#stan-info" ** table ? marginAuto
     blockquote ? do
         paddingLeft (2%)
         borderLeft solid (px 4) darkGrey
         boxShadow $ one $ bsColor lightGrey $ shadow (px (-4)) 0
 
-    -- Categories
-    ".cats" ? (listStyle none none none >> overflow hidden >> paddingAll 0)
+    ".obs-li" ? important (marginAll 0)
+    "#file" |> h3 ? paddingLeft (px 5)
+    "#file" |> ul ? listStyleType none
+
+    stanCategory
+    stanSeverity
+    summarySection
+    collapsible
+
+stanCategory :: Css
+stanCategory = do
+    ".cats" ? (listStyleType none >> overflow hidden >> paddingAll 0)
+    ".inline" ? display inline
     ".cats" |> li ? float floatLeft
+    td |> ".cats" |> li ? marginTopBottom (px 2)
     ".cat" ? do
         backgroundColor pink
         borderRadius (px 3) (px 0) (px 0) (px 3)
@@ -77,7 +113,7 @@ stanCss = do
         transitionDuration (sec 0.2)
     ".cat" # before ? do
         backgroundColor white
-        borderRadius (px 10) (px 10) (px 10) (px 10)
+        borderRadius (px 10) 10 10 10
         boxShadow $ one $ bsInset $ bsColor (rgba 0 0 0 0.25) $
             shadow (px 0) (px 1)
         content (stringContent "")
@@ -86,8 +122,11 @@ stanCss = do
         position absolute
         width (px 6)
         top (px 10)
-    ".cat" # after ? do
-        backgroundColor veryLightGrey
+    catTriangle ".cat" veryLightGrey
+    (".inline" |> ".cat") # after ? backgroundColor white
+  where
+    catTriangle cl c = cl # after ? do
+        backgroundColor c
         borderBottom solid (px 13) transparent
         borderLeft   solid (px 10) pink
         borderTop    solid (px 13) transparent
@@ -95,6 +134,8 @@ stanCss = do
         position absolute
         right (0%) >> top (0%)
 
+stanSeverity :: Css
+stanSeverity = do
     ".severity" ? do
         display inlineBlock
         padding (px 1) 0 0 0
@@ -112,10 +153,6 @@ stanCss = do
     ".include" ? configActionsCss green
     ".exclude" ? configActionsCss yellow
     ".ignore"  ? configActionsCss orange
-
-    ".obs-li" ? important (marginAll 0)
-
-    collapsible
   where
     configActionsCss :: Color -> Css
     configActionsCss c = color black >> backgroundColor (setA 0.5 c)
@@ -162,6 +199,40 @@ collapsible = do
     ".content" |> div ?
         padding 0 0 0 (px 18)
 
+summarySection :: Css
+summarySection = do
+    ".sum" ?
+        (display block >> clear both >> position relative)
+    ".sum" # before ? do
+        content (stringContent "")
+        width (rem 4) >> height (rem 4)
+        float floatLeft
+        margin 0 (rem 1.5) (rem 0.75) 0
+        backgroundImage $ linearGradient (other $ Value $ Plain "to bottom right")
+            [ (color1, 25)
+            , (color2, 100)
+            ]
+        textShadow 0 0 (px 2) color1;
+        borderRadius (50%) 50 50 50
+        display inlineFlex
+        alignItems center
+        justifyContent center
+        "shape-outside" -: "ellipse()"
+        zIndex 1
+
+    ".sum" # after ? do
+        width (rem 2) >> height (rem 2)
+        position absolute
+        top (px 0) >> left (px 0)
+        content (stringContent "")
+        backgroundColor color1
+        zIndex (-1)
+        borderTopLeftRadius (px 3) (px 3)
+  where
+    color1, color2 :: Color
+    color1 = darkGrey
+    color2 = veryLightGrey
+
 grid :: Css
 grid = do
     (html <> body) ? do
@@ -200,6 +271,8 @@ grid = do
     mediaQuery 45 $ colsGrid colClasses
     mediaQuery 60 $ ".container" ? (width (75%) >> maxWidth (rem 60))
 
+    ".grey-bg" ? (backgroundColor darkGrey >> color white)
+    ".very-light-bg" ? backgroundColor veryLightGrey
   where
     cols :: NonEmpty Text
     cols = fmap ((".col-" <>) . show) $ (1 :: Int) :| [2..12]
