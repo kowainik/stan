@@ -143,7 +143,7 @@ stanAnalysis AnalysisNumbers{..} =
 
 stanSummary analysis AnalysisNumbers{..} =
     ( divClass "row" (blockP "Summary of the static analysis report")
-    # ul_A (A.class_ "col-8")
+    # ul_A (A.class_ "col-10")
         ( li_A (A.class_ "sum")
             ( h4_ ("Project health: " # prettyHealth anHealth)
             # span_ "This was calculated TODO"

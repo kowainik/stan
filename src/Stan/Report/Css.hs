@@ -51,7 +51,7 @@ stanCss = do
         backgroundColor darkGrey
         color white
     ".ins-link" # hover ? (color darkGrey >> backgroundColor transparent)
-    pre  <> code ? (backgroundColor brown >> color white)
+    pre  <> code ? (backgroundColor brown >> color white >> padding (px 1) 2 1 2)
     pre ? do
         margin2 (2%) (10%)
         paddingAll 2
@@ -72,14 +72,14 @@ stanCss = do
     th # lastChild ? borderRadius 0 (px 4) 0 0
 
     td <> th ? padding2 nil (px 8)
-    (".observation" <> "#configurations" <> "#stan-info" <> "#severity") ** (tr <> td <> th) ? do
+    (".observation" <> "#configurations" <> "#stan-info" <> "#severity") ** (tr <> td <> th) ?
         border solid (px 1) lightGrey
     ".border-shadow" ? do
         boxShadow $ one $ bsColor (setA 0.3 darkGrey) $ shadowWithSpread (px 0) 0 4 4
         borderStyle (other $ Value $ Plain "hidden")
 
     ".info-name" ? fontStyle italic
-    ".info-data" ? (fontWeight bold)
+    ".info-data" ? fontWeight bold
 
     "#stan-info" ** table ? marginAuto
     blockquote ? do
@@ -99,7 +99,7 @@ stanCss = do
 stanCategory :: Css
 stanCategory = do
     ".cats" ? (listStyleType none >> overflow hidden >> paddingAll 0)
-    ".inline" ? (display inline)
+    ".inline" ? display inline
     ".cats" |> li ? float floatLeft
     td |> ".cats" |> li ? marginTopBottom (px 2)
     ".cat" ? do
@@ -223,7 +223,7 @@ summarySection = do
     ".sum" # after ? do
         width (rem 2) >> height (rem 2)
         position absolute
-        top (px 0) >> (left (px 0))
+        top (px 0) >> left (px 0)
         content (stringContent "")
         backgroundColor color1
         zIndex (-1)
