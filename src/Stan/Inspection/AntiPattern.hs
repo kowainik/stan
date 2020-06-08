@@ -23,6 +23,8 @@ module Stan.Inspection.AntiPattern
     , stan0204
       -- *** Anti-pattern slow 'size' for 'HashSet'
     , stan0205
+      -- *** Anti-pattern: Lazy fields
+    , stan0206
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -51,6 +53,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0203
     , stan0204
     , stan0205
+    , stan0206
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -147,3 +150,19 @@ stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
         , nameMetaModuleName = "Data.HashSet.Base"
         , nameMetaName       = "size"
         }
+
+-- | 'Inspection' — missing fixity declaration @STAN-0206@.
+stan0206 :: Inspection
+stan0206 = Inspection
+    { inspectionId = Id "STAN-0206"
+    , inspectionName = "Data types with non-strict fields"
+    , inspectionDescription =
+        "Defining lazy fields in data types can lead to unexpected space leaks"
+    , inspectionSolution =
+        [ "Add '!' before the type, e.g. !Int or !(Maybe Bool)"
+        , "Enable the 'StrictData' extension: {-# LANGUAGE StrictData #-}"
+        ]
+    , inspectionCategory = Category.spaceLeak :| [Category.syntax]
+    , inspectionSeverity = Performance
+    , inspectionAnalysis = LazyField
+    }

@@ -4,7 +4,7 @@ module Test.Stan.Number
     ) where
 
 import HieTypes (HieFile (..))
-import Test.Hspec (Spec, describe, it, shouldBe)
+import Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
 
 import Stan.Hie (countLinesOfCode)
 
@@ -17,4 +17,4 @@ linesOfCodeSpec hieFile = describe "LoC tests" $
 modulesNumSpec :: Int -> Spec
 modulesNumSpec num = describe "Modules number tests" $
     it "should count correct number of modules" $
-        num `shouldBe` 56
+        num `shouldSatisfy` (> 56)

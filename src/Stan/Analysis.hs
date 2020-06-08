@@ -167,7 +167,9 @@ analyseHieFile hieFile@HieFile{..} cabalExts obs insIds = do
     let fileInfoMergedExtensions = mergeParsedExtensions fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file
     let ins = mapMaybe lookupInspectionById (toList insIds)
-    let allObservations = S.concatMap (`analysisByInspection` hieFile) ins
+    let allObservations = S.concatMap
+            (\iId -> analysisByInspection fileInfoMergedExtensions iId hieFile)
+            ins
     let (ignoredObs, fileInfoObservations) = S.partition ((`elem` obs) . observationId) allObservations
 
     incModulesNum

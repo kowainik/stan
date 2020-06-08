@@ -93,6 +93,8 @@ data InspectionAnalysis
     | FindAst PatternAst
     -- | Find all operators without matching @infix[r|l]@
     | Infix
+    -- | Check if the data type has lazy fields
+    | LazyField
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.
