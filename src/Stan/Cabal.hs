@@ -20,7 +20,8 @@ import Control.Exception (catch)
 import Extensions (CabalException, ExtensionsError (..), ExtensionsResult, ParsedExtensions (..),
                    mergeAnyExtensions, parseCabalFileExtensions)
 import HieTypes (HieFile (..))
-import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory)
+import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory,
+                         makeRelativeToCurrentDirectory)
 import System.FilePath (takeExtension, (</>))
 import System.IO.Unsafe (unsafeInterleaveIO)
 
@@ -30,9 +31,11 @@ import qualified Data.Map.Strict as Map
 {- | Gets the list of @.cabal@ file paths that were used in the project.
 -}
 usedCabalFiles :: [FilePath] -> IO [FilePath]
-usedCabalFiles = \case
-    [] -> findCabalFiles
-    files -> pure files
+usedCabalFiles fs = do
+    cabals <- case fs of
+        []    -> findCabalFiles
+        files -> pure files
+    mapM makeRelativeToCurrentDirectory cabals
 
 {- | From a given path to cabal files and 'HieFile's create the map from modules
 (that are in .cabal file) to the resulting parsed extensions for each.

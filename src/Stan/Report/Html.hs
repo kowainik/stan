@@ -83,7 +83,7 @@ stanMain an config warnings env project = main_A (A.class_ "container")
             ( divClass "row" (blockP "List of Inspections used for analysing the project")
             # stanInspections (analysisInspections an)
             )
-        # divIdClassH "Severity" "row" (stanSeverityExplained)
+        # divIdClassH "Severity" "row" stanSeverityExplained
         )
     )
   where
@@ -94,56 +94,64 @@ stanInfo StanEnv{..} =
     let StanVersion{..} = stanVersion in
     let StanSystem{..} = stanSystem in
     ( divClass "row" (blockP "General information about Stan and its compile time and runtime environments: how and where it was built and executed")
-    # divClass "col-9"
-        ( table_
-            ( tr2 "Stan Version"
-            # tr_ (td_ "v"            # td_ svVersion)
-            # tr_ (td_ "Git Revision" # td_ svGitRevision)
-            # tr_ (td_ "Release Date" # td_ svCommitDate)
+    # divClass "col-10"
+        ( table_A (A.class_ "border-shadow" # A.style_ "table-layout:fixed")
+            ( colgroup_ (col_A (A.style_ "width:25%") # col_)
+            # tr2 "Stan Version"
+            # tableRow "Version"       svVersion
+            # tableRow "Git Revision"  svGitRevision
+            # tableRow "Release Date"  svCommitDate
             # tr2 "System Info"
-            # tr_ (td_ "Operating System" # td_ ssOs)
-            # tr_ (td_ "Architecture"     # td_ ssArch)
-            # tr_ (td_ "Compiler"         # td_ ssCompiler)
-            # tr_ (td_ "Compiler Version" # td_ ssCompilerVersion)
+            # tableRow "Operating System" ssOs
+            # tableRow "Architecture"     ssArch
+            # tableRow "Compiler"         ssCompiler
+            # tableRow "Compiler Version" ssCompilerVersion
             # tr2 "Environment"
-            # tr_ (td_ "Environment Variables"   # td_ seEnvVars)
-            # tr_ (td_ "TOML configuration files" # td_ seTomlFiles)
-            # tr_ (td_ "CLI arguments"           # td_ (List.unwords seCliArgs))
+            # tableRow "Environment Variables"    seEnvVars
+            # tableRow "TOML configuration files" seTomlFiles
+            # tableRow "CLI arguments"            (List.unwords seCliArgs)
             )
         )
     )
   where
-    tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre") $ strong_ x
+    tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre grey-bg") $ strong_ x
 
 stanProject ProjectInfo{..} =
     ( divClass "row" (blockP "Information about the analysed project")
-    # table_
-        ( tr_ (td_ "Project name" # td_ piName)
-        # tr_ (td_ "Cabal Files"  # td_ (List.unwords piCabalFiles))
-        # tr_ (td_ "HIE Files Directory" # td_ piHieDir)
-        # tr_ (td_ "Files Number" # td_ piFileNumber)
+    # tableWithShadow ""
+        ( colgroup_ (col_A (A.class_ "info-name") # col_A (A.class_ "info-data"))
+        # tableRow "Project name"  piName
+        # tableRow "Cabal Files"   (List.unwords piCabalFiles)
+        # tableRow "HIE Files Directory" piHieDir
+        # tableRow "Files Number" piFileNumber
         )
     )
 
 stanAnalysis AnalysisNumbers{..} =
     ( divClass "row" (blockP "Short stats from the static analysis")
-    # table_
-        ( tr_ (td_ "Modules" # td_ anModules)
-        # tr_ (td_ "LoC"     # td_ anLoc)
-        # tr_ (td_ "Extensions" # td_ anExts)
-        # tr_ (td_ "SafeHaskel Extensions" # td_ anSafeExts)
-        # tr_ (td_ "Available inspections" # td_ (HM.size inspectionsMap))
-        # tr_ (td_ "Checked inspections" # td_ anIns)
-        # tr_ (td_ "Found Observations" # td_ anFoundObs)
-        # tr_ (td_ "Ignored Observations" # td_ anIgnoredObs)
+    # tableWithShadow ""
+        ( tableRow "Modules"               anModules
+        # tableRow "LoC"                   anLoc
+        # tableRow "Extensions"            anExts
+        # tableRow "SafeHaskel Extensions" anSafeExts
+        # tableRow "Available inspections" (HM.size inspectionsMap)
+        # tableRow "Checked inspections"   anIns
+        # tableRow "Found Observations"    anFoundObs
+        # tableRow "Ignored Observations"  anIgnoredObs
         )
     )
 
 stanSummary analysis AnalysisNumbers{..} =
     ( divClass "row" (blockP "Summary of the static analysis report")
-    # ul_
-        ( li_ (strong_ "Project health: " # prettyHealth anHealth)
-        # li_ ("The project " # showProjectHealth (toProjectHealth anHealth))
+    # ul_A (A.class_ "col-8")
+        ( li_A (A.class_ "sum")
+            ( h4_ ("Project health: " # prettyHealth anHealth)
+            # span_ "This was calculated TODO"
+            )
+        # li_A (A.class_ "sum")
+            ( h4_ ("The project " # showProjectHealth (toProjectHealth anHealth))
+            # span_ "Conclusions TODO"
+            )
         # summary
         )
     )
@@ -156,19 +164,33 @@ stanSummary analysis AnalysisNumbers{..} =
         Healthy      -> "is healthy"
 
     summary = case createSummary analysis of
-        Nothing -> Left $ li_ "Congratulations! Your project has zero vulnerabilities!"
+        Nothing -> Left $ li_A (A.class_ "sum")
+            ( h4_ "Congratulations! Your project has zero vulnerabilities!"
+            # span_ "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project"
+            )
         Just Summary{..} ->
             Right
-            $ li_ ("Most common inspection is " # unId summaryInspectionId)
-            # li_ ("The " # unModuleName summaryModule # " module is the most vulnerable")
-            # li_
-                ( "The project has the most problems with inspections from the "
-                # unCategory summaryCategory
-                # " category"
+            $ li_A (A.class_ "sum")
+                ( h4_ ("Watch out for " # unId summaryInspectionId)
+                # span_
+                    ("By the result of Stan analysis, the most common inspection for this project is "
+                    # inspectionLink summaryInspectionId)
                 )
-            # li_
-                ( "The highest severity of found vulnerabilities is "
-                # show @Text summarySeverity
+            # li_A (A.class_ "sum")
+                ( h4_ ("Vulnerable module: " # unModuleName summaryModule)
+                # span_ ("The " # code_ (unModuleName summaryModule) # " module is the most vulnerable one in the project, as it got the most number of observations")
+                )
+            # li_A (A.class_ "sum")
+                ( h4_ ("Popular category: " # unCategory summaryCategory)
+                # ( categories "inline" [summaryCategory]
+                  # "The project has the most problems with inspections from this category"
+                  )
+                )
+            # li_A (A.class_ "sum")
+                ( h4_ ("Severity: " # show @Text summarySeverity)
+                # ( "The highest severity of found vulnerabilities is "
+                  # severity (show @Text summarySeverity)
+                  )
                 )
 
 stanObservations Analysis{..} =
@@ -179,18 +201,21 @@ stanObservations Analysis{..} =
       )
     )
 
-stanPerFile FileInfo{..} = divIdClass "" "row" ( h3_ fileInfoPath # ul_
-    ( li_ ("Module: " # unModuleName fileInfoModuleName)
-    # li_ ("Lines of Code:" <> show fileInfoLoc)
-    # li_ (divClass "extensions"
-          ( divClass "col-12" (strong_ "Extensions")
-          # stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
-          # stanExtensions "module" (extensionsToText fileInfoExtensions)
-          )
-          )
-    # li_A (A.class_ "col-12 obs-li") (divClass "observations col-12"
-        ( strong_ "Observations" # map stanObservation (toList fileInfoObservations)))
-          )
+stanPerFile FileInfo{..} = divIdClass "file" "row"
+    ( h3_A (A.class_ "grey-bg") ("📄 " # fileInfoPath)
+    # ul_
+        ( li_ (tableWithShadow "col-6"
+            ( tableRow "Module" (code_ $ unModuleName fileInfoModuleName)
+            # tableRow "Lines of Code" (show @Text fileInfoLoc)
+            ))
+        # li_ (divClass "extensions"
+              ( stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
+              # stanExtensions "module" (extensionsToText fileInfoExtensions)
+              )
+              )
+        # li_A (A.class_ "col-12 obs-li") (divClass "observations col-12"
+            ( h4_ "Observations" # map stanObservation (toList fileInfoObservations)))
+        )
     )
 
 stanExtensions from exts = divClass "col-6"
@@ -198,27 +223,33 @@ stanExtensions from exts = divClass "col-6"
     # ol_A (A.class_ "content") (map li_ exts)
     )
 
-stanObservation o@Observation{..} = divIdClass (unId observationId) "observation col-12"
+inspectionLink ins = a_A (A.class_ "ins-link" # A.href_ (toText "#" <> insId)) insId
+  where
+    insId :: Text
+    insId = unId ins
+
+stanObservation o@Observation{..} = divIdClass (unId observationId) "observation row"
     ( general
     # pre_ (unlines $ prettyObservationSource False o)
     # solutionsDiv inspection
     )
   where
-    general = divClass "observation-general" $ table_
-        ( tr_ (td_ "ID " # td_ (strong_ $ unId observationId))
-        # tr_ (td_ "Severity" # td_ (severityFromIns inspection))
-        # tr_ (td_ "Description" # td_ (inspectionDescription inspection))
-        # tr_ (td_ "Inspection ID" # td_ (a_A (A.href_ $ toText "#" <> insId) insId))
-        # tr_ (td_ "Category" # td_ (categories inspection))
-        # tr_ (td_ "File" # td_ observationFile)
+    general = divClass "observation-general" $ tableWithShadow ""
+        ( tableR "ID"            (unId observationId)
+        # tableR "Severity"      (severityFromIns inspection)
+        # tableR "Description"   (inspectionDescription inspection)
+        # tableR "Inspection ID" (inspectionLink observationInspectionId)
+        # tableR "Category"      (categories "inline" $ inspectionCategory inspection)
+        # tableR "File"          observationFile
+        )
+
+    tableR name val = tr_
+        ( td_A (A.class_ "info-name very-light-bg") name
+        # td_A (A.class_ "info-data") val
         )
 
     inspection :: Inspection
     inspection = getInspectionById observationInspectionId
-
-    insId :: Text
-    insId = unId observationInspectionId
-
 
 severityFromIns ins = severity $ show @Text $ inspectionSeverity ins
 
@@ -227,12 +258,12 @@ severity severityTxt = span_A (A.class_ "severity")
     # span_A (A.class_ "severityText") severityTxt
     )
 
-categories ins = ul_A (A.class_ "cats") $ map (li_A (A.class_ "cat") . unCategory) $
-    toList $ inspectionCategory ins
+categories cl cats = ul_A (A.class_ $ "cats " <> cl) $
+    map (li_A (A.class_ "cat") . unCategory) $ toList cats
 
 solutionsDiv ins = nothingIfTrue (null solutions)
-    ( divClass "solutions"
-        ( p_ "Possible solution"
+    ( divClass ("solutions border-shadow")
+        ( h4_ "Possible solutions"
         # ul_ (map li_ solutions)
         )
     )
@@ -248,7 +279,7 @@ stanInspection (getInspectionById -> ins@Inspection{..}) =
         # p_ (strong_ inspectionName)
         # p_ (em_ inspectionDescription)
         # div_ (severityFromIns ins)
-        # div_ (categories ins)
+        # div_ (categories "" inspectionCategory)
         # solutionsDiv ins
         )
     )
@@ -263,11 +294,17 @@ stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-
         # map toRows (configToTriples config)
         ))
     # divClass "ignored-observations row"
-        (toUl ignoredIds "Ignored Observations"
+        ( toUl ignoredIds "Ignored Observations"
+            "These observations are flagged as ignored through the configurations and are not considered in the final report"
         # toUl unknownIds "Unrecognised Observations"
+            "Some observation IDs specified in the configurations are not found"
         )
     # divClass "config-warnings row"
-        ( h4_ "Warnings"
+        ( h4_ "Configuration Process Information"
+        # p_
+            ( "Information and warnings that were gathered during the configuration assemble process. "
+            # "This helps to understand how different parts of the configurations were retrieved."
+            )
         # ul_ (map li_ warnings)
         )
     )
@@ -278,8 +315,9 @@ stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-
       # td_ sc
       )
 
-    toUl ids header = divClass "ignored-obs"
+    toUl ids header desc = nothingIfTrue (null ids) $ divClass "ignored-obs"
         ( h4_ header
+        # p_ desc
         # ul_ (map (li_ . unId) ids)
         )
 
@@ -292,8 +330,8 @@ stanSeverityExplained =
       divClass "col-5"
         (blockP "We are using the following severity system to indicate the observation level")
 
-    # table_A (A.class_ "col-7")
-        ( tr_ (th_ "Severity" # th_ "Description")
+    # tableWithShadow "col-7"
+        ( tr_A greyBg (th_ "Severity" # th_ "Description")
         # map toSeverityRow (universe @Severity)
         )
   where
@@ -304,11 +342,11 @@ stanSeverityExplained =
 
 stanFooter = footer_
     ( divClass "container"
-        ( divClass "row"
+        ( divClass "row footer-link"
             ( span_ "This report was generated by "
             # a_A (A.href_ "https://github.com/kowainik/stan") "Stan — Haskell Static Analysis Tool."
             )
-        # divClass "row"
+        # divClass "row footer-link"
             ( span_ "Stan is created and maintained by "
             # a_A (A.href_ "https://kowainik.github.io") "Kowainik"
             )
@@ -353,6 +391,15 @@ divIdClass i c = div_A (A.id_ i # A.class_ c)
 divIdClassH h c rest = divIdClass (hToId h) c (h2_ h # rest)
 
 blockP t = blockquote_ (p_ t)
+
+tableRow name val = tr_
+    ( td_A (A.class_ "info-name") name
+    # td_A (A.class_ "info-data very-light-bg") val
+    )
+
+tableWithShadow cl = table_A (A.class_ $ "border-shadow " <> cl)
+
+greyBg = A.class_ "grey-bg"
 
 hToId :: String -> String
 hToId = intercalate "-" . map (map toLower) . List.words
