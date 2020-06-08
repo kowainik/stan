@@ -33,3 +33,49 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0204 23 19 26
     it "STAN-0205: finds usage of 'Data.HashSet.size'" $
         checkObservation AntiPattern.stan0205 26 19 26
+
+    strictFieldsSpec analysis
+
+strictFieldsSpec :: Analysis -> Spec
+strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
+    describe "Without extensions" $ do
+        let checkObservation = observationAssert
+                "Target/AntiPattern/Stan0206.hs"
+                "Target.AntiPattern.Stan0206"
+                analysis
+        let noObservation = noObservationAssert
+                "Target/AntiPattern/Stan0206.hs"
+                "Target.AntiPattern.Stan0206"
+                analysis
+
+        it "Doesn't trigger on strict field" $
+            noObservation AntiPattern.stan0206 7
+        it "Finds simple lazy field" $
+            checkObservation AntiPattern.stan0206 8 7 25
+        it "Finds polymorphic lazy field" $
+            checkObservation AntiPattern.stan0206 9 7 23
+        it "Doesn't trigger on plain newtype" $
+            noObservation AntiPattern.stan0206 12
+        it "Doesn't trigger on a record newtype" $
+            noObservation AntiPattern.stan0206 14
+        it "Doesn't trigger on strict sum type field among many fields" $
+            noObservation AntiPattern.stan0206 19
+        it "Finds lazy field in a sum type constructor with multiple fields" $
+            checkObservation AntiPattern.stan0206 20 9 12
+        it "Doesn't trigger on a single strict sum type field" $
+            noObservation AntiPattern.stan0206 21
+        it "Finds single lazy field in a sum type with multiple constructors" $
+            checkObservation AntiPattern.stan0206 22 11 15
+
+    describe "With the 'StrictData' extension" $ do
+        let noObservation = noObservationAssert
+                "Target/AntiPattern/Stan0206Extensions.hs"
+                "Target.AntiPattern.Stan0206Extensions"
+                analysis
+
+        it "Doesn't trigger on a simple record field" $
+            noObservation AntiPattern.stan0206 9
+        it "Doesn't trigger on explicitly lazy field" $
+            noObservation AntiPattern.stan0206 10
+        it "Doesn't trigger on plain data type" $
+            noObservation AntiPattern.stan0206 13

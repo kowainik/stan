@@ -11,12 +11,17 @@ module Stan.FileInfo
     , FileInfo (..)
 
     , extensionsToText
+    , isExtensionDisabled
     ) where
 
-import Extensions (ExtensionsError, ExtensionsResult, ParsedExtensions (..), showOnOffExtension)
+import Extensions (Extensions (..), ExtensionsError, ExtensionsResult, OnOffExtension (..),
+                   ParsedExtensions (..), showOnOffExtension)
+import GHC.LanguageExtensions.Type (Extension)
 
 import Stan.Core.ModuleName (ModuleName)
 import Stan.Observation (Observations)
+
+import qualified Data.Set as Set
 
 
 -- | File specific information.
@@ -41,3 +46,12 @@ extensionsToText = \case
         case parsedExtensionsSafe of
             Just s  -> show s : exts
             Nothing -> exts
+
+{- | Check whether the given extension is disabled
+-}
+isExtensionDisabled :: Extension -> ExtensionsResult -> Bool
+isExtensionDisabled ext = \case
+    Left _ -> True  -- no info about extensions, consider it disabled
+    Right Extensions{..} ->
+           Set.notMember (On ext) extensionsAll
+        || Set.member (Off ext) extensionsAll

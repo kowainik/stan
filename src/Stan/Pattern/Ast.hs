@@ -12,7 +12,10 @@ module Stan.Pattern.Ast
 
       -- * eDSL
     , app
+    , constructor
+    , dataDecl
     , fixity
+    , lazyField
     , range
     , typeSig
     ) where
@@ -30,25 +33,25 @@ low-level, but helper functions are provided.
 -}
 data PatternAst
     -- | Integer constant in code.
-    = PatternAstConstant Int  -- TODO: support constants of different types
+    = PatternAstConstant !Int  -- TODO: support constants of different types
     -- | Name of a specific function, variable or data type.
-    | PatternAstName NameMeta PatternType
+    | PatternAstName !NameMeta !PatternType
     -- | AST node with tags for current node and any children.
     | PatternAstNode
-        (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
     -- | AST node with tags for current node and children
     -- patterns. This pattern should match the node exactly.
     | PatternAstNodeExact
-        (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
-        [PatternAst]  -- ^ Node children
+        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        ![PatternAst]  -- ^ Node children
     -- | AST wildcard, matches anything.
     | PatternAstAnything
     -- | Choice between patterns. Should match either of them.
-    | PatternAstOr PatternAst PatternAst
+    | PatternAstOr !PatternAst !PatternAst
     -- | Union of patterns. Should match both of them.
-    | PatternAstAnd PatternAst PatternAst
+    | PatternAstAnd !PatternAst !PatternAst
     -- | Negation of pattern. Should match everything except this pattern.
-    | PatternAstNeg PatternAst
+    | PatternAstNeg !PatternAst
     deriving stock (Show, Eq)
 
 instance PatternBool PatternAst where
@@ -81,7 +84,7 @@ infixr 7 ***, +++, ???
 fixity :: PatternAst
 fixity = PatternAstNode $ one ("FixitySig", "FixitySig")
 
-{- | Pattern for a type signature declaration:
+{- | Pattern for the function type signature declaration:
 
 @
 foo :: Some -> Type
@@ -89,3 +92,64 @@ foo :: Some -> Type
 -}
 typeSig :: PatternAst
 typeSig = PatternAstNode $ one ("TypeSig", "Sig")
+
+{- | @data@ or @newtype@ declaration.
+-}
+dataDecl :: PatternAst
+dataDecl = PatternAstNode $ one ("DataDecl", "TyClDecl")
+
+{- | Constructor of a plain data type or newtype. Children of node
+that matches this pattern are constructor fields.
+-}
+constructor :: PatternAst
+constructor = PatternAstNode $ one ("ConDeclH98", "ConDecl")
+
+{- | Lazy data type field. Comes in two shapes:
+
+1. Record field, like: @foo :: Text@
+2. Simple type: @Int@
+-}
+lazyField :: PatternAst
+lazyField = lazyRecordField ||| type_
+
+{- | Pattern for any occurrence of a plain type. Covers the following
+cases:
+
+* Simple type: Int, Bool, a
+* Higher-kinded type: Maybe Int, Either String a
+* Type in parenthesis: (Int)
+* Tuples: (Int, Bool)
+* List type: [Int]
+* Function type: Int -> Bool
+-}
+type_ :: PatternAst
+type_ =
+    PatternAstNode (one ("HsTyVar", "HsType"))  -- simple type: Int, Bool
+    |||
+    PatternAstNode (one ("HsAppTy", "HsType"))  -- composite: Maybe Int
+    |||
+    PatternAstNode (one ("HsParTy", "HsType"))  -- type in ()
+    |||
+    PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple types: (Int, Bool)
+    |||
+    PatternAstNode (one ("HsListTy", "HsType"))  -- list types: [Int]
+    |||
+    PatternAstNode (one ("HsFunTy", "HsType"))  -- function types: Int -> Bool
+
+{- | Pattern for the field without the explicit bang pattern:
+
+@
+someField :: Int
+@
+-}
+lazyRecordField :: PatternAst
+lazyRecordField = PatternAstNodeExact
+    (one ("ConDeclField", "ConDeclField"))
+    [ PatternAstNode
+        (fromList
+            [ ("AbsBinds", "HsBindLR")
+            , ("FunBind", "HsBindLR")
+            ]
+        )
+    , type_
+    ]

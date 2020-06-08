@@ -129,6 +129,7 @@ library
                      , extensions ^>= 0.0.0.1
                      , filepath ^>= 1.4
                      , ghc ^>= 8.8
+                     , ghc-boot-th ^>= 8.8
                      , ghc-paths ^>= 0.1.0.12
                      , gitrev ^>= 1.3.1
                      , optparse-applicative ^>= 0.15
@@ -153,6 +154,8 @@ library target
   build-depends:       bytestring
                      , unordered-containers
   exposed-modules:     Target.AntiPattern
+                         Target.AntiPattern.Stan0206
+                         Target.AntiPattern.Stan0206Extensions
                        Target.Infinite
                        Target.Partial
                        Target.Style
