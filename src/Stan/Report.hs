@@ -10,7 +10,7 @@ module Stan.Report
     ( generateReport
     ) where
 
-import Html (renderByteString)
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 
 import Stan.Analysis (Analysis)
 import Stan.Config (Config)
@@ -25,5 +25,5 @@ generateReport
     -> StanEnv  -- ^ Environment information
     -> ProjectInfo  -- ^ Project related Information
     -> IO ()
-generateReport an c ws env = writeFileLBS "stan.html" . renderByteString .
+generateReport an c ws env = writeFileLBS "stan.html" . renderHtml .
     stanHtml an c ws env

@@ -1,7 +1,5 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
-{-# LANGUAGE NoOverloadedStrings #-}
-
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -14,11 +12,12 @@ module Stan.Report.Html
     ( stanHtml
     ) where
 
+import Prelude hiding (div, head)
 import Relude.Extra.Enum (universe)
 
 import Clay (compact, renderWith)
-import Data.Char (toLower)
-import Html hiding (Summary)
+import Text.Blaze.Html
+import Text.Blaze.Html5 hiding (ins, map, summary)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Analysis.Pretty (AnalysisNumbers (..), ProjectHealth (..), analysisToNumbers,
@@ -26,7 +25,7 @@ import Stan.Analysis.Pretty (AnalysisNumbers (..), ProjectHealth (..), analysisT
 import Stan.Analysis.Summary (Summary (..), createSummary)
 import Stan.Category (Category (..))
 import Stan.Config (Config, ConfigP (..))
-import Stan.Config.Pretty (configActionClass, configToTriples, prettyConfigAction)
+import Stan.Config.Pretty (ConfigAction, configActionClass, configToTriples, prettyConfigAction)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..), extensionsToText)
@@ -41,334 +40,318 @@ import Stan.Severity (Severity (..), severityDescription)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
-import qualified Html.Attribute as A
+import qualified Data.Text as T
+import qualified Text.Blaze.Html5.Attributes as A
 
 
-stanHtml an (config :: Config) warnings env project =
-    doctype_ # html_ (stanHead # stanBody)
+stanHtml :: Analysis -> Config -> [Text] -> StanEnv -> ProjectInfo -> Html
+stanHtml an config warnings env project =
+    docTypeHtml (stanHead >> stanBody)
   where
-    stanBody = body_
-        ( stanHeader
-        # stanMain an config warnings env project
-        # stanFooter
-        # stanJs
-        )
+    stanBody :: Html
+    stanBody = body $ do
+        stanHeader
+        stanMain an config warnings env project
+        stanFooter
+        stanJs
 
-stanHeader = header_A (A.class_ "centre")
-    ( divClass "row" (h1_ "Stan Report")
-    # nav_A (A.class_ "row")
-        ( navItem "General Info"
-        # navItem "Observations"
-        # navItem "Configurations"
-        # navItem "Report Explained"
-        )
-    )
+stanHeader :: Html
+stanHeader = header ! (A.class_ "centre") $ do
+    divClass "row" (h1 "Stan Report")
+    nav ! (A.class_ "row") $ do
+      navItem "General Info"
+      navItem "Observations"
+      navItem "Configurations"
+      navItem "Report Explained"
   where
-    navItem h = divClass "col-3 nav-item" (a_A (A.href_ $ "#" <> hToId h) h)
+    navItem :: Text -> Html
+    navItem h = divClass "col-3 nav-item"
+        (a ! (A.href $ fromString $ "#" <> hToId h) $ toHtml h)
 
-stanMain an config warnings env project = main_A (A.class_ "container")
-    ( divClass "row" (p_ "This is Haskell Static Analysis report by Stan.")
-    # divIdClassH "Stan Info" "row" (stanInfo env)
-    # divIdClass "general-info" "row"
-        ( divIdClassH "Project Info" "col-6" (stanProject project)
-        # divIdClassH "Analysis Info" "col-6" (stanAnalysis analysisNumbers)
-        )
-    # divIdClassH "Static Analysis Summary" "row" (stanSummary an analysisNumbers)
-    -- # divIdClassH "Graphs" "row" (p_ "Maybe later")
-    # divIdClassH "Observations" "row" (stanObservations an)
-    # divIdClassH "Configurations" "row" (stanConfig an config warnings)
-    -- # divIdClassH "Summary" "row" (p_ "Later")
-    # divIdClassH "Report Explained" ""
-        ( divIdClassH "Inspections" "row"
-            ( divClass "row" (blockP "List of Inspections used for analysing the project")
-            # stanInspections (analysisInspections an)
-            )
-        # divIdClassH "Severity" "row" stanSeverityExplained
-        )
-    )
+stanMain :: Analysis -> Config -> [Text] -> StanEnv -> ProjectInfo -> Html
+stanMain an config warnings env project = main  ! (A.class_ "container") $ do
+    divClass "row" (p "This is Haskell Static Analysis report by Stan.")
+    divIdClassH "Stan Info" "row" (stanInfo env)
+    divIdClass "general-info" "row" $ do
+        divIdClassH "Project Info" "col-6" (stanProject project)
+        divIdClassH "Analysis Info" "col-6" (stanAnalysis analysisNumbers)
+    divIdClassH "Static Analysis Summary" "row" (stanSummary an analysisNumbers)
+    -- divIdClassH "Graphs" "row" (p_ "Maybe later")
+    divIdClassH "Observations" "row" (stanObservations an)
+    divIdClassH "Configurations" "row" (stanConfig an config warnings)
+    -- divIdClassH "Summary" "row" (p_ "Later")
+    divIdClassH "Report Explained" "" $ do
+        divIdClassH "Inspections" "row" $ stanInspections (analysisInspections an)
+        divIdClassH "Severity" "row" stanSeverityExplained
   where
     analysisNumbers :: AnalysisNumbers
     analysisNumbers = analysisToNumbers an
 
-stanInfo StanEnv{..} =
-    let StanVersion{..} = stanVersion in
-    let StanSystem{..} = stanSystem in
-    ( divClass "row" (blockP "General information about Stan and its compile time and runtime environments: how and where it was built and executed")
-    # divClass "col-10"
-        ( table_A (A.class_ "border-shadow" # A.style_ "table-layout:fixed")
-            ( colgroup_ (col_A (A.style_ "width:25%") # col_)
-            # tr2 "Stan Version"
-            # tableRow "Version"       svVersion
-            # tableRow "Git Revision"  svGitRevision
-            # tableRow "Release Date"  svCommitDate
-            # tr2 "System Info"
-            # tableRow "Operating System" ssOs
-            # tableRow "Architecture"     ssArch
-            # tableRow "Compiler"         ssCompiler
-            # tableRow "Compiler Version" ssCompilerVersion
-            # tr2 "Environment"
-            # tableRow "Environment Variables"    seEnvVars
-            # tableRow "TOML configuration files" seTomlFiles
-            # tableRow "CLI arguments"            (List.unwords seCliArgs)
-            )
-        )
-    )
+stanInfo :: StanEnv -> Html
+stanInfo StanEnv{..} = do
+    let StanVersion{..} = stanVersion
+    let StanSystem{..} = stanSystem
+    divClass "row" (blockP "General information about Stan and its compile time and runtime environments: how and where it was built and executed")
+    divClass "col-10" $
+        table ! (A.class_ "border-shadow" <> A.style "table-layout:fixed") $ do
+            colgroup (col ! (A.style "width:25%") >> col)
+            tr2 "Stan Version"
+            tableRow "Version"       svVersion
+            tableRow "Git Revision"  svGitRevision
+            tableRow "Release Date"  svCommitDate
+            tr2 "System Info"
+            tableRow "Operating System" ssOs
+            tableRow "Architecture"     ssArch
+            tableRow "Compiler"         ssCompiler
+            tableRow "Compiler Version" ssCompilerVersion
+            tr2 "Environment"
+            tableRow "Environment Variables"    seEnvVars
+            tableRow "TOML configuration files" (sequence_ $ map toHtml seTomlFiles)
+            tableRow "CLI arguments"            (List.unwords seCliArgs)
   where
-    tr2 x = tr_ $ td_A (A.colspan_ (2 :: Int) # A.class_ "centre grey-bg") $ strong_ x
+    tr2 x = tr $ td ! (A.colspan "2" <> A.class_ "centre grey-bg") $ strong x
 
-stanProject ProjectInfo{..} =
-    ( divClass "row" (blockP "Information about the analysed project")
-    # tableWithShadow ""
-        ( colgroup_ (col_A (A.class_ "info-name") # col_A (A.class_ "info-data"))
-        # tableRow "Project name"  piName
-        # tableRow "Cabal Files"   (List.unwords piCabalFiles)
-        # tableRow "HIE Files Directory" piHieDir
-        # tableRow "Files Number" piFileNumber
-        )
-    )
+stanProject :: ProjectInfo -> Html
+stanProject ProjectInfo{..} = do
+    divClass "row" (blockP "Information about the analysed project")
+    tableWithShadow "" $ do
+        colgroup (col ! (A.class_ "info-name") >> col ! (A.class_ "info-data"))
+        tableRow "Project name"  piName
+        tableRow "Cabal Files"   (List.unwords piCabalFiles)
+        tableRow "HIE Files Directory" piHieDir
+        tableRow "Files Number" piFileNumber
 
-stanAnalysis AnalysisNumbers{..} =
-    ( divClass "row" (blockP "Short stats from the static analysis")
-    # tableWithShadow ""
-        ( tableRow "Modules"               anModules
-        # tableRow "LoC"                   anLoc
-        # tableRow "Extensions"            anExts
-        # tableRow "SafeHaskel Extensions" anSafeExts
-        # tableRow "Available inspections" (HM.size inspectionsMap)
-        # tableRow "Checked inspections"   anIns
-        # tableRow "Found Observations"    anFoundObs
-        # tableRow "Ignored Observations"  anIgnoredObs
-        )
-    )
+stanAnalysis :: AnalysisNumbers -> Html
+stanAnalysis AnalysisNumbers{..} = do
+    divClass "row" (blockP "Short stats from the static analysis")
+    tableWithShadow "" $ do
+        tableRow "Modules"               anModules
+        tableRow "LoC"                   anLoc
+        tableRow "Extensions"            anExts
+        tableRow "SafeHaskel Extensions" anSafeExts
+        tableRow "Available inspections" (HM.size inspectionsMap)
+        tableRow "Checked inspections"   anIns
+        tableRow "Found Observations"    anFoundObs
+        tableRow "Ignored Observations"  anIgnoredObs
 
-stanSummary analysis AnalysisNumbers{..} =
-    ( divClass "row" (blockP "Summary of the static analysis report")
-    # ul_A (A.class_ "col-10")
-        ( li_A (A.class_ "sum")
-            ( h4_ ("Project health: " # prettyHealth anHealth)
-            # span_ "This was calculated TODO"
-            )
-        # li_A (A.class_ "sum")
-            ( h4_ ("The project " # showProjectHealth (toProjectHealth anHealth))
-            # span_ "Conclusions TODO"
-            )
-        # summary
-        )
-    )
+stanSummary :: Analysis -> AnalysisNumbers -> Html
+stanSummary analysis AnalysisNumbers{..} = do
+    divClass "row" (blockP "Summary of the static analysis report")
+    ul ! (A.class_ "col-10") $ do
+        liSum $ do
+            h4 (toHtml $ "Project health: " <> prettyHealth anHealth)
+            span $ toHtml @Text "This was calculated TODO"
+        liSum $ do
+            h4 (toHtml $ "The project " <> showProjectHealth (toProjectHealth anHealth))
+            span "Conclusions TODO"
+        summary
   where
     showProjectHealth :: ProjectHealth -> Text
-    showProjectHealth = toText . \case
+    showProjectHealth = \case
         Unhealthy    -> "is unhealthy"
         LowHealth    -> "has low health"
         MediumHealth -> "has medium health"
         Healthy      -> "is healthy"
 
+    summary :: Html
     summary = case createSummary analysis of
-        Nothing -> Left $ li_A (A.class_ "sum")
-            ( h4_ "Congratulations! Your project has zero vulnerabilities!"
-            # span_ "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project"
-            )
-        Just Summary{..} ->
-            Right
-            $ li_A (A.class_ "sum")
-                ( h4_ ("Watch out for " # unId summaryInspectionId)
-                # span_
-                    ("By the result of Stan analysis, the most common inspection for this project is "
-                    # inspectionLink summaryInspectionId)
-                )
-            # li_A (A.class_ "sum")
-                ( h4_ ("Vulnerable module: " # unModuleName summaryModule)
-                # span_ ("The " # code_ (unModuleName summaryModule) # " module is the most vulnerable one in the project, as it got the most number of observations")
-                )
-            # li_A (A.class_ "sum")
-                ( h4_ ("Popular category: " # unCategory summaryCategory)
-                # ( categories "inline" [summaryCategory]
-                  # "The project has the most problems with inspections from this category"
-                  )
-                )
-            # li_A (A.class_ "sum")
-                ( h4_ ("Severity: " # show @Text summarySeverity)
-                # ( "The highest severity of found vulnerabilities is "
-                  # severity (show @Text summarySeverity)
-                  )
-                )
+        Nothing -> liSum $ do
+            h4 "Congratulations! Your project has zero vulnerabilities!"
+            span "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project"
+        Just Summary{..} -> do
+            liSum $ do
+                h4 $ toHtml ("Watch out for " <> unId summaryInspectionId)
+                span $ do
+                    toHtml @Text "By the result of Stan analysis, the most common inspection for this project is "
+                    inspectionLink summaryInspectionId
+            liSum $ do
+                h4 $ toHtml ("Vulnerable module: " <> unModuleName summaryModule)
+                span $ do
+                    toHtml @Text "The "
+                    code (toHtml $ unModuleName summaryModule)
+                    toHtml @Text " module is the most vulnerable one in the project, as it got the most number of observations"
+            liSum $ do
+                h4 (toHtml $ "Popular category: " <> unCategory summaryCategory)
+                categories "inline" $ one summaryCategory
+                toHtml @Text "The project has the most problems with inspections from this category"
+            liSum $ do
+                h4 $ toHtml ("Severity: " <> show @Text summarySeverity)
+                toHtml @Text "The highest severity of found vulnerabilities is "
+                severity (show @Text summarySeverity)
 
-stanObservations Analysis{..} =
-    ( divClass "row" (blockP "List of found vulnerabilities per file")
-    # map stanPerFile
-      ( filter (not . null . fileInfoObservations)
-      $ Map.elems analysisFileMap
-      )
-    )
+    liSum :: Html -> Html
+    liSum = li ! (A.class_ "sum")
 
-stanPerFile FileInfo{..} = divIdClass "file" "row"
-    ( h3_A (A.class_ "grey-bg") ("📄 " # fileInfoPath)
-    # ul_
-        ( li_ (tableWithShadow "col-6"
-            ( tableRow "Module" (code_ $ unModuleName fileInfoModuleName)
-            # tableRow "Lines of Code" (show @Text fileInfoLoc)
-            ))
-        # li_ (divClass "extensions"
-              ( stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
-              # stanExtensions "module" (extensionsToText fileInfoExtensions)
-              )
-              )
-        # li_A (A.class_ "col-12 obs-li") (divClass "observations col-12"
-            ( h4_ "Observations" # map stanObservation (toList fileInfoObservations)))
-        )
-    )
+stanObservations :: Analysis -> Html
+stanObservations Analysis{..} = do
+    divClass "row" (blockP "List of found vulnerabilities per file")
+    sequence_ $ map stanPerFile $
+        filter (not . null . fileInfoObservations) $ Map.elems analysisFileMap
 
-stanExtensions from exts = divClass "col-6"
-    ( button_A (A.class_ "collapsible") ("Extensions from " # from)
-    # ol_A (A.class_ "content") (map li_ exts)
-    )
+stanPerFile :: FileInfo -> Html
+stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
+    h3 ! (A.class_ "grey-bg") $ toHtml $ "📄 " <> fileInfoPath
+    ul $ do
+        li $ tableWithShadow "col-6" $ do
+            tableRow "Module" $ code $ toHtml $ unModuleName fileInfoModuleName
+            tableRow "Lines of Code" fileInfoLoc
+        li $ divClass "extensions" $ do
+            stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
+            stanExtensions "module" (extensionsToText fileInfoExtensions)
+        li ! (A.class_ "col-12 obs-li") $ divClass "observations col-12" $ do
+            h4 "Observations"
+            sequence_ $ map stanObservation $ toList fileInfoObservations
 
-inspectionLink ins = a_A (A.class_ "ins-link" # A.href_ (toText "#" <> insId)) insId
+stanExtensions :: Text -> [Text] -> Html
+stanExtensions from exts = divClass "col-6" $ do
+    button ! (A.class_ "collapsible") $ toHtml $ "Extensions from " <> from
+    ol ! (A.class_ "content") $ sequence_ $ map (li . toHtml) exts
+
+inspectionLink :: Id Inspection -> Html
+inspectionLink ins = a ! A.class_ "ins-link" ! A.href (fromString $ "#" <> toString insId) $ toHtml insId
   where
     insId :: Text
     insId = unId ins
 
-stanObservation o@Observation{..} = divIdClass (unId observationId) "observation row"
-    ( general
-    # pre_ (unlines $ prettyObservationSource False o)
-    # solutionsDiv inspection
-    )
+stanObservation :: Observation -> Html
+stanObservation o@Observation{..} = divIdClass (toString $ unId observationId) "observation row" $ do
+    general
+    pre $ toHtml (unlines $ prettyObservationSource False o)
+    solutionsDiv inspection
   where
-    general = divClass "observation-general" $ tableWithShadow ""
-        ( tableR "ID"            (unId observationId)
-        # tableR "Severity"      (severityFromIns inspection)
-        # tableR "Description"   (inspectionDescription inspection)
-        # tableR "Inspection ID" (inspectionLink observationInspectionId)
-        # tableR "Category"      (categories "inline" $ inspectionCategory inspection)
-        # tableR "File"          observationFile
-        )
+    general = divClass "observation-general" $ tableWithShadow "" $ do
+        tableR "ID"            (unId observationId)
+        tableR "Severity"      (severityFromIns inspection)
+        tableR "Description"   (inspectionDescription inspection)
+        tableR "Inspection ID" (inspectionLink observationInspectionId)
+        tableR "Category"      (categories "inline" $ inspectionCategory inspection)
+        tableR "File"          observationFile
 
-    tableR name val = tr_
-        ( td_A (A.class_ "info-name very-light-bg") name
-        # td_A (A.class_ "info-data") val
-        )
+    tableR :: ToMarkup a => Text -> a -> Html
+    tableR name val = tr $ do
+        td ! (A.class_ "info-name very-light-bg") $ toHtml name
+        td ! (A.class_ "info-data") $ toHtml val
 
     inspection :: Inspection
     inspection = getInspectionById observationInspectionId
 
+severityFromIns :: Inspection -> Html
 severityFromIns ins = severity $ show @Text $ inspectionSeverity ins
 
-severity severityTxt = span_A (A.class_ "severity")
-    ( span_A (A.class_ $ toText "severity" <> severityTxt) ""
-    # span_A (A.class_ "severityText") severityTxt
-    )
+severity :: Text -> Html
+severity severityTxt = span ! (A.class_ "severity") $ do
+    span ! (A.class_ $ fromString $ "severity" <> toString severityTxt) $ toHtml @Text ""
+    span ! (A.class_ "severityText") $ toHtml severityTxt
 
-categories cl cats = ul_A (A.class_ $ "cats " <> cl) $
-    map (li_A (A.class_ "cat") . unCategory) $ toList cats
+categories :: Text -> NonEmpty Category -> Html
+categories cl cats = ul ! (A.class_ $ fromString $ toString $ "cats " <> cl) $ sequence_ $
+    map ((li ! (A.class_ "cat")) . toHtml . unCategory) $ toList cats
 
-solutionsDiv ins = nothingIfTrue (null solutions)
-    ( divClass ("solutions border-shadow")
-        ( h4_ "Possible solutions"
-        # ul_ (map li_ solutions)
-        )
-    )
+solutionsDiv :: Inspection -> Html
+solutionsDiv ins = memptyIfTrue (null solutions) $ divClass ("solutions border-shadow") $ do
+    h4 "Possible solutions"
+    ul (sequence_ $ map (li . toHtml) solutions)
   where
     solutions :: [Text]
     solutions = inspectionSolution ins
 
-stanInspections = div_ . map stanInspection . sortWith unId . toList
-stanInspection (getInspectionById -> ins@Inspection{..}) =
-    button_A (A.class_ "collapsible" # A.id_ insId) ("Explore Inspection " # insId)
-    # divClass "content row" ( divIdClass (insId <> toText "-content") "inspection col-12"
-        ( h3_ ("Inspection " # unId inspectionId)
-        # p_ (strong_ inspectionName)
-        # p_ (em_ inspectionDescription)
-        # div_ (severityFromIns ins)
-        # div_ (categories "" inspectionCategory)
-        # solutionsDiv ins
-        )
-    )
+stanInspections :: HashSet (Id Inspection) -> Html
+stanInspections ins = do
+    divClass "row" (blockP "List of Inspections used for analysing the project")
+    div $ sequence_ $ map stanInspection $ sortWith unId $ toList ins
+
+stanInspection :: Id Inspection -> Html
+stanInspection (getInspectionById -> ins@Inspection{..}) = do
+    button ! A.class_ "collapsible" ! A.id (fromString $ toString insId) $
+      toHtml ("Explore Inspection " <> insId)
+    divClass "content row" $ divIdClass (toString insId <> "-content") "inspection col-12" $ do
+        h3 $ toHtml ("Inspection " <> insId)
+        p $ strong $ toHtml inspectionName
+        p $ em $ toHtml inspectionDescription
+        div (severityFromIns ins)
+        div (categories "" inspectionCategory)
+        solutionsDiv ins
   where
     insId :: Text
     insId = unId inspectionId
 
-stanConfig Analysis{..} (config :: Config) (warnings :: [Text]) = divClass "col-12 "
-    ( divClass "row" (blockP "Description of the custom Stan configuration and explanation of how it was assembled")
-    # divClass "row" (table_
-        ( tr_ (th_ "Action" # th_ "Filter" # th_ "Scope")
-        # map toRows (configToTriples config)
-        ))
-    # divClass "ignored-observations row"
-        ( toUl ignoredIds "Ignored Observations"
+stanConfig :: Analysis -> Config -> [Text] -> Html
+stanConfig Analysis{..} config warnings = divClass "col-12" $ do
+    divClass "row" (blockP "Description of the custom Stan configuration and explanation of how it was assembled")
+    divClass "row" $ table $ do
+        tr (th "Action" >> th "Filter" >> th "Scope")
+        sequence_ $ map toRows (configToTriples config)
+    divClass "ignored-observations row" $ do
+        toUl ignoredIds "Ignored Observations"
             "These observations are flagged as ignored through the configurations and are not considered in the final report"
-        # toUl unknownIds "Unrecognised Observations"
+        toUl unknownIds "Unrecognised Observations"
             "Some observation IDs specified in the configurations are not found"
-        )
-    # divClass "config-warnings row"
-        ( h4_ "Configuration Process Information"
-        # p_
-            ( "Information and warnings that were gathered during the configuration assemble process. "
-            # "This helps to understand how different parts of the configurations were retrieved."
-            )
-        # ul_ (map li_ warnings)
-        )
-    )
+    divClass "config-warnings row" $ do
+        h4 "Configuration Process Information"
+        p $
+            "Information and warnings that were gathered during the configuration assemble process. "
+          <> "This helps to understand how different parts of the configurations were retrieved."
+        ul (sequence_ $ map (li . toHtml) warnings)
   where
-    toRows (act, fil, sc) = tr_A (A.class_ $ configActionClass act)
-      ( td_A (A.class_ "centre") (span_ $ strong_ $ prettyConfigAction act)
-      # td_ fil
-      # td_ sc
-      )
+    toRows :: (ConfigAction, Text, Text) -> Html
+    toRows (act, fil, sc) = tr !
+      (A.class_ $ fromString $ toString $ configActionClass act) $ do
+        td ! (A.class_ "centre") $ span $ strong $ toHtml $ prettyConfigAction act
+        td $ toHtml fil
+        td $ toHtml sc
 
-    toUl ids header desc = nothingIfTrue (null ids) $ divClass "ignored-obs"
-        ( h4_ header
-        # p_ desc
-        # ul_ (map (li_ . unId) ids)
-        )
+    toUl :: [Id a] -> Text -> Text -> Html
+    toUl ids headerTxt desc = memptyIfTrue (null ids) $ divClass "ignored-obs" $ do
+        h4 $ toHtml headerTxt
+        p $ toHtml desc
+        ul (sequence_ $ map (li . toHtml . unId) ids)
 
     ignoredIds, unknownIds :: [Id Observation]
     (ignoredIds, unknownIds) = ignoredObservations
         (configIgnored config)
         analysisIgnoredObservations
 
-stanSeverityExplained =
-      divClass "col-5"
-        (blockP "We are using the following severity system to indicate the observation level")
+stanSeverityExplained :: Html
+stanSeverityExplained = do
+    divClass "col-5" $
+        blockP "We are using the following severity system to indicate the observation level"
 
-    # tableWithShadow "col-7"
-        ( tr_A greyBg (th_ "Severity" # th_ "Description")
-        # map toSeverityRow (universe @Severity)
-        )
+    tableWithShadow "col-7" $ do
+        tr ! greyBg $ (th "Severity" >> th "Description")
+        sequence_ $ map toSeverityRow (universe @Severity)
   where
-    toSeverityRow s = tr_
-        ( td_ (severity $ show @Text s)
-        # td_ (severityDescription s)
-        )
+    toSeverityRow :: Severity -> Html
+    toSeverityRow s = tr $ do
+        td (severity $ show s)
+        td (toHtml $ severityDescription s)
 
-stanFooter = footer_
-    ( divClass "container"
-        ( divClass "row footer-link"
-            ( span_ "This report was generated by "
-            # a_A (A.href_ "https://github.com/kowainik/stan") "Stan — Haskell Static Analysis Tool."
-            )
-        # divClass "row footer-link"
-            ( span_ "Stan is created and maintained by "
-            # a_A (A.href_ "https://kowainik.github.io") "Kowainik"
-            )
-        )
-    # nav_A (A.class_ "row centre") (h3_ $ strong_ "© Kowainik 2020")
-    )
+stanFooter :: Html
+stanFooter = footer $ do
+    divClass "container" $ do
+        divClass "row footer-link" $ do
+            span "This report was generated by "
+            a ! (A.href "https://github.com/kowainik/stan") $
+                toHtml @Text "Stan — Haskell Static Analysis Tool."
+        divClass "row footer-link" $ do
+            span "Stan is created and maintained by "
+            a ! (A.href "https://kowainik.github.io") $ toHtml @Text "Kowainik"
+    nav ! (A.class_ "row centre") $ h3 $ strong "© Kowainik 2020"
 
-stanHead = head_
-    ( meta_A (A.httpEquiv_ "Content-Type" # A.content_ "text/html; charset=UTF-8")
-    # meta_A (A.httpEquiv_ "X-UA-Compatible" # A.content_ "IE=Edge")
-    # nameContent "viewport" "width=device-width, initial-scale=1.0"
-    # nameContent "description" "Stan Report"
-    # nameContent "keywords" "Haskell, Static Analysis"
-    # nameContent "author" "Kowainik"
-    # title_ "Stan Report"
+stanHead :: Html
+stanHead = head $ do
+    meta ! (A.httpEquiv "Content-Type" <> A.content "text/html; charset=UTF-8")
+    meta ! (A.httpEquiv "X-UA-Compatible" <> A.content "IE=Edge")
+    nameContent "viewport" "width=device-width, initial-scale=1.0"
+    nameContent "description" "Stan Report"
+    nameContent "keywords" "Haskell, Static Analysis"
+    nameContent "author" "Kowainik"
+    title "Stan Report"
 
-    # style_ (Raw $ renderWith compact [] stanCss)
-    )
+    style (toHtml $ renderWith compact [] stanCss)
   where
-    nameContent x y = meta_A (A.name_ x # A.content_ y)
+    nameContent x y = meta ! (A.name x <> A.content y)
 
-stanJs = script_ $ Raw $ List.unlines
+stanJs = script $ toHtml $ List.unlines
     [ "var coll = document.getElementsByClassName(\"collapsible\");"
     , "var i;"
     , ""
@@ -385,24 +368,28 @@ stanJs = script_ $ Raw $ List.unlines
     , "}"
     ]
 
-divClass c = div_A (A.class_ c)
-divIdClass i c = div_A (A.id_ i # A.class_ c)
+divClass :: String -> Html -> Html
+divClass c = div ! (A.class_ (fromString c))
 
-divIdClassH h c rest = divIdClass (hToId h) c (h2_ h # rest)
+divIdClass :: String -> String -> Html -> Html
+divIdClass aId c = div ! (A.id (fromString aId) <> A.class_ (fromString c))
 
-blockP t = blockquote_ (p_ t)
+divIdClassH :: Text -> String -> Html -> Html
+divIdClassH h c rest = divIdClass (hToId h) c (h2 (toHtml h) >> rest)
 
-tableRow name val = tr_
-    ( td_A (A.class_ "info-name") name
-    # td_A (A.class_ "info-data very-light-bg") val
-    )
+blockP :: Text -> Html
+blockP = blockquote . p . toHtml
 
-tableWithShadow cl = table_A (A.class_ $ "border-shadow " <> cl)
+tableRow :: ToMarkup a => Text -> a -> Html
+tableRow name val = tr $ do
+    td ! (A.class_ "info-name") $ toHtml name
+    td ! (A.class_ "info-data very-light-bg") $ toHtml val
 
+tableWithShadow :: String -> Html -> Html
+tableWithShadow cl = table ! (A.class_ $ fromString $ "border-shadow " <> cl)
+
+greyBg :: Attribute
 greyBg = A.class_ "grey-bg"
 
-hToId :: String -> String
-hToId = intercalate "-" . map (map toLower) . List.words
-
-nothingIfTrue :: Bool -> a -> Maybe a
-nothingIfTrue p a = if p then Nothing else Just a
+hToId :: Text -> String
+hToId = toString . T.intercalate "-" . map T.toLower . words
