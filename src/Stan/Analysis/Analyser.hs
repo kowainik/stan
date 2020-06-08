@@ -225,9 +225,9 @@ analyseInfix insId hie =
 
 -- | Either top-level operator or fixity declaration
 data OperatorDecl
-    = Fixity Text
+    = Fixity !Text
     -- | Operator name with its position to display later
-    | Operator Text RealSrcSpan
+    | Operator !Text !RealSrcSpan
 
 {- | Partition a foldable of operator declarations into two maps:
 

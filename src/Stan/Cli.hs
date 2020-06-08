@@ -43,10 +43,10 @@ import Stan.Report.Settings (ReportSettings (..))
 
 -- | Commands used in Stan CLI.
 data StanCommand
-    = Stan StanArgs  -- ^ Just @stan@ with its options.
-    | StanInspection InspectionArgs  -- ^ @stan inspection@.
-    | StanTomlToCli TomlToCliArgs  -- ^ @stan toml-to-cli@
-    | StanCliToToml CliToTomlArgs  -- ^ @stan cli-to-toml@
+    = Stan !StanArgs  -- ^ Just @stan@ with its options.
+    | StanInspection !InspectionArgs  -- ^ @stan inspection@.
+    | StanTomlToCli !TomlToCliArgs  -- ^ @stan toml-to-cli@
+    | StanCliToToml !CliToTomlArgs  -- ^ @stan cli-to-toml@
 
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
@@ -191,9 +191,9 @@ toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     ]
 
 data ConfigCommand
-    = CheckCommand Check
-    | RemoveCommand Scope
-    | IgnoreCommand (Id Observation)
+    = CheckCommand !Check
+    | RemoveCommand !Scope
+    | IgnoreCommand !(Id Observation)
 
 partitionCommands :: [ConfigCommand] -> ([Check], [Scope], [Id Observation])
 partitionCommands [] = ([], [], [])

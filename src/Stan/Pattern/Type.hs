@@ -39,17 +39,17 @@ data PatternType
     | @Either Int String@ | @PatternName (NameMeta ... \"Either\") [intPattern, stringPattern]@ |
     +---------------------+---------------------------------------------------------------------+
     -}
-    = PatternTypeName NameMeta [PatternType]
+    = PatternTypeName !NameMeta ![PatternType]
     -- | Function pattern.
-    | PatternTypeFun PatternType PatternType
+    | PatternTypeFun !PatternType !PatternType
     -- | Type wildcard, matches anything.
     | PatternTypeAnything
     -- | Choice between patterns. Should match either of them.
-    | PatternTypeOr PatternType PatternType
+    | PatternTypeOr !PatternType !PatternType
     -- | Union of patterns. Should match both of them.
-    | PatternTypeAnd PatternType PatternType
+    | PatternTypeAnd !PatternType !PatternType
     -- | Negation of pattern. Should match everything except this pattern.
-    | PatternTypeNeg PatternType
+    | PatternTypeNeg !PatternType
     deriving stock (Show, Eq)
 
 instance PatternBool PatternType where

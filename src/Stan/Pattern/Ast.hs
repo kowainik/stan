@@ -33,25 +33,25 @@ low-level, but helper functions are provided.
 -}
 data PatternAst
     -- | Integer constant in code.
-    = PatternAstConstant Int  -- TODO: support constants of different types
+    = PatternAstConstant !Int  -- TODO: support constants of different types
     -- | Name of a specific function, variable or data type.
-    | PatternAstName NameMeta PatternType
+    | PatternAstName !NameMeta !PatternType
     -- | AST node with tags for current node and any children.
     | PatternAstNode
-        (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
     -- | AST node with tags for current node and children
     -- patterns. This pattern should match the node exactly.
     | PatternAstNodeExact
-        (Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
-        [PatternAst]  -- ^ Node children
+        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        ![PatternAst]  -- ^ Node children
     -- | AST wildcard, matches anything.
     | PatternAstAnything
     -- | Choice between patterns. Should match either of them.
-    | PatternAstOr PatternAst PatternAst
+    | PatternAstOr !PatternAst !PatternAst
     -- | Union of patterns. Should match both of them.
-    | PatternAstAnd PatternAst PatternAst
+    | PatternAstAnd !PatternAst !PatternAst
     -- | Negation of pattern. Should match everything except this pattern.
-    | PatternAstNeg PatternAst
+    | PatternAstNeg !PatternAst
     deriving stock (Show, Eq)
 
 instance PatternBool PatternAst where

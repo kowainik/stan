@@ -106,16 +106,16 @@ data Check = Check
 
 -- | Criterion for inspections filtering.
 data CheckFilter
-    = CheckInspection (Id Inspection)
-    | CheckSeverity Severity
-    | CheckCategory Category
+    = CheckInspection !(Id Inspection)
+    | CheckSeverity !Severity
+    | CheckCategory !Category
     | CheckAll
     deriving stock (Show, Eq)
 
 -- | Where to apply the rule for controlling inspection set.
 data Scope
-    = ScopeFile FilePath
-    | ScopeDirectory FilePath
+    = ScopeFile !FilePath
+    | ScopeDirectory !FilePath
     | ScopeAll
     deriving stock (Show, Eq)
 

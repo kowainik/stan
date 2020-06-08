@@ -88,9 +88,9 @@ inspections in a uniformed way.
 -}
 data InspectionAnalysis
     -- | Find specific function name by specified 'PatternType'.
-    = FindName NameMeta PatternType
+    = FindName !NameMeta !PatternType
     -- | Find the specific part of the Haskell AST.
-    | FindAst PatternAst
+    | FindAst !PatternAst
     -- | Find all operators without matching @infix[r|l]@
     | Infix
     -- | Check if the data type has lazy fields
