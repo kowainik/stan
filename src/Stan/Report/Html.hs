@@ -106,7 +106,7 @@ stanInfo StanEnv{..} = do
             tableRow "Compiler Version" ssCompilerVersion
             tr2 "Environment"
             tableRow "Environment Variables"    seEnvVars
-            tableRow "TOML configuration files" (sequence_ $ map toHtml seTomlFiles)
+            tableRow "TOML configuration files" (traverse_ toHtml seTomlFiles)
             tableRow "CLI arguments"            (List.unwords seCliArgs)
   where
     tr2 x = tr $ td ! (A.colspan "2" <> A.class_ "centre grey-bg") $ strong x
@@ -200,7 +200,7 @@ stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
             stanExtensions "module" (extensionsToText fileInfoExtensions)
         li ! (A.class_ "col-12 obs-li") $ divClass "observations col-12" $ do
             h4 "Observations"
-            sequence_ $ map stanObservation $ toList fileInfoObservations
+            traverse_ stanObservation fileInfoObservations
 
 stanExtensions :: Text -> [Text] -> Html
 stanExtensions from exts = divClass "col-6" $ do
