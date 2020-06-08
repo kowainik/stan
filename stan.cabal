@@ -118,6 +118,7 @@ library
 
   build-depends:       array ^>= 0.5
                      , base64 ^>= 0.4.1
+                     , blaze-html ^>= 0.9.1
                      , bytestring ^>= 0.10
                      , clay ^>= 0.13
                      , colourista ^>= 0.1.0.0
@@ -138,7 +139,6 @@ library
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
-                     , type-of-html ^>= 1.5.1
                      , unordered-containers ^>= 0.2
 
 executable stan
