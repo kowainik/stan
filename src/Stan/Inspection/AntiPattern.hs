@@ -88,7 +88,7 @@ stan0201 = mkAntiPatternInspection (Id "STAN-0201") "[0 .. length xs]" (FindAst 
 -- | 'Inspection' — 'foldl' @STAN-0202@.
 stan0202 :: Inspection
 stan0202 = mkAntiPatternInspection (Id "STAN-0202") "foldl"
-    (FindName (mkBaseFoldableMeta "foldl") (?))
+    (FindAst $ PatternAstName (mkBaseFoldableMeta "foldl") (?))
     & descriptionL .~ "Usage of space-leaking function 'foldl'"
     & solutionL .~
         [ "Replace 'foldl' with 'foldl''"
@@ -100,7 +100,7 @@ stan0202 = mkAntiPatternInspection (Id "STAN-0202") "foldl"
 -- | 'Inspection' — 'Data.ByteString.Char8.pack' @STAN-0203@.
 stan0203 :: Inspection
 stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
-    (FindName packNameMeta (?))
+    (FindAst $ PatternAstName packNameMeta (?))
     & descriptionL .~ "Usage of 'pack' function that doesn't handle Unicode characters"
     & solutionL .~
         [ "Convert to 'Text' and use 'encodeUtf8' from 'Data.Text.Encoding'"
@@ -119,7 +119,7 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
 -- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0204@.
 stan0204 :: Inspection
 stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
-    (FindName sizeNameMeta (?))
+    (FindAst $ PatternAstName sizeNameMeta (?))
     & descriptionL .~ "Usage of 'size' for 'HashMap' that runs in linear time"
     & solutionL .~
         [ "Switch to 'Map' from 'containers' if this data type works for you"
@@ -137,7 +137,7 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
 -- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0205@.
 stan0205 :: Inspection
 stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
-    (FindName sizeNameMeta (?))
+    (FindAst $ PatternAstName sizeNameMeta (?))
     & descriptionL .~ "Usage of 'size' for 'HashSet' that runs in linear time"
     & solutionL .~
         [ "Switch to 'Set' from 'containers' if this data type works for you"

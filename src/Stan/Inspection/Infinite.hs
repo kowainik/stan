@@ -34,6 +34,7 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta)
+import Stan.Pattern.Ast (PatternAst (PatternAstName))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), listFunPattern)
 import Stan.Severity (Severity (..))
@@ -62,7 +63,7 @@ mkInfiniteInspection insId nameMeta@NameMeta{..} pat = Inspection
     , inspectionSolution = []
     , inspectionCategory = Category.infinite :| [Category.list]
     , inspectionSeverity = Warning
-    , inspectionAnalysis = FindName nameMeta pat
+    , inspectionAnalysis = FindAst $ PatternAstName nameMeta pat
     }
 
 -- | 'Inspection' for 'stan0101' — infinite 'reverse' @STAN-0101@.

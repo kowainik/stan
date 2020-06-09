@@ -16,6 +16,7 @@ import Stan.Core.ModuleName (ModuleName)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, prettyShowNameMeta)
 import Stan.Observation (Observation (..), mkObservationId)
+import Stan.Pattern.Ast (PatternAst (PatternAstName))
 
 import qualified Data.Text as Text
 
@@ -97,5 +98,5 @@ itShouldStr Inspection{..} = toString $ unId inspectionId
     <> "'"
 
 unsafeNameMeta :: InspectionAnalysis -> NameMeta
-unsafeNameMeta (FindName nm _) = nm
-unsafeNameMeta _               = error "Impossible happened in tests"
+unsafeNameMeta (FindAst (PatternAstName nm _)) = nm
+unsafeNameMeta _                               = error "Impossible happened in tests"
