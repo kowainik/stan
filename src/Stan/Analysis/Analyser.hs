@@ -15,8 +15,7 @@ module Stan.Analysis.Analyser
 
 import Extensions (ExtensionsResult)
 import GHC.LanguageExtensions.Type (Extension (Strict, StrictData))
-import HieTypes (HieAST (..), HieASTs (..), HieFile (..), Identifier, IdentifierDetails (..),
-                 NodeInfo (..), TypeIndex)
+import HieTypes (HieAST (..), HieASTs (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
 import Name (nameOccName)
 import OccName (isSymOcc, occNameString)
 import Slist (Slist, slist)
@@ -25,12 +24,9 @@ import SrcLoc (RealSrcSpan)
 import Stan.Core.Id (Id)
 import Stan.FileInfo (isExtensionDisabled)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
-import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (PatternAst, constructor, dataDecl, fixity, lazyField, typeSig)
-import Stan.Pattern.Type (PatternType)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
@@ -47,54 +43,11 @@ analysisByInspection
     -> HieFile
     -> Observations
 analysisByInspection exts Inspection{..} = case inspectionAnalysis of
-    FindName nameMeta patType -> analyseNameMeta inspectionId nameMeta patType
     FindAst patAst            -> analyseAst inspectionId patAst
     Infix                     -> analyseInfix inspectionId
     LazyField                 -> memptyIfFalse
         (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
         (analyseLazyFields inspectionId)
-
-{- | Check for occurrences of the specified function given via 'NameMeta'.
--}
-analyseNameMeta
-  :: Id Inspection
-  -> NameMeta
-  -> PatternType
-  -> HieFile
-  -> Observations
-analyseNameMeta insId nameMeta patType hie@HieFile{..} =
-    mkObservation insId hie <$> findSpans hie_asts
-  where
-    findSpans :: HieASTs TypeIndex -> Slist RealSrcSpan
-    findSpans =
-        S.concatMap findInAst
-        . Map.elems
-        . getAsts
-
-    findInAst :: HieAST TypeIndex -> Slist RealSrcSpan
-    findInAst Node{..} =
-        findInNode nodeSpan nodeInfo <> S.concatMap findInAst nodeChildren
-
-    findInNode :: RealSrcSpan -> NodeInfo TypeIndex -> Slist RealSrcSpan
-    findInNode srcSpan NodeInfo{..} = slist
-        $ mapMaybe (findUsage nodeType srcSpan)
-        $ Map.assocs nodeIdentifiers
-
-    findUsage
-        :: [TypeIndex]
-        -> RealSrcSpan
-        -> (Identifier, IdentifierDetails TypeIndex)
-        -> Maybe RealSrcSpan
-    findUsage typeIxs srcSpan hieId = do
-        guard
-            -- matches with the given nameMeta
-            $ hieMatchNameMeta nameMeta hieId
-            -- compatible with the given pattern
-            && case typeIxs of
-                []    -> False
-                t : _ -> hieMatchPatternType hie_types patType t
-
-        pure srcSpan
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}

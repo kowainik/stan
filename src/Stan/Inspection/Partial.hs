@@ -68,6 +68,7 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
                         descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
                       mkBaseOldListMeta)
+import Stan.Pattern.Ast (PatternAst (PatternAstName))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
                           naturalPattern, nonEmptyPattern, (|->))
@@ -116,7 +117,7 @@ mkPartialInspectionPattern insId nameMeta@NameMeta{..} pat typeName = Inspection
     , inspectionSolution = []
     , inspectionCategory = one Category.partial
     , inspectionSeverity = Warning
-    , inspectionAnalysis = FindName nameMeta pat
+    , inspectionAnalysis = FindAst $ PatternAstName nameMeta pat
     }
 
 -- | Smart constructor to create generic partial 'Inspection' with 'PatternAnything'.
