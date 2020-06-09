@@ -25,6 +25,8 @@ module Stan.Inspection.AntiPattern
     , stan0205
       -- *** Anti-pattern: Lazy fields
     , stan0206
+      -- *** Anti-pattern: Foldable methods on tuples, Maybe, Either
+    , stan0207
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -33,12 +35,15 @@ module Stan.Inspection.AntiPattern
 import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (fmapToFst)
 
+import Data.Foldable (foldr1)
+
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta)
 import Stan.Pattern.Ast (PatternAst (..), app, range)
 import Stan.Pattern.Edsl (PatternBool (..))
+import Stan.Pattern.Type (foldableMethodsPatterns, foldableTypesPatterns)
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -54,6 +59,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0204
     , stan0205
     , stan0206
+    , stan0207
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -166,3 +172,23 @@ stan0206 = Inspection
     , inspectionSeverity = Performance
     , inspectionAnalysis = LazyField
     }
+
+-- | 'Inspection' — 'Foldable' methods on possibly error-prone structures @STAN-0207@.
+stan0207 :: Inspection
+stan0207 = mkAntiPatternInspection
+    (Id "STAN-0207")
+    "Foldable methods on possibly error-prone structures"
+    (FindAst combinedPattern)
+    & descriptionL .~ "Usage of Foldable methods on (,), Maybe, Either"
+    & solutionL .~
+        [ "Use more explicit functions with specific monomorphic types"
+        ]
+  where
+    combinedPattern :: PatternAst
+    combinedPattern = foldr1 PatternAstOr allPatterns
+
+    allPatterns :: NonEmpty PatternAst
+    allPatterns = do  -- Monad for NonEmpty
+        t <- foldableTypesPatterns
+        (method, mkType) <- foldableMethodsPatterns
+        pure $ PatternAstName method (mkType t)

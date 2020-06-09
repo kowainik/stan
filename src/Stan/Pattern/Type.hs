@@ -20,6 +20,10 @@ module Stan.Pattern.Type
     , listFunPattern
     , integerPattern
     , naturalPattern
+
+      -- * Foldable patterns
+    , foldableTypesPatterns
+    , foldableMethodsPatterns
     ) where
 
 import Stan.NameMeta (NameMeta (..), baseNameFrom)
@@ -108,3 +112,64 @@ integerPattern = NameMeta
 -- | 'PatternType' for 'Natural'.
 naturalPattern :: PatternType
 naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+
+----------------------------------------------------------------------------
+-- Section of Foldable patterns
+----------------------------------------------------------------------------
+
+-- | List of types for @STAN-0207@.
+foldableTypesPatterns :: NonEmpty PatternType
+foldableTypesPatterns = maybePattern :| [eitherPattern, pairPattern]
+
+-- | 'PatternType' for 'Maybe'
+maybePattern :: PatternType
+maybePattern = "Maybe" `baseNameFrom` "GHC.Maybe" |:: [ (?) ]
+
+-- | 'PatternType' for 'Either'
+eitherPattern :: PatternType
+eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
+
+-- | 'PatternType' for pair @(,)@.
+pairPattern :: PatternType
+pairPattern = tupleNameMeta |:: [ (?), (?) ]
+  where
+    tupleNameMeta :: NameMeta
+    tupleNameMeta = NameMeta
+        { nameMetaName       = "(,)"
+        , nameMetaModuleName = "GHC.Tuple"
+        , nameMetaPackage    = "ghc-prim"
+        }
+
+{- | Type patterns for the 'Foldable' typeclass methods. Represented
+as a non-empty list of pairs:
+
+* Method name
+* Function from type to pattern (where things like 'Maybe', 'Either'
+  should be)
+-}
+foldableMethodsPatterns :: NonEmpty (NameMeta, PatternType -> PatternType)
+foldableMethodsPatterns =
+      method "fold"     `ofType` (\t -> t |-> (?)) :|
+    [ method "foldMap"  `ofType` \t -> (?) |-> t |-> (?)
+    , method "foldMap'" `ofType` \t -> (?) |-> t |-> (?)
+    , method "foldr"    `ofType` \t -> (?) |-> (?) |-> t |-> (?)
+    , method "foldr'"   `ofType` \t -> (?) |-> (?) |-> t |-> (?)
+    , method "foldl"    `ofType` \t -> (?) |-> (?) |-> t |-> (?)
+    , method "foldl'"   `ofType` \t -> (?) |-> (?) |-> t |-> (?)
+    , method "foldr1"   `ofType` \t -> (?) |-> t |-> (?)
+    , method "foldl1"   `ofType` \t -> (?) |-> t |-> (?)
+    , method "toList"   `ofType` \t -> t |-> (?)
+    , method "null"     `ofType` \t -> t |-> (?)
+    , method "length"   `ofType` \t -> t |-> (?)
+    , method "elem"     `ofType` \t -> (?) |-> t |-> (?)
+    , method "maximum"  `ofType` \t -> t |-> (?)
+    , method "minimum"  `ofType` \t -> t |-> (?)
+    , method "sum"      `ofType` \t -> t |-> (?)
+    , method "product"  `ofType` \t -> t |-> (?)
+    ]
+  where
+    ofType :: a -> b -> (a, b)
+    ofType = (,)
+
+    method :: Text -> NameMeta
+    method name = name `baseNameFrom` "Data.Foldable"

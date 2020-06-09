@@ -36,6 +36,13 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
 
     strictFieldsSpec analysis
 
+    it "STAN-0207: 'length' for (,)" $
+        checkObservation AntiPattern.stan0207 29 19 25
+    it "STAN-0207: 'null' for Maybe" $
+        checkObservation AntiPattern.stan0207 32 17 21
+    it "STAN-0207: 'foldr' for Either" $
+        checkObservation AntiPattern.stan0207 35 19 24
+
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do
