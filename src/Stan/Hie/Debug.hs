@@ -28,10 +28,14 @@ import FieldLabel (FieldLbl (..))
 import HieTypes (HieAST (..), HieASTs (..), HieArgs (..), HieFile (..), HieType (..),
                  IdentifierDetails (..), NodeInfo (..))
 import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..), IfaceTyConSort (..), IfaceTyLit (..))
-import Module (Module, ModuleName, moduleNameString, moduleStableString)
-import Name (Name, nameStableString)
+import Module (Module, ModuleName, moduleNameString, moduleStableString, moduleUnitId)
+import Name (Name, isExternalName, nameModule, nameOccName, nameStableString)
+import OccName (occNameString)
 import Text.Pretty.Simple (pPrint)
 import Var (ArgFlag (..))
+
+import Stan.Core.ModuleName (fromGhcModule)
+import Stan.NameMeta (NameMeta (..))
 
 import qualified Text.Show
 
@@ -66,4 +70,14 @@ instance Show ModuleName where
     show = moduleNameString
 
 instance Show Name where
-    show = nameStableString
+    show nm =
+        if isExternalName nm
+        then show $ toNameMeta nm
+        else nameStableString nm
+      where
+        toNameMeta :: Name -> NameMeta
+        toNameMeta name =
+            let nameMetaName = toText $ occNameString $ nameOccName name
+                nameMetaModuleName = fromGhcModule $ nameModule name
+                nameMetaPackage = show @Text $ moduleUnitId $ nameModule name
+            in NameMeta{..}

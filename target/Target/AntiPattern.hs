@@ -24,3 +24,12 @@ stanHashMapSize = HM.size
 
 stanHashSetSize :: HS.HashSet Int -> Int
 stanHashSetSize = HS.size
+
+stanTupleLength :: Int
+stanTupleLength = length ((1, 2) :: (Int, Int))
+
+stanMaybeNull :: Maybe Int -> Bool
+stanMaybeNull = null
+
+stanEitherFoldr :: Either Int Int -> Int
+stanEitherFoldr = foldr (+) 0
