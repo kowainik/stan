@@ -13,6 +13,7 @@ module Stan.Inspection
     , descriptionL
     , solutionL
     , severityL
+    , analysisL
 
       -- * Inspection info
     , InspectionAnalysis (..)
@@ -71,6 +72,11 @@ severityL :: Lens' Inspection Severity
 severityL = lens
     inspectionSeverity
     (\inspection new -> inspection { inspectionSeverity = new })
+
+analysisL :: Lens' Inspection InspectionAnalysis
+analysisL = lens
+    inspectionAnalysis
+    (\inspection new -> inspection { inspectionAnalysis = new })
 
 {- | Type alias for the 'HashMap' that contains pairs of inspections 'Id's and
 corresponding 'Inspection's.

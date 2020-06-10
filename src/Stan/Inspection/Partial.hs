@@ -64,11 +64,11 @@ import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
-import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
-                        descriptionL, solutionL)
+import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, analysisL,
+                        categoryL, descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
                       mkBaseOldListMeta)
-import Stan.Pattern.Ast (PatternAst (PatternAstName))
+import Stan.Pattern.Ast (PatternAst (PatternAstName), namesToPatternAst)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
                           naturalPattern, nonEmptyPattern, (|->))
@@ -269,11 +269,12 @@ stan0019 = mkPartialInspectionPattern
 
 -- | 'Inspection' — partial 'GHC.Exts.fromList' @STAN-0020@.
 stan0020 :: Inspection
-stan0020 = mkPartialInspectionPattern
-    (Id "STAN-0020")
-    ("fromList" `baseNameFrom` "GHC.Exts")
-    (listPattern |-> nonEmptyPattern)
-    ""
+stan0020 = mkPartialInspectionPattern (Id "STAN-0020") exts pat ""
+    & analysisL .~ FindAst (namesToPatternAst $ (exts, pat) :| [(ne, pat)])
+  where
+    pat = listPattern |-> nonEmptyPattern
+    exts = "fromList" `baseNameFrom` "GHC.Exts"
+    ne = "fromList" `baseNameFrom` "Data.List.NonEmpty"
 
 -- | 'Inspection' — partial 'GHC.Num.fromInteger' @STAN-0021@.
 stan0021 :: Inspection

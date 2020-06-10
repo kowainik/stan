@@ -4,6 +4,8 @@ module Target.Infinite where
 
 import Data.List (genericLength, isSuffixOf)
 
+import qualified GHC.List
+
 
 stanReverse :: [a] -> [a]
 stanReverse = reverse
@@ -22,3 +24,6 @@ stanSum = sum
 
 stanProduct :: Num a => [a] -> a
 stanProduct = product
+
+stanGhcListxxLength :: [a] -> Int
+stanGhcListxxLength = GHC.List.length

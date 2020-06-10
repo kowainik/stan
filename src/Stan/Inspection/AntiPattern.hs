@@ -40,10 +40,10 @@ import Data.Foldable (foldr1)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta)
-import Stan.Pattern.Ast (PatternAst (..), app, range)
+import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, unorderedNameFrom)
+import Stan.Pattern.Ast (PatternAst (..), app, namesToPatternAst, range)
 import Stan.Pattern.Edsl (PatternBool (..))
-import Stan.Pattern.Type (foldableMethodsPatterns, foldableTypesPatterns)
+import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, (|->), (|::))
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -121,41 +121,51 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
         , nameMetaName       = "pack"
         }
 
--- TODO: also warn on 'length'
--- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0204@.
+-- | 'Inspection' — slow 'Data.HashMap.Strict.size' and 'length' @STAN-0204@.
 stan0204 :: Inspection
 stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
-    (FindAst $ PatternAstName sizeNameMeta (?))
-    & descriptionL .~ "Usage of 'size' for 'HashMap' that runs in linear time"
+    (FindAst $ namesToPatternAst pats)
+    & descriptionL .~ "Usage of 'size' or 'length' for 'HashMap' that runs in linear time"
     & solutionL .~
         [ "Switch to 'Map' from 'containers' if this data type works for you"
         ]
     & severityL .~ Performance
   where
-    sizeNameMeta :: NameMeta
-    sizeNameMeta = NameMeta
-        { nameMetaPackage    = "unordered-containers"
-        , nameMetaModuleName = "Data.HashMap.Base"
-        , nameMetaName       = "size"
-        }
+    pats :: NonEmpty (NameMeta, PatternType)
+    pats = (sizeNameMeta, (?))
+        :| [(mkBaseFoldableMeta "length", hmPat)]
 
--- TODO: also warn on 'length'
+    sizeNameMeta :: NameMeta
+    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashMap.Base"
+
+    hm :: NameMeta
+    hm = "HashMap" `unorderedNameFrom` "Data.HashMap.Base"
+
+    hmPat :: PatternType
+    hmPat = (hm |:: [(?), (?)]) |-> (?)
+
 -- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0205@.
 stan0205 :: Inspection
 stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
-    (FindAst $ PatternAstName sizeNameMeta (?))
-    & descriptionL .~ "Usage of 'size' for 'HashSet' that runs in linear time"
+    (FindAst $ namesToPatternAst pats)
+    & descriptionL .~ "Usage of 'size' or 'length' for 'HashSet' that runs in linear time"
     & solutionL .~
         [ "Switch to 'Set' from 'containers' if this data type works for you"
         ]
     & severityL .~ Performance
   where
+    pats :: NonEmpty (NameMeta, PatternType)
+    pats = (sizeNameMeta, (?))
+        :| [(mkBaseFoldableMeta "length", hsPat)]
+
     sizeNameMeta :: NameMeta
-    sizeNameMeta = NameMeta
-        { nameMetaPackage    = "unordered-containers"
-        , nameMetaModuleName = "Data.HashSet.Base"
-        , nameMetaName       = "size"
-        }
+    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashSet.Base"
+
+    hs :: NameMeta
+    hs = "HashSet" `unorderedNameFrom` "Data.HashSet.Base"
+
+    hsPat :: PatternType
+    hsPat = (hs |:: [(?)]) |-> (?)
 
 -- | 'Inspection' — missing fixity declaration @STAN-0206@.
 stan0206 :: Inspection
