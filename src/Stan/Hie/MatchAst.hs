@@ -16,18 +16,22 @@ module Stan.Hie.MatchAst
     ( hieMatchPatternAst
     ) where
 
+import Data.Char (toLower)
 import FastString (FastString)
 import HieTypes (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..), TypeIndex)
+import Name (nameOccName)
+import OccName (occNameString)
 import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Core.List (checkWith)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
-import Stan.Pattern.Ast (PatternAst (..))
+import Stan.Pattern.Ast (Literal (..), PatternAst (..))
 import Stan.Pattern.Type (PatternType)
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
+import qualified Data.List as Str
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Relude.Unsafe as Unsafe
@@ -51,9 +55,13 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstAnd p1 p2 ->
            hieMatchPatternAst hie node p1
         && hieMatchPatternAst hie node p2
-    PatternAstConstant n ->
+    PatternAstConstant lit ->
            Set.member ("HsOverLit", "HsExpr") (nodeAnnotations nodeInfo)
-        && readMaybe (decodeUtf8 $ slice nodeSpan) == Just n
+        && ( let span = slice nodeSpan in case lit of
+                ExactNum n  -> readMaybe (decodeUtf8 span) == Just n
+                ExactStr s  -> span == s
+                PrefixStr s -> s `BS.isPrefixOf` span
+           )
     PatternAstName nameMeta patType ->
         any (matchNameAndType nameMeta patType)
         $ Map.assocs
@@ -63,6 +71,12 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstNodeExact tags patChildren ->
            matchAnnotations tags nodeInfo
         && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
+    PatternAstVarName varName -> isJust $ find
+        (\(k, _) -> case k of
+            Right x -> varName `Str.isInfixOf` map toLower (occNameString $ nameOccName x)
+            _       -> False
+        )
+        $ Map.toList $ nodeIdentifiers nodeInfo
   where
     -- take sub-bytestring from src according to a given span
     -- TODO: current works only with single-line spans

@@ -9,12 +9,14 @@ Patterns for AST and syntax tree nodes search.
 module Stan.Pattern.Ast
     ( -- * Type
       PatternAst (..)
+    , Literal (..)
 
       -- * Helpers
     , namesToPatternAst
 
       -- * eDSL
     , app
+    , opApp
     , constructor
     , dataDecl
     , fixity
@@ -36,9 +38,11 @@ low-level, but helper functions are provided.
 -}
 data PatternAst
     -- | Integer constant in code.
-    = PatternAstConstant !Int  -- TODO: support constants of different types
+    = PatternAstConstant !Literal
     -- | Name of a specific function, variable or data type.
     | PatternAstName !NameMeta !PatternType
+    -- | Variable name.
+    | PatternAstVarName !String
     -- | AST node with tags for current node and any children.
     | PatternAstNode
         !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
@@ -70,6 +74,12 @@ instance PatternBool PatternAst where
     (&&&) :: PatternAst -> PatternAst -> PatternAst
     (&&&) = PatternAstAnd
 
+data Literal
+    = ExactNum !Int
+    | ExactStr !ByteString
+    | PrefixStr !ByteString
+    deriving stock (Show, Eq)
+
 {- | Function that creates 'PatternAst' from the given non-empty list of pairs
 'NameMeta' and 'PatternType'.
 
@@ -85,6 +95,10 @@ namesToPatternAst ((nm, pat) :| x:rest) = PatternAstOr
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst
 app f x = PatternAstNodeExact (one ("HsApp", "HsExpr")) [f, x]
+
+-- | @opApp x op y@ is a pattern for operator application @x `op` y@.
+opApp :: PatternAst -> PatternAst -> PatternAst -> PatternAst
+opApp x op y = PatternAstNodeExact (one ("OpApp", "HsExpr")) [x, op, y]
 
 -- | @range a b@ is a pattern for @[a .. b]@
 range :: PatternAst -> PatternAst -> PatternAst
