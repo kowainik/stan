@@ -14,6 +14,8 @@ module Stan.Inspection.Style
     ( -- * Style inspections
       -- *** Missing fixity
       stan0301
+      -- *** Too big tuples
+    , stan0302
 
       -- * All inspections
     , styleInspectionsMap
@@ -32,6 +34,7 @@ import qualified Stan.Category as Category
 styleInspectionsMap :: InspectionsMap
 styleInspectionsMap = fromList $ fmapToFst inspectionId
     [ stan0301
+    , stan0302
     ]
 
 -- | 'Inspection' — missing fixity declaration @STAN-0301@.
@@ -46,4 +49,19 @@ stan0301 = Inspection
     , inspectionCategory = Category.syntax :| []
     , inspectionSeverity = Style
     , inspectionAnalysis = Infix
+    }
+
+-- | 'Inspection' — to big tuples @STAN-0302@.
+stan0302 :: Inspection
+stan0302 = Inspection
+    { inspectionId = Id "STAN-0302"
+    , inspectionName = "Big tuples"
+    , inspectionDescription =
+        "Using tuples of big size (>= 4) can decrease code readability"
+    , inspectionSolution =
+        [ "Consider defining and using a custom data type to improve code comprehension"
+        ]
+    , inspectionCategory = Category.antiPattern :| [Category.syntax]
+    , inspectionSeverity = Style
+    , inspectionAnalysis = BigTuples
     }
