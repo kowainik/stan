@@ -9,6 +9,8 @@ import Data.Maybe (fromJust)
 import GHC.Exts (fromList)
 import Numeric.Natural (Natural)
 
+import qualified Data.List.NonEmpty as NE
+
 
 stanHead :: [a] -> a
 stanHead = head
@@ -83,3 +85,6 @@ stanPredInteger = pred  -- no warning here
 
 stanPredPoly :: Enum a => a -> a
 stanPredPoly = pred
+
+stanFromListNE :: [x] -> NonEmpty x
+stanFromListNE = NE.fromList

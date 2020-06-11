@@ -12,17 +12,19 @@ import Test.Stan.Analysis.Common (itShouldStr, observationAssert, unsafeNameMeta
 
 import qualified Data.Text as T
 
+import qualified Stan.Inspection.Infinite as Stan
 
 analysisInfiniteSpec :: Analysis -> Spec
-analysisInfiniteSpec analysis = describe "Infinite functions" $
-    forM_ (zip (sortById infiniteInspectionsMap) [9, 12 ..]) checkObservation
+analysisInfiniteSpec analysis = describe "Infinite functions" $ do
+    forM_ (zip (sortById infiniteInspectionsMap) [11, 14 ..]) checkObservationAuto
+    checkObservation Stan.stan0103 29 23 38
   where
-    checkObservation :: (Inspection, Int) -> SpecWith (Arg Expectation)
-    checkObservation (ins@Inspection{..}, line) = it (itShouldStr ins) $
-        observationAssert "Target/Infinite.hs" "Target.Infinite"
-            analysis
-            ins
-            line start end
+    checkObservation :: Inspection -> Int -> Int -> Int -> SpecWith (Arg Expectation)
+    checkObservation ins@Inspection{..} l st = it (itShouldStr ins) .
+        observationAssert "Target/Infinite.hs" "Target.Infinite" analysis ins l st
+
+    checkObservationAuto :: (Inspection, Int) -> SpecWith (Arg Expectation)
+    checkObservationAuto (ins@Inspection{..}, line) = checkObservation ins line start end
       where
         nameMeta :: NameMeta
         nameMeta = unsafeNameMeta inspectionAnalysis

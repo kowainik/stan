@@ -10,6 +10,9 @@ module Stan.Pattern.Ast
     ( -- * Type
       PatternAst (..)
 
+      -- * Helpers
+    , namesToPatternAst
+
       -- * eDSL
     , app
     , constructor
@@ -66,6 +69,18 @@ instance PatternBool PatternAst where
 
     (&&&) :: PatternAst -> PatternAst -> PatternAst
     (&&&) = PatternAstAnd
+
+{- | Function that creates 'PatternAst' from the given non-empty list of pairs
+'NameMeta' and 'PatternType'.
+
+If the list contains only one 'PatternType' then it is simple 'PatternAstName'.
+Else it is 'PatternAstOr' of all such 'PatternAstName's.
+-}
+namesToPatternAst :: NonEmpty (NameMeta, PatternType) -> PatternAst
+namesToPatternAst ((nm, pat) :| []) = PatternAstName nm pat
+namesToPatternAst ((nm, pat) :| x:rest) = PatternAstOr
+    (PatternAstName nm pat)
+    (namesToPatternAst $ x :| rest)
 
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst

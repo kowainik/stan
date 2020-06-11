@@ -22,8 +22,14 @@ stanPack8 = BS8.pack
 stanHashMapSize :: HM.HashMap Int Int -> Int
 stanHashMapSize = HM.size
 
+stanHashMapLength :: HM.HashMap Int Int -> Int
+stanHashMapLength = length
+
 stanHashSetSize :: HS.HashSet Int -> Int
 stanHashSetSize = HS.size
+
+stanHashSetLength :: HS.HashSet Int -> Int
+stanHashSetLength = length
 
 stanTupleLength :: Int
 stanTupleLength = length ((1, 2) :: (Int, Int))

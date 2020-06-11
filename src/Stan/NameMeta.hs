@@ -21,6 +21,8 @@ module Stan.NameMeta
     , mkBaseListMeta
     , mkBaseOldListMeta
     , mkBaseFoldableMeta
+
+    , unorderedNameFrom
     ) where
 
 import HieTypes (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
@@ -105,3 +107,14 @@ the "Data.Foldable" module.
 -}
 mkBaseFoldableMeta :: Text -> NameMeta
 mkBaseFoldableMeta = (`baseNameFrom` "Data.Foldable")
+
+{- | Create 'NameMeta' for a function from the @unordered-containers@ package
+and a given 'ModuleName' module.
+-}
+infix 8 `unorderedNameFrom`
+unorderedNameFrom :: Text -> ModuleName -> NameMeta
+unorderedNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
+    , nameMetaPackage    = "unordered-containers"
+    }

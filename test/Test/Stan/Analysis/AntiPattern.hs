@@ -31,17 +31,21 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0203 20 13 21
     it "STAN-0204: finds usage of 'Data.HashMap.size'" $
         checkObservation AntiPattern.stan0204 23 19 26
+    it "STAN-0204: finds usage of 'length' for 'HashMap'" $
+        checkObservation AntiPattern.stan0204 26 21 27
     it "STAN-0205: finds usage of 'Data.HashSet.size'" $
-        checkObservation AntiPattern.stan0205 26 19 26
+        checkObservation AntiPattern.stan0205 29 19 26
+    it "STAN-0205: finds usage of 'length' for 'HashSet'" $
+        checkObservation AntiPattern.stan0205 32 21 27
 
     strictFieldsSpec analysis
 
     it "STAN-0207: 'length' for (,)" $
-        checkObservation AntiPattern.stan0207 29 19 25
+        checkObservation AntiPattern.stan0207 35 19 25
     it "STAN-0207: 'null' for Maybe" $
-        checkObservation AntiPattern.stan0207 32 17 21
+        checkObservation AntiPattern.stan0207 38 17 21
     it "STAN-0207: 'foldr' for Either" $
-        checkObservation AntiPattern.stan0207 35 19 24
+        checkObservation AntiPattern.stan0207 41 19 24
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do

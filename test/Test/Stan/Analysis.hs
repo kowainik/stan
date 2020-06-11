@@ -56,7 +56,7 @@ analysisIgnoredObservationsSpec
     :: ([Id Observation] -> Analysis)  -- ^ Run analysis with ignored observations
     -> Spec
 analysisIgnoredObservationsSpec analyse = describe "Ignores observations" $ do
-    let obsId = Id "OBS-STAN-0001-pnvTKA-14:12"
+    let obsId = Id "OBS-STAN-0001-pnvTKA-16:12"
 
     it "ObservationId is present when not ignored " $ do
         let observationsIds = fmap observationId $ analysisObservations $ analyse []

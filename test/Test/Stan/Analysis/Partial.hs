@@ -18,7 +18,7 @@ import qualified Stan.Inspection.Partial as Partial
 
 analysisPartialSpec :: Analysis -> Spec
 analysisPartialSpec analysis = describe "Partial functions" $ do
-    forM_ (zip (sortById partialInspectionsMap) [14, 17 ..]) checkObservation
+    forM_ (zip (sortById partialInspectionsMap) [16, 19 ..]) checkObservation
 
     let noObservation = noObservationAssert
             "Target/Partial.hs"
@@ -26,11 +26,14 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
             analysis
 
     it "STAN-0010: doesn't trigger on 'succ :: Natural -> Natural'" $
-        noObservation Partial.stan0010 79
+        noObservation Partial.stan0010 81
     it "STAN-0011: doesn't trigger on 'pred :: Integer -> Integer'" $
-        noObservation Partial.stan0011 82
+        noObservation Partial.stan0011 84
     it "STAN-0011: triggers on polymorphic 'pred :: Enum a => a -> a'" $
-        checkObservationFor Partial.stan0011 85 16 20
+        checkObservationFor Partial.stan0011 87 16 20
+    it "STAN-0020: triggers on 'Data.List.NonEmpty.fromList'" $
+        checkObservationFor Partial.stan0020 90 18 29
+
   where
     checkObservation :: (Inspection, Int) -> SpecWith (Arg Expectation)
     checkObservation (ins@Inspection{..}, line) = it (itShouldStr ins) $
