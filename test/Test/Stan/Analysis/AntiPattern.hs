@@ -22,30 +22,33 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
             analysis
 
     it "STAN-0201: finds usage of '[0 .. length xs]'" $
-        checkObservation AntiPattern.stan0201 11 19 35
+        checkObservation AntiPattern.stan0201 12 19 35
     it "STAN-0201: doesn't trigger on '[0 .. length xs - 1]'" $
-        noObservation AntiPattern.stan0201 14
+        noObservation AntiPattern.stan0201 15
     it "STAN-0202: finds usage of 'foldl'" $
-        checkObservation AntiPattern.stan0202 17 13 18
+        checkObservation AntiPattern.stan0202 18 13 18
     it "STAN-0203: finds usage of 'Data.ByteString.Char8.pack'" $
-        checkObservation AntiPattern.stan0203 20 13 21
+        checkObservation AntiPattern.stan0203 21 13 21
     it "STAN-0204: finds usage of 'Data.HashMap.size'" $
-        checkObservation AntiPattern.stan0204 23 19 26
+        checkObservation AntiPattern.stan0204 24 19 26
     it "STAN-0204: finds usage of 'length' for 'HashMap'" $
-        checkObservation AntiPattern.stan0204 26 21 27
+        checkObservation AntiPattern.stan0204 27 21 27
     it "STAN-0205: finds usage of 'Data.HashSet.size'" $
-        checkObservation AntiPattern.stan0205 29 19 26
+        checkObservation AntiPattern.stan0205 30 19 26
     it "STAN-0205: finds usage of 'length' for 'HashSet'" $
-        checkObservation AntiPattern.stan0205 32 21 27
+        checkObservation AntiPattern.stan0205 33 21 27
 
     strictFieldsSpec analysis
 
     it "STAN-0207: 'length' for (,)" $
-        checkObservation AntiPattern.stan0207 35 19 25
+        checkObservation AntiPattern.stan0207 36 19 25
     it "STAN-0207: 'null' for Maybe" $
-        checkObservation AntiPattern.stan0207 38 17 21
+        checkObservation AntiPattern.stan0207 39 17 21
     it "STAN-0207: 'foldr' for Either" $
-        checkObservation AntiPattern.stan0207 41 19 24
+        checkObservation AntiPattern.stan0207 42 19 24
+
+    it "STAN-0208: finds usage of 'length' for 'Text'" $
+        checkObservation AntiPattern.stan0208 45 18 29
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
