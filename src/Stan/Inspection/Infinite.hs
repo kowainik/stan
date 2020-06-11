@@ -62,7 +62,7 @@ mkInfiniteInspection insId pats@((NameMeta{..},_) :| _) = Inspection
         "Usage of the '" <> nameMetaName <> "' function that hangs on infinite lists"
     , inspectionSolution = []
     , inspectionCategory = Category.infinite :| [Category.list]
-    , inspectionSeverity = Warning
+    , inspectionSeverity = PotentialBug
     , inspectionAnalysis = FindAst $ namesToPatternAst pats
     }
 
