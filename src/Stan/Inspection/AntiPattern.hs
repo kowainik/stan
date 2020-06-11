@@ -242,7 +242,7 @@ stan0210 = mkAntiPatternInspection (Id "STAN-0210") "Slow 'for_' on ranges" (Fin
     & severityL .~ Performance
   where
     pat :: PatternAst
-    pat = app (forPattern) (range (?) (?))
+    pat = app forPattern (range (?) (?))
 
     forPattern :: PatternAst
     forPattern = PatternAstOr
