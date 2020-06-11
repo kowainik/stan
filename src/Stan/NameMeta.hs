@@ -63,7 +63,23 @@ compareNames NameMeta{..} name =
         isExternalName name
         && occName    == nameMetaName
         && moduleName == nameMetaModuleName
-        && nameMetaPackage `T.isPrefixOf` package
+        && ( nameMetaPackage `T.isPrefixOf` package
+           -- This is Cabal hack they made for MacOS. For now, we check for all platforms.
+           -- See this issue for more info: https://github.com/kowainik/stan/issues/240
+           || withoutVowels nameMetaPackage `T.isPrefixOf` package
+           )
+  where
+    withoutVowels :: Text -> Text
+    withoutVowels = T.filter isNotVowel
+
+    isNotVowel :: Char -> Bool
+    isNotVowel = \case
+        'a' -> False
+        'e' -> False
+        'i' -> False
+        'o' -> False
+        'u' -> False
+        _ -> True
 
 {- | Check whether HIE 'Identifier' with details is a given 'NameMeta'.
 -}
