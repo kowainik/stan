@@ -10,10 +10,11 @@ on:
 
 jobs:
   build:
-    name: ghc ${{ matrix.ghc }}
-    runs-on: ubuntu-16.04
+    name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macOS-latest]
         cabal: ["3.0"]
         ghc: ["8.8.3"]
 
@@ -29,7 +30,8 @@ jobs:
 
     - name: Freeze
       run: |
-        cabal freeze
+        ghc --version
+        cabal freeze -w ghc-${{ matrix.ghc }}
 
     - uses: actions/cache@v1
       name: Cache ~/.cabal/store
@@ -39,12 +41,12 @@ jobs:
 
     - name: Build
       run: |
-        cabal build --enable-tests --enable-benchmarks all
+        cabal build --enable-tests --enable-benchmarks all -w ghc-${{ matrix.ghc }}
 
     - name: Test
       run: |
-        cabal test --enable-tests --test-show-details=direct stan-test
+        cabal test --enable-tests --test-show-details=direct stan-test -w ghc-${{ matrix.ghc }}
 
     - name: Dogfooding
       run: |
-        cabal run stan
+        cabal run stan -w ghc-${{ matrix.ghc }}
