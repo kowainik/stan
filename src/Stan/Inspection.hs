@@ -97,6 +97,8 @@ data InspectionAnalysis
     | Infix
     -- | Check if the data type has lazy fields
     | LazyField
+    -- | Usage of tuples with size >= 4
+    | BigTuples
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.

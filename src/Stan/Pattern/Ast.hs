@@ -20,6 +20,7 @@ module Stan.Pattern.Ast
     , fixity
     , lazyField
     , range
+    , tuple
     , typeSig
     ) where
 
@@ -168,3 +169,14 @@ lazyRecordField = PatternAstNodeExact
         )
     , type_
     ]
+
+{- | Pattern for tuples:
+
+* Type signatures: foo :: (Int, Int, Int, Int)
+* Literals: (True, 0, [], Nothing)
+-}
+tuple :: PatternAst
+tuple =
+    PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple type
+    |||
+    PatternAstNode (one ("ExplicitTuple", "HsExpr"))  -- tuple literal

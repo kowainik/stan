@@ -26,7 +26,7 @@ import Stan.FileInfo (isExtensionDisabled)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.Observation (Observations, mkObservation)
-import Stan.Pattern.Ast (PatternAst, constructor, dataDecl, fixity, lazyField, typeSig)
+import Stan.Pattern.Ast (PatternAst, constructor, dataDecl, fixity, lazyField, tuple, typeSig)
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
@@ -43,21 +43,41 @@ analysisByInspection
     -> HieFile
     -> Observations
 analysisByInspection exts Inspection{..} = case inspectionAnalysis of
-    FindAst patAst            -> analyseAst inspectionId patAst
-    Infix                     -> analyseInfix inspectionId
-    LazyField                 -> memptyIfFalse
+    FindAst patAst -> analyseAst inspectionId patAst
+    Infix -> analyseInfix inspectionId
+    LazyField -> memptyIfFalse
         (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
         (analyseLazyFields inspectionId)
+    BigTuples -> analyseBigTuples inspectionId
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}
 analyseAst
-  :: Id Inspection
-  -> PatternAst
-  -> HieFile
-  -> Observations
+    :: Id Inspection
+    -> PatternAst
+    -> HieFile
+    -> Observations
 analyseAst insId patAst hie =
     mkObservation insId hie <$> analyseAstWith (createMatch patAst hie) hie
+
+{- | Check for big tuples (size >= 4) in the following places:
+
+* Type signatures: foo :: (Int, Int, Int, Int)
+* Literals: (True, 0, [], Nothing)
+-}
+analyseBigTuples
+    :: Id Inspection
+    -> HieFile
+    -> Observations
+analyseBigTuples insId hie =
+    S.map (mkObservation insId hie . nodeSpan)
+    $ S.filter isBigTuple
+    $ analyseAstWith (createMatchAst tuple hie) hie
+  where
+    isBigTuple :: HieAST TypeIndex -> Bool
+    isBigTuple Node{..} = case nodeChildren of
+        _:_:_:_:_ -> True
+        _         -> False
 
 {- | Check for occurrences lazy fields in all constructors. Ignores
 @newtype@s. Currently HIE Ast doesn't have information whether the
@@ -65,9 +85,9 @@ data type is @newtype@ or not. So the algorithm ignores all data types
 with a single constructor and single field inside that constructor.
 -}
 analyseLazyFields
-  :: Id Inspection
-  -> HieFile
-  -> Observations
+    :: Id Inspection
+    -> HieFile
+    -> Observations
 analyseLazyFields insId hie =
     mkObservation insId hie <$> analyseAstWith matchLazyField hie
   where
@@ -206,12 +226,12 @@ partitionDecls = foldl' insertDecl mempty
 {- | Analyses the whole AST starting from the very top.
 -}
 analyseAstWith
-  :: forall a
-  .  (HieAST TypeIndex -> Slist a)
-  -- ^ Function to match AST node to some arbitrary type and return a
-  -- sized list of matched elements
-  -> HieFile
-  -> Slist a
+    :: forall a
+    .  (HieAST TypeIndex -> Slist a)
+    -- ^ Function to match AST node to some arbitrary type and return a
+    -- sized list of matched elements
+    -> HieFile
+    -> Slist a
 analyseAstWith match = findNodes . hie_asts
   where
     findNodes :: HieASTs TypeIndex -> Slist a
@@ -223,25 +243,31 @@ analyseAstWith match = findNodes . hie_asts
 {- | Recursively match AST nodes starting from a given AST.
 -}
 matchAstWith
-  :: forall a
-  .  (HieAST TypeIndex -> Slist a)
-  -- ^ Function to match AST node to some arbitrary type and return a
-  -- sized list of matched elements
-  -> HieAST TypeIndex
-  -> Slist a
+    :: forall a
+    .  (HieAST TypeIndex -> Slist a)
+    -- ^ Function to match AST node to some arbitrary type and return a
+    -- sized list of matched elements
+    -> HieAST TypeIndex
+    -> Slist a
 matchAstWith match = matchAst
   where
     matchAst :: HieAST TypeIndex -> Slist a
     matchAst node@Node{..} =
         match node <> S.concatMap matchAst nodeChildren
 
+-- | Like 'createMatchAst' but returns source spans of AST nodes.
+createMatch :: PatternAst -> HieFile -> (HieAST TypeIndex -> Slist RealSrcSpan)
+createMatch patAst hie = fmap nodeSpan . createMatchAst patAst hie
+
 {- | Create a non-recursive matching function for 'PatternAst' that
-returns sized list of source positions for nodes that matches this
-pattern.
+returns sized list of nodes that match this pattern.
 
 * If the pattern matches 'Node', return it
 * Otherwise return empty list
 -}
-createMatch :: PatternAst -> HieFile -> (HieAST TypeIndex -> Slist RealSrcSpan)
-createMatch patAst hie node@Node{..} =
-    memptyIfFalse (hieMatchPatternAst hie node patAst) (S.one nodeSpan)
+createMatchAst
+    :: PatternAst
+    -> HieFile
+    -> (HieAST TypeIndex -> Slist (HieAST TypeIndex))
+createMatchAst patAst hie node =
+    memptyIfFalse (hieMatchPatternAst hie node patAst) (S.one node)
