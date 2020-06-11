@@ -260,7 +260,8 @@ stan0211 :: Inspection
 stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pat)
     & descriptionL .~ "Usage of '</>' for URLs results in the errors on Windows"
     & solutionL .~
-        [ "Concatenate URLs with slashes '/'"
+        [ "Use type-safe library for URLs"
+        , "Concatenate URLs with slashes '/'"
         ]
     & severityL .~ Error
   where
@@ -278,6 +279,10 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
             , nameMetaPackage    = "filepath"
             }
 
+    {- TODO: Note, that at the moment hie somehow thinks that '</>' works with
+    'String's even when I specify type of vars to 'FilePath' explicitly.
+    This is odd and needs more investigation.
+    -}
     filePathType :: PatternType
     filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
         ||| stringPattern

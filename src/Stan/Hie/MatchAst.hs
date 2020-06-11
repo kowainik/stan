@@ -72,11 +72,11 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
            matchAnnotations tags nodeInfo
         && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
     PatternAstVarName varName -> isJust $ find
-        (\(k, _) -> case k of
+        (\case
             Right x -> varName `Str.isInfixOf` map toLower (occNameString $ nameOccName x)
             _       -> False
         )
-        $ Map.toList $ nodeIdentifiers nodeInfo
+        $ Map.keys $ nodeIdentifiers nodeInfo
   where
     -- take sub-bytestring from src according to a given span
     -- TODO: current works only with single-line spans
