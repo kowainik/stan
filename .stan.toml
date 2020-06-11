@@ -1,2 +1,7 @@
 [[remove]]
 directory = "target/"
+
+[[check]]
+type = "Exclude"
+directory = "test/"
+id = "STAN-0208"

@@ -20,13 +20,14 @@ module Stan.Pattern.Type
     , listFunPattern
     , integerPattern
     , naturalPattern
+    , textPattern
 
       -- * Foldable patterns
     , foldableTypesPatterns
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, textNameFrom)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 
@@ -112,6 +113,10 @@ integerPattern = NameMeta
 -- | 'PatternType' for 'Natural'.
 naturalPattern :: PatternType
 naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+
+-- | 'PatternType' for 'Text'.
+textPattern :: PatternType
+textPattern = "Text" `textNameFrom` "Data.Text.Internal" |:: []
 
 ----------------------------------------------------------------------------
 -- Section of Foldable patterns

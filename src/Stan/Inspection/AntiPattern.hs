@@ -25,8 +25,10 @@ module Stan.Inspection.AntiPattern
     , stan0205
       -- *** Anti-pattern: Lazy fields
     , stan0206
-      -- *** Anti-pattern: Foldable methods on tuples, Maybe, Either
+      -- *** Anti-pattern: Foldable methods on tuples, 'Maybe', 'Either'
     , stan0207
+      -- *** Anti-pattern slow 'length' for 'Text'
+    , stan0208
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -38,10 +40,11 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, unorderedNameFrom)
+import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, textNameFrom, unorderedNameFrom)
 import Stan.Pattern.Ast (PatternAst (..), app, namesToPatternAst, range)
 import Stan.Pattern.Edsl (PatternBool (..))
-import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, (|->), (|::))
+import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, textPattern,
+                          (|->), (|::))
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -58,6 +61,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0205
     , stan0206
     , stan0207
+    , stan0208
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -197,3 +201,16 @@ stan0207 = mkAntiPatternInspection
         t <- foldableTypesPatterns
         (method, mkType) <- foldableMethodsPatterns
         pure (method, mkType t)
+
+-- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0208@.
+stan0208 :: Inspection
+stan0208 = mkAntiPatternInspection (Id "STAN-0208") "Slow 'length' for Text"
+           (FindAst $ PatternAstName lenNameMeta (textPattern |-> (?)))
+    & descriptionL .~ "Usage of 'length' for 'Text' that runs in linear time"
+    & solutionL .~
+        [ "Switch to 'ByteString' from 'bytesting' if this data type works for you"
+        ]
+    & severityL .~ Performance
+  where
+    lenNameMeta :: NameMeta
+    lenNameMeta = "length" `textNameFrom` "Data.Text"
