@@ -5,6 +5,7 @@ module Target.AntiPattern where
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
+import qualified Data.List as List
 import qualified Data.Text as Text
 
 
@@ -43,3 +44,6 @@ stanEitherFoldr = foldr (+) 0
 
 stanTextLength :: Text.Text -> Int
 stanTextLength = Text.length
+
+stanNub :: [Int] -> [Int]
+stanNub = List.nub
