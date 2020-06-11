@@ -35,8 +35,6 @@ module Stan.Inspection.AntiPattern
 import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (fmapToFst)
 
-import Data.Foldable (foldr1)
-
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
@@ -147,7 +145,7 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
 -- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0205@.
 stan0205 :: Inspection
 stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
-    (FindAst $ namesToPatternAst pats)
+           (FindAst $ namesToPatternAst pats)
     & descriptionL .~ "Usage of 'size' or 'length' for 'HashSet' that runs in linear time"
     & solutionL .~
         [ "Switch to 'Set' from 'containers' if this data type works for you"
@@ -188,17 +186,14 @@ stan0207 :: Inspection
 stan0207 = mkAntiPatternInspection
     (Id "STAN-0207")
     "Foldable methods on possibly error-prone structures"
-    (FindAst combinedPattern)
+    (FindAst $ namesToPatternAst allPatterns)
     & descriptionL .~ "Usage of Foldable methods on (,), Maybe, Either"
     & solutionL .~
         [ "Use more explicit functions with specific monomorphic types"
         ]
   where
-    combinedPattern :: PatternAst
-    combinedPattern = foldr1 PatternAstOr allPatterns
-
-    allPatterns :: NonEmpty PatternAst
+    allPatterns :: NonEmpty (NameMeta, PatternType)
     allPatterns = do  -- Monad for NonEmpty
         t <- foldableTypesPatterns
         (method, mkType) <- foldableMethodsPatterns
-        pure $ PatternAstName method (mkType t)
+        pure (method, mkType t)

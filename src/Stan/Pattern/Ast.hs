@@ -78,9 +78,6 @@ Else it is 'PatternAstOr' of all such 'PatternAstName's.
 -}
 namesToPatternAst :: NonEmpty (NameMeta, PatternType) -> PatternAst
 namesToPatternAst ((nm, pat) :| []) = PatternAstName nm pat
-namesToPatternAst ((nm, pat) :| [(nm2, pat2)]) = PatternAstOr
-    (PatternAstName nm pat)
-    (PatternAstName nm2 pat2)
 namesToPatternAst ((nm, pat) :| x:rest) = PatternAstOr
     (PatternAstName nm pat)
     (namesToPatternAst $ x :| rest)
