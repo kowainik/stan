@@ -11,10 +11,11 @@ module Stan.Hie
     , countLinesOfCode
     ) where
 
+import Colourista (errorMessage, infoMessage, warningMessage)
 import HieBin (HieFileResult (hie_file_result), readHieFile)
 import HieTypes (HieFile (..))
 import NameCache (NameCache, initNameCache)
-import System.Directory (doesFileExist)
+import System.Directory (doesDirectoryExist, doesFileExist)
 import System.Directory.Recursive (getDirRecursive)
 import System.FilePath (takeExtension)
 import UniqSupply (mkSplitUniqSupply)
@@ -29,11 +30,20 @@ import qualified Data.ByteString.Char8 as BS8
 -}
 readHieFiles :: FilePath -> IO [HieFile]
 readHieFiles hieDir = do
+    unlessM (doesDirectoryExist hieDir) $ do
+        errorMessage $ "Directory with HIE files doesn't exist: " <> toText hieDir
+        infoMessage "Use the '--hiedir' CLI option to specify path to the directory with HIE files"
+        exitFailure
+
     nameCache <- createNameCache
     hieContent <- getDirRecursive hieDir
     let isHieFile f = (&&) (takeExtension f == ".hie") <$> doesFileExist f
-    hieFiles <- filterM isHieFile hieContent
-    forM hieFiles $ \hiePath -> do
+    hiePaths <- filterM isHieFile hieContent
+
+    when (null hiePaths) $ warningMessage $
+        "The directory with HIE files doesn't contain any HIE files: " <> toText hieDir
+
+    forM hiePaths $ \hiePath -> do
         (hieFileResult, _newCache) <- readHieFile nameCache hiePath
         pure $ hie_file_result hieFileResult
 
