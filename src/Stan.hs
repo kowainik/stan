@@ -33,10 +33,11 @@ import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
 import Stan.Info (ProjectInfo (..), StanEnv (..))
-import Stan.Inspection (prettyShowInspection, prettyShowInspectionShort)
-import Stan.Inspection.All (inspections, lookupInspectionById)
-import Stan.Observation (prettyShowIgnoredObservations)
+import Stan.Inspection (Inspection (..), prettyShowInspection, prettyShowInspectionShort)
+import Stan.Inspection.All (getInspectionById, inspections, lookupInspectionById)
+import Stan.Observation (Observation (..), prettyShowIgnoredObservations)
 import Stan.Report (generateReport)
+import Stan.Severity (Severity (Error))
 import Stan.Toml (configCodec, getTomlConfig, usedTomlFiles)
 
 import qualified Toml
@@ -91,10 +92,20 @@ runStan StanArgs{..} = do
                     }
             generateReport analysis config warnings stanEnv ProjectInfo{..}
             infoMessage "Report is generated here -> stan.html"
+
+        let observations = analysisObservations analysis
+        when
+            (  not (null observations)
+            && any ((>= Error) . getObservationSeverity) observations
+            )
+            exitFailure
   where
     whenResult :: Trial e a -> ([e] -> a -> IO ()) -> IO ()
     whenResult (FiascoL _) _      = pass
     whenResult (ResultL es a) act = act es a
+
+    getObservationSeverity :: Observation -> Severity
+    getObservationSeverity = inspectionSeverity . getInspectionById . observationInspectionId
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of
