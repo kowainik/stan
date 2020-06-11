@@ -22,35 +22,39 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
             analysis
 
     it "STAN-0201: finds usage of '[0 .. length xs]'" $
-        checkObservation AntiPattern.stan0201 13 19 35
+        checkObservation AntiPattern.stan0201 16 19 35
     it "STAN-0201: doesn't trigger on '[0 .. length xs - 1]'" $
-        noObservation AntiPattern.stan0201 16
+        noObservation AntiPattern.stan0201 19
     it "STAN-0202: finds usage of 'foldl'" $
-        checkObservation AntiPattern.stan0202 19 13 18
+        checkObservation AntiPattern.stan0202 22 13 18
     it "STAN-0203: finds usage of 'Data.ByteString.Char8.pack'" $
-        checkObservation AntiPattern.stan0203 22 13 21
+        checkObservation AntiPattern.stan0203 25 13 21
     it "STAN-0204: finds usage of 'Data.HashMap.size'" $
-        checkObservation AntiPattern.stan0204 25 19 26
+        checkObservation AntiPattern.stan0204 28 19 26
     it "STAN-0204: finds usage of 'length' for 'HashMap'" $
-        checkObservation AntiPattern.stan0204 28 21 27
+        checkObservation AntiPattern.stan0204 31 21 27
     it "STAN-0205: finds usage of 'Data.HashSet.size'" $
-        checkObservation AntiPattern.stan0205 31 19 26
+        checkObservation AntiPattern.stan0205 34 19 26
     it "STAN-0205: finds usage of 'length' for 'HashSet'" $
-        checkObservation AntiPattern.stan0205 34 21 27
+        checkObservation AntiPattern.stan0205 37 21 27
 
     strictFieldsSpec analysis
 
     it "STAN-0207: 'length' for (,)" $
-        checkObservation AntiPattern.stan0207 37 19 25
+        checkObservation AntiPattern.stan0207 40 19 25
     it "STAN-0207: 'null' for Maybe" $
-        checkObservation AntiPattern.stan0207 40 17 21
+        checkObservation AntiPattern.stan0207 43 17 21
     it "STAN-0207: 'foldr' for Either" $
-        checkObservation AntiPattern.stan0207 43 19 24
+        checkObservation AntiPattern.stan0207 46 19 24
 
     it "STAN-0208: finds usage of 'length' for 'Text'" $
-        checkObservation AntiPattern.stan0208 46 18 29
+        checkObservation AntiPattern.stan0208 49 18 29
     it "STAN-0209: finds usage of 'nub' for lists" $
-        checkObservation AntiPattern.stan0209 49 11 19
+        checkObservation AntiPattern.stan0209 52 11 19
+    it "STAN-0210: finds usage of 'for_' for ranges" $
+        checkObservation AntiPattern.stan0210 55 12 35
+    it "STAN-0210: finds usage of 'forM_' for ranges" $
+        checkObservation AntiPattern.stan0210 58 15 29
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
