@@ -24,6 +24,8 @@ module Stan.NameMeta
 
     , unorderedNameFrom
     , textNameFrom
+
+    , primTypeMeta
     ) where
 
 import HieTypes (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
@@ -145,4 +147,12 @@ textNameFrom funName moduleName = NameMeta
     { nameMetaName       = funName
     , nameMetaModuleName = moduleName
     , nameMetaPackage    = "text"
+    }
+
+-- | 'NameMeta' for primitive types.
+primTypeMeta :: Text -> NameMeta
+primTypeMeta t = NameMeta
+    { nameMetaName       = t
+    , nameMetaModuleName = "GHC.Types"
+    , nameMetaPackage    = "ghc-prim"
     }

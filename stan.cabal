@@ -151,6 +151,7 @@ library target
   import:              common-options
   hs-source-dirs:      target
   build-depends:       bytestring
+                     , filepath
                      , text
                      , unordered-containers
   exposed-modules:     Target.AntiPattern

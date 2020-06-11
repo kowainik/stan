@@ -56,6 +56,15 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
     it "STAN-0210: finds usage of 'forM_' for ranges" $
         checkObservation AntiPattern.stan0210 58 15 29
 
+    it "STAN-0211: finds usage of 'http://' '</>'" $
+        checkObservation AntiPattern.stan0211 61 12 41
+    it "STAN-0211: finds usage of 'fooUrl' '</>'" $
+        checkObservation AntiPattern.stan0211 64 12 28
+    it "STAN-0211: finds usage of '</>' 'fooUrl'" $
+        checkObservation AntiPattern.stan0211 70 12 28
+    it "STAN-0211: doesn't trigger on 'fooUral' '</>'" $
+        noObservation AntiPattern.stan0211 76
+
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do

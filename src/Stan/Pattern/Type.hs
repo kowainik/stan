@@ -20,6 +20,10 @@ module Stan.Pattern.Type
     , listFunPattern
     , integerPattern
     , naturalPattern
+
+      -- ** Textual types
+    , charPattern
+    , stringPattern
     , textPattern
 
       -- * Foldable patterns
@@ -27,7 +31,7 @@ module Stan.Pattern.Type
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom, textNameFrom)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, primTypeMeta, textNameFrom)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 
@@ -88,11 +92,7 @@ listPattern =
     "String" `baseNameFrom` "GHC.Base" |:: []
   where
     listNameMeta :: NameMeta
-    listNameMeta = NameMeta
-        { nameMetaName       = "[]"
-        , nameMetaModuleName = "GHC.Types"
-        , nameMetaPackage    = "ghc-prim"
-        }
+    listNameMeta = primTypeMeta "[]"
 
 -- | 'PatternType' for 'NonEmpty'.
 nonEmptyPattern :: PatternType
@@ -113,6 +113,13 @@ integerPattern = NameMeta
 -- | 'PatternType' for 'Natural'.
 naturalPattern :: PatternType
 naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+
+charPattern :: PatternType
+charPattern = primTypeMeta "Char" |:: []
+
+-- | 'PatternType' for 'String'.
+stringPattern :: PatternType
+stringPattern = "String" `baseNameFrom` "GHC.Base" |:: []
 
 -- | 'PatternType' for 'Text'.
 textPattern :: PatternType

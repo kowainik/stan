@@ -33,6 +33,8 @@ module Stan.Inspection.AntiPattern
     , stan0209
       -- *** Anti-pattern: Slow 'for_' on ranges
     , stan0210
+      -- *** Anti-pattern: '</>' for URLs
+    , stan0211
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -44,12 +46,12 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseOldListMeta, textNameFrom,
-                      unorderedNameFrom)
-import Stan.Pattern.Ast (PatternAst (..), app, namesToPatternAst, range)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
+                      textNameFrom, unorderedNameFrom)
+import Stan.Pattern.Ast (Literal (..), PatternAst (..), app, namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, listPattern,
-                          textPattern, (|->), (|::))
+                          stringPattern, textPattern, (|->), (|::))
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -69,6 +71,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0208
     , stan0209
     , stan0210
+    , stan0211
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -94,7 +97,7 @@ stan0201 = mkAntiPatternInspection (Id "STAN-0201") "[0 .. length xs]" (FindAst 
   where
     lenPatAst :: PatternAst
     lenPatAst = range
-        (PatternAstConstant 0)
+        (PatternAstConstant $ ExactNum 0)
         (app
             (PatternAstName (mkBaseFoldableMeta "length") (?))
             (?)
@@ -251,3 +254,51 @@ stan0210 = mkAntiPatternInspection (Id "STAN-0210") "Slow 'for_' on ranges" (Fin
 
     forType :: PatternType
     forType = listPattern |-> ((?) |-> (?)) |-> (?)
+
+-- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0211@.
+stan0211 :: Inspection
+stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pat)
+    & descriptionL .~ "Usage of '</>' for URLs results in the errors on Windows"
+    & solutionL .~
+        [ "Use type-safe library for URLs"
+        , "Concatenate URLs with slashes '/'"
+        ]
+    & severityL .~ Error
+  where
+    pat :: PatternAst
+    pat =   opApp (httpLit ||| urlName) op (?)
+        ||| opApp (?) op urlName
+
+    op :: PatternAst
+    op = PatternAstName operator ((?) |-> filePathType |-> (?))
+      where
+        operator :: NameMeta
+        operator =  NameMeta
+            { nameMetaName       = "</>"
+            , nameMetaModuleName = "System.FilePath.Posix"
+            , nameMetaPackage    = "filepath"
+            }
+
+    {- TODO: Note, that at the moment hie somehow thinks that '</>' works with
+    'String's even when I specify type of vars to 'FilePath' explicitly.
+    This is odd and needs more investigation.
+    -}
+    filePathType :: PatternType
+    filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
+        ||| stringPattern
+        -- ||| primTypeMeta "[]" |:: [ charPattern ]
+
+    httpLit :: PatternAst
+    httpLit = startWith "\"http:"
+        ||| startWith "\"https:"
+        ||| startWith "\"ftp:"
+        ||| startWith "\"mailto:"
+        ||| startWith "\"file:"
+        ||| startWith "\"data:"
+        ||| startWith "\"irc:"
+      where
+        startWith :: ByteString -> PatternAst
+        startWith = PatternAstConstant . PrefixStr
+
+    urlName :: PatternAst
+    urlName = PatternAstVarName "url"
