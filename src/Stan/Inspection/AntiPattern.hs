@@ -27,8 +27,10 @@ module Stan.Inspection.AntiPattern
     , stan0206
       -- *** Anti-pattern: Foldable methods on tuples, 'Maybe', 'Either'
     , stan0207
-      -- *** Anti-pattern slow 'length' for 'Text'
+      -- *** Anti-pattern: slow 'length' for 'Text'
     , stan0208
+      -- *** Anti-pattern: Slow 'nub' for lists
+    , stan0209
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -40,11 +42,12 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, textNameFrom, unorderedNameFrom)
+import Stan.NameMeta (NameMeta (..), mkBaseFoldableMeta, mkBaseOldListMeta, textNameFrom,
+                      unorderedNameFrom)
 import Stan.Pattern.Ast (PatternAst (..), app, namesToPatternAst, range)
 import Stan.Pattern.Edsl (PatternBool (..))
-import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, textPattern,
-                          (|->), (|::))
+import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, listPattern,
+                          textPattern, (|->), (|::))
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -62,6 +65,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0206
     , stan0207
     , stan0208
+    , stan0209
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -214,3 +218,13 @@ stan0208 = mkAntiPatternInspection (Id "STAN-0208") "Slow 'length' for Text"
   where
     lenNameMeta :: NameMeta
     lenNameMeta = "length" `textNameFrom` "Data.Text"
+
+-- | 'Inspection' — slow 'nub' for lists @STAN-0209@.
+stan0209 :: Inspection
+stan0209 = mkAntiPatternInspection (Id "STAN-0209") "Slow 'nub' for lists"
+           (FindAst $ PatternAstName (mkBaseOldListMeta "nub") $ listPattern |-> listPattern)
+    & descriptionL .~ "Usage of 'nub' on lists that runs in quadratic time"
+    & solutionL .~
+        [ "Switch list to 'Set' from 'containers' if this data type works for you"
+        ]
+    & severityL .~ Performance

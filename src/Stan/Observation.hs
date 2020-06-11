@@ -92,8 +92,9 @@ prettyShowObservation ReportSettings{..} o@Observation{..} = unlines $
     observationTable =
         [ element "ID:            " <> b (unId observationId)
         , element "Severity:      " <> prettyShowSeverity (inspectionSeverity inspection)
-        , element "Description:   " <> inspectionDescription inspection
         , element "Inspection ID: " <> unId observationInspectionId
+        , element "Name:          " <> inspectionName inspection
+        , element "Description:   " <> inspectionDescription inspection
         , element "Category:      " <> categories
         , element "File:          " <> toText observationFile
         ]
