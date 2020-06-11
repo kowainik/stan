@@ -31,6 +31,8 @@ module Stan.Inspection.AntiPattern
     , stan0208
       -- *** Anti-pattern: Slow 'nub' for lists
     , stan0209
+      -- *** Anti-pattern: Slow 'for_' on ranges
+    , stan0210
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -66,6 +68,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0207
     , stan0208
     , stan0209
+    , stan0210
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -228,3 +231,23 @@ stan0209 = mkAntiPatternInspection (Id "STAN-0209") "Slow 'nub' for lists"
         [ "Switch list to 'Set' from 'containers' if this data type works for you"
         ]
     & severityL .~ Performance
+
+-- | 'Inspection' — slow 'for_' and 'forM_' for ranges @STAN-0210@.
+stan0210 :: Inspection
+stan0210 = mkAntiPatternInspection (Id "STAN-0210") "Slow 'for_' on ranges" (FindAst pat)
+    & descriptionL .~ "Usage of 'for_' or 'forM_' on numerical ranges is slow"
+    & solutionL .~
+        [ "Use 'loop' library for fast monadic looping"
+        ]
+    & severityL .~ Performance
+  where
+    pat :: PatternAst
+    pat = app (forPattern) (range (?) (?))
+
+    forPattern :: PatternAst
+    forPattern = PatternAstOr
+        (PatternAstName (mkBaseFoldableMeta "for_") forType)
+        (PatternAstName (mkBaseFoldableMeta "forM_") forType)
+
+    forType :: PatternType
+    forType = listPattern |-> ((?) |-> (?)) |-> (?)

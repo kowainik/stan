@@ -2,6 +2,9 @@
 
 module Target.AntiPattern where
 
+import Data.Foldable (forM_, for_)
+
+
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
@@ -47,3 +50,9 @@ stanTextLength = Text.length
 
 stanNub :: [Int] -> [Int]
 stanNub = List.nub
+
+stanFor_ :: IO ()
+stanFor_ = for_ [1 :: Int .. 1000] print
+
+stanForM_ :: Int -> IO ()
+stanForM_ n = forM_ [1 .. n] print
