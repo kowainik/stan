@@ -65,6 +65,8 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
     it "STAN-0211: doesn't trigger on 'fooUral' '</>'" $
         noObservation AntiPattern.stan0211 76
 
+    unsafeFunctionsSpec analysis
+
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do
@@ -108,3 +110,23 @@ strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
             noObservation AntiPattern.stan0206 10
         it "Doesn't trigger on plain data type" $
             noObservation AntiPattern.stan0206 13
+
+unsafeFunctionsSpec :: Analysis -> Spec
+unsafeFunctionsSpec analysis = describe "STAN-0212: Unsafe functions" $ do
+    let checkObservation = observationAssert
+            "Target/AntiPattern/Stan0212.hs"
+            "Target.AntiPattern.Stan0212"
+            analysis
+
+    it "Find: undefined" $
+        checkObservation AntiPattern.stan0212 10 17 26
+    it "Find: unsafeCoerce" $
+        checkObservation AntiPattern.stan0212 13 20 32
+    it "Find: unsafePerformIO" $
+        checkObservation AntiPattern.stan0212 16 23 38
+    it "Find: unsafeInterleaveIO" $
+        checkObservation AntiPattern.stan0212 19 26 44
+    it "Find: unsafeDupablePerformIO" $
+        checkObservation AntiPattern.stan0212 22 30 52
+    it "Find: unsafeFixIO" $
+        checkObservation AntiPattern.stan0212 25 19 30

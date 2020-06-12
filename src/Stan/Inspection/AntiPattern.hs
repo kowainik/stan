@@ -35,6 +35,8 @@ module Stan.Inspection.AntiPattern
     , stan0210
       -- *** Anti-pattern: '</>' for URLs
     , stan0211
+      -- *** Anti-pattern: unsafe functions
+    , stan0212
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -72,6 +74,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0209
     , stan0210
     , stan0211
+    , stan0212
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -302,3 +305,25 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
 
     urlName :: PatternAst
     urlName = PatternAstVarName "url"
+
+-- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0211@.
+stan0212 :: Inspection
+stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst pat)
+    & descriptionL .~ "Usage of unsafe functions breaks referential transparency"
+    & solutionL .~
+        [ "Remove 'undefined' or at least replace with 'error' to give better error messages"
+        , "Replace 'unsafeCoerce' with 'coerce'"
+        , "Rewrite the code to avoid using 'unsafePerformIO' and other unsafe IO functions"
+        ]
+    & severityL .~ Error
+    & categoryL %~ (Category.unsafe `NE.cons`)
+  where
+    pat :: PatternAst
+    pat = namesToPatternAst
+        $ ("undefined" `baseNameFrom` "GHC.Err", (?)) :|
+        [ ("unsafeCoerce" `baseNameFrom` "Unsafe.Coerce", (?))
+        , ("unsafePerformIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
+        , ("unsafeInterleaveIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
+        , ("unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
+        , ("unsafeFixIO" `baseNameFrom` "System.IO.Unsafe", (?))
+        ]
