@@ -20,12 +20,14 @@ module Stan.Cli
     ) where
 
 import Colourista (blue, bold, formatWith, reset, yellow)
+import Colourista.Short (b)
 import Data.Char (toUpper)
-import Options.Applicative (Parser, ParserInfo (..), ParserPrefs, auto, command, customExecParser,
-                            flag, flag', fullDesc, help, helpLongEquals, helper, hsubparser, info,
-                            infoOption, long, metavar, option, prefs, progDesc, short,
-                            showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
-                            strOption, subparserInline, value)
+import Options.Applicative (CommandFields, Mod, Parser, ParserInfo (..), ParserPrefs, auto, columns,
+                            command, commandGroup, customExecParser, flag, flag', fullDesc, help,
+                            helpLongEquals, helper, hidden, hsubparser, info, infoOption, long,
+                            metavar, multiSuffix, option, prefs, progDesc, short, showDefaultWith,
+                            showHelpOnEmpty, showHelpOnError, strArgument, strOption,
+                            subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
 import Trial (TaggedTrial, fiasco, withTag)
 import Trial.OptparseApplicative (taggedTrialParser)
@@ -86,11 +88,13 @@ stanParserPrefs = prefs $ mconcat
     , showHelpOnEmpty
     , showHelpOnError
     , subparserInline
+    , multiSuffix "s"
+    , columns 100
     ]
 
 stanCliParser :: ParserInfo StanCommand
 stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
-    fullDesc <> progDesc "Haskell Static Analyser"
+    fullDesc
 
 {- | Stan tool parser. It either uses the named commands or the main @stan@
 command.
@@ -101,19 +105,21 @@ stan = stanInspectionP <|> stanTomlToCliP <|> stanCliToTomlP <|> stanP
 -- | @stan@ command parser.
 stanP :: Parser StanCommand
 stanP = do
+    stanArgsConfig <- configP
+    stanArgsReport <- reportP
     stanArgsHiedir <- hiedirP
     stanArgsCabalFilePath <- cabalFilePathP
-    stanArgsReportSettings <- reportSettingsP
-    stanArgsReport <- reportP
-    stanArgsConfig <- configP
     stanArgsConfigFile <- configFileP
     stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
+    stanArgsReportSettings <- reportSettingsP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
 stanInspectionP :: Parser StanCommand
 stanInspectionP = hsubparser $
     command "inspection" (info inspectionP (progDesc "Show all Inspections"))
+    <> commandVar "INSPECTION"
+    <> help "Command to show all or specific inspection"
   where
     inspectionP :: Parser StanCommand
     inspectionP = do
@@ -122,9 +128,13 @@ stanInspectionP = hsubparser $
         pure $ StanInspection InspectionArgs{..}
 
 stanTomlToCliP :: Parser StanCommand
-stanTomlToCliP = hsubparser $ command "toml-to-cli" $
-    info tomlToCliP
-        (progDesc "Convert TOML configuration file into stan CLI command")
+stanTomlToCliP = hsubparser $ commandGroup "TOML Configurations"
+    <> command "toml-to-cli"
+        ( info tomlToCliP
+            (progDesc "Convert TOML configuration file into stan CLI command")
+        )
+    <> commandVar "TOML-TO-CLI"
+    <> help "Command to convert TOML configurations to CLI"
   where
     tomlToCliP :: Parser StanCommand
     tomlToCliP = do
@@ -132,9 +142,13 @@ stanTomlToCliP = hsubparser $ command "toml-to-cli" $
         pure $ StanTomlToCli TomlToCliArgs{..}
 
 stanCliToTomlP :: Parser StanCommand
-stanCliToTomlP = hsubparser $ command "cli-to-toml" $
-    info cliToTomlP
-        (progDesc "Convert CLI arguments into stan TOML configuration")
+stanCliToTomlP = hsubparser $ commandGroup "TOML Configurations"
+    <> command "cli-to-toml"
+        ( info cliToTomlP
+            (progDesc "Convert CLI arguments into stan TOML configuration")
+        )
+    <> commandVar "CLI-TO-TOML"
+    <> help "Command to convert CLI configurations to TOML"
   where
     cliToTomlP :: Parser StanCommand
     cliToTomlP = do
@@ -176,6 +190,9 @@ reportP = do
     res <- optional $ hsubparser $
         command "report"
             (info pass (progDesc "Generate HTML Report"))
+        <> commandGroup "Reporting"
+        <> commandVar "REPORT"
+        <> help "Command to generate an HTML Report"
     pure $ isJust res
 
 reportSettingsP :: Parser ReportSettings
@@ -206,13 +223,10 @@ partitionCommands (cmd : rest) =
 
 configP :: Parser PartialConfig
 configP = do
-    res <- many $ hsubparser $
-        command "check"
-            (info (CheckCommand <$> checkP) (progDesc "Specify list of checks"))
-        <> command "remove"
-            (info (RemoveCommand <$> scopeP) (progDesc "Specify list of removed scope"))
-        <> command "ignore"
-            (info (IgnoreCommand <$> idP "Observation") (progDesc "Specify list of ignored observations"))
+    res <- many $
+        cmd "check" "Specify list of checks" CheckCommand checkP
+        <|> cmd "remove" "Specify scope to be removed" RemoveCommand scopeP
+        <|> cmd "ignore" "Specify list of what needs to be ignored" IgnoreCommand (idP "Observations")
     pure $
         let (checks, removed, ignored) = partitionCommands res
         in ConfigP
@@ -221,6 +235,15 @@ configP = do
             , configIgnored = whenEmpty ignored "ignore"
             }
   where
+    cmd :: String -> String -> (a -> ConfigCommand) -> Parser a -> Parser ConfigCommand
+    cmd name h cc p = hsubparser
+        ( command name
+            (info (cc <$> p) (progDesc h))
+        <> commandVar (map toUpper name)
+        <> help ("Command to " <> h)
+        <> commandGroup "CLI Configurations"
+        )
+
     whenEmpty :: [a] -> Text -> TaggedTrial Text [a]
     whenEmpty res name = withTag "CLI" $ case res of
         [] -> fiasco $ "No CLI option specified for: " <> name
@@ -280,8 +303,9 @@ scopeP =
 versionP :: Parser (a -> a)
 versionP = infoOption (prettyStanVersion stanVersion)
     $ long "version"
-   <> short 'v'
-   <> help "Show Stan's version"
+    <> short 'v'
+    <> help "Show Stan's version"
+    <> hidden
 
 -- to put custom header which doesn't cut all spaces
 modifyHeader :: ParserInfo a -> ParserInfo a
@@ -298,6 +322,6 @@ header = unlines
     , reset
     , "  Haskell " <> b "ST" <> "atic " <> b "AN" <> "alyser"
     ]
-  where
-    b :: Text -> Text
-    b = formatWith [bold]
+
+commandVar :: String -> Mod CommandFields a
+commandVar = metavar . b
