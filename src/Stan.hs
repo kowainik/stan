@@ -15,12 +15,12 @@ module Stan
     , createCabalExtensionsMap
     ) where
 
-import Colourista (errorMessage, formatWith, infoMessage, italic)
+import Colourista (errorMessage, formatWith, infoMessage, italic, successMessage, warningMessage)
 import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
-import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyPrintTaggedTrial,
-              prettyPrintTrial, trialToMaybe)
+import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyTaggedTrial, prettyTrial,
+              prettyTrialWith, trialToMaybe)
 
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
@@ -28,6 +28,7 @@ import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
 import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), StanArgs (..), StanCommand (..),
                  TomlToCliArgs (..), runStanCli)
 import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
+import Stan.Config.Pretty (prettyConfigCli)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
@@ -55,12 +56,14 @@ runStan StanArgs{..} = do
     -- ENV vars
     env@EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
-    putTextLn $ prettyPrintTaggedTrial defConfTrial
+    infoMessage "Checking environment variables and CLI arguments for default configurations file usage..."
+    putTextLn $ indent $ prettyTaggedTrial defConfTrial
     let useDefConfig = maybe True snd (trialToMaybe defConfTrial)
     -- config
     tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
     let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
-    putTextLn $ prettyPrintTrial configTrial
+    infoMessage "The following Configurations are used:\n"
+    putTextLn $ indent $ prettyTrialWith (toString . prettyConfigCli) configTrial
     whenResult configTrial $ \warnings config -> do
         hieFiles <- readHieFiles stanArgsHiedir
         -- create cabal default extensions map
@@ -70,13 +73,19 @@ runStan StanArgs{..} = do
 
         let analysis = runAnalysis cabalExtensionsMap checksMap (configIgnored config) hieFiles
         -- show what observations are ignored
-        putText $ prettyShowIgnoredObservations
+        putText $ indent $ prettyShowIgnoredObservations
             (configIgnored config)
             (analysisIgnoredObservations analysis)
         -- show the result
-        let res = prettyShowAnalysis analysis stanArgsReportSettings
-        putTextLn res
+        let observations = analysisObservations analysis
+        let isNullObs = null observations
+        if isNullObs
+        then successMessage "All clean! Stan did not find any observations at the moment."
+        else do
+            warningMessage "Stan found the following observations for the project:\n"
+        putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 
+        -- report generation
         when stanArgsReport $ do
             -- Project Info
             piName <- takeFileName <$> getCurrentDirectory
@@ -93,9 +102,9 @@ runStan StanArgs{..} = do
             generateReport analysis config warnings stanEnv ProjectInfo{..}
             infoMessage "Report is generated here -> stan.html"
 
-        let observations = analysisObservations analysis
+        -- decide on exit status
         when
-            (  not (null observations)
+            (  not isNullObs
             && any ((>= Error) . getObservationSeverity) observations
             )
             exitFailure
@@ -106,6 +115,9 @@ runStan StanArgs{..} = do
 
     getObservationSeverity :: Observation -> Severity
     getObservationSeverity = inspectionSeverity . getInspectionById . observationInspectionId
+
+    indent :: Text -> Text
+    indent = unlines . map ("    " <>) . lines
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of
@@ -124,7 +136,7 @@ runTomlToCli TomlToCliArgs{..} = do
         Result _ res -> putTextLn $ configToCliCommand res
         fiasco -> do
             errorMessage "Could not get Configurations:"
-            putTextLn $ prettyPrintTrial fiasco
+            putTextLn $ prettyTrial fiasco
 
 runCliToToml :: CliToTomlArgs -> IO ()
 runCliToToml CliToTomlArgs{..} = do
