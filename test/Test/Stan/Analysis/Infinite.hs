@@ -20,7 +20,7 @@ analysisInfiniteSpec analysis = describe "Infinite functions" $ do
     checkObservation Stan.stan0103 29 23 38
   where
     checkObservation :: Inspection -> Int -> Int -> Int -> SpecWith (Arg Expectation)
-    checkObservation ins@Inspection{..} l st = it (itShouldStr ins) .
+    checkObservation ins l st = it (itShouldStr ins) .
         observationAssert "Target/Infinite.hs" "Target.Infinite" analysis ins l st
 
     checkObservationAuto :: (Inspection, Int) -> SpecWith (Arg Expectation)
