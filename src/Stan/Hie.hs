@@ -12,14 +12,12 @@ module Stan.Hie
     ) where
 
 import Colourista (errorMessage, infoMessage, warningMessage)
-import HieBin (HieFileResult (hie_file_result), readHieFile)
-import HieTypes (HieFile (..))
-import NameCache (NameCache, initNameCache)
 import System.Directory (doesDirectoryExist, doesFileExist)
 import System.Directory.Recursive (getDirRecursive)
 import System.FilePath (takeExtension)
-import UniqSupply (mkSplitUniqSupply)
 
+import Stan.Hie.Compat (HieFile (..), HieFileResult (hie_file_result), NameCache, initNameCache,
+                        mkSplitUniqSupply, readHieFile)
 import Stan.Hie.Debug ()
 
 import qualified Data.ByteString.Char8 as BS8

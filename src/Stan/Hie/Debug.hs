@@ -22,19 +22,16 @@ module Stan.Hie.Debug
     ( debugHieFile
     ) where
 
-import Avail (AvailInfo (..))
-import BasicTypes (PromotionFlag (..), TupleSort (..))
-import FieldLabel (FieldLbl (..))
-import HieTypes (HieAST (..), HieASTs (..), HieArgs (..), HieFile (..), HieType (..),
-                 IdentifierDetails (..), NodeInfo (..))
-import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..), IfaceTyConSort (..), IfaceTyLit (..))
-import Module (Module, ModuleName, moduleNameString, moduleStableString, moduleUnitId)
-import Name (Name, isExternalName, nameModule, nameOccName, nameStableString)
-import OccName (occNameString)
 import Text.Pretty.Simple (pPrint)
-import Var (ArgFlag (..))
 
 import Stan.Core.ModuleName (fromGhcModule)
+import Stan.Ghc.Compat (ArgFlag (..), AvailInfo (..), FieldLbl (..), IfaceTyCon (..),
+                        IfaceTyConInfo (..), IfaceTyConSort (..), IfaceTyLit (..), Module,
+                        ModuleName, Name, PromotionFlag (..), TupleSort (..), isExternalName,
+                        moduleNameString, moduleStableString, moduleUnitId, nameModule, nameOccName,
+                        nameStableString, occNameString)
+import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieArgs (..), HieFile (..), HieType (..),
+                        IdentifierDetails (..), NodeInfo (..))
 import Stan.NameMeta (NameMeta (..))
 
 import qualified Text.Show

@@ -28,13 +28,10 @@ module Stan.NameMeta
     , primTypeMeta
     ) where
 
-import HieTypes (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
-                 TypeIndex)
-import Module (moduleUnitId)
-import Name (Name, isExternalName, nameModule, nameOccName)
-import OccName (occNameString)
-
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
+import Stan.Ghc.Compat (Name, isExternalName, moduleUnitId, nameModule, nameOccName, occNameString)
+import Stan.Hie.Compat (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
+                        TypeIndex)
 
 import qualified Data.Set as Set
 import qualified Data.Text as T

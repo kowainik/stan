@@ -26,8 +26,7 @@ module Stan.Pattern.Ast
     , typeSig
     ) where
 
-import FastString (FastString)
-
+import Stan.Ghc.Compat (FastString)
 import Stan.NameMeta (NameMeta (..))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType)

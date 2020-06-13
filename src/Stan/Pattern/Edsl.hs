@@ -11,6 +11,7 @@ module Stan.Pattern.Edsl
     ( PatternBool (..)
     ) where
 
+
 {- | Common interface for 'Bool'-like parts of patterns. Allows to
 write composable and reusable complex pattern definitions from smaller
 pieces.
