@@ -137,7 +137,14 @@ usage funName forWhat =
 that work with lists.
 -}
 mkPartialInspectionList :: Id Inspection -> NameMeta -> Inspection
-mkPartialInspectionList insId nameMeta = mkPartialInspection insId nameMeta "lists"
+mkPartialInspectionList insId nameMeta = mkPartialInspectionListPat insId nameMeta (?)
+
+{- | Smart constructor to create partial 'Inspection' for functions
+that work with lists with the given 'PatternType'.
+-}
+mkPartialInspectionListPat :: Id Inspection -> NameMeta -> PatternType -> Inspection
+mkPartialInspectionListPat insId nameMeta pat =
+    mkPartialInspectionPattern insId nameMeta pat "lists"
     & categoryL %~ (<> one Category.list)
     & solutionL .~
         [ "Replace list with 'NonEmpty' from 'Data.List.NonEmpty'"
@@ -215,6 +222,7 @@ stan0010 = mkPartialInspectionEnum
     "succ"
     (neg (integerPattern |-> (?)) &&& neg (naturalPattern |-> (?)))
     [ "Use '(+ 1)' for integral types (but be aware of arithmetic overflow)"
+    , "Use 'next' if you have 'relude' in dependencies"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.pred' @STAN-0011@.
@@ -224,48 +232,52 @@ stan0011 = mkPartialInspectionEnum
     "pred"
     (neg (integerPattern |-> (?)))
     [ "Use '(- 1)' for integral types (but be aware of arithmetic overflow)"
+    , "Use 'prev' if you have 'relude' in dependencies"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.toEnum' @STAN-0012@.
 stan0012 :: Inspection
-stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" (?) []
+stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" (?)
+    [ "Use 'safeToEnum' if you have 'relude' in dependencies"
+    ]
 
 -- | 'Inspection' — partial 'Data.Foldable.maximum' @STAN-0013@.
 stan0013 :: Inspection
-stan0013 = mkPartialInspectionPattern
-    (Id "STAN-0013") (mkBaseFoldableMeta "maximum") listFunPattern ""
+stan0013 = mkPartialInspectionListPat
+    (Id "STAN-0013") (mkBaseFoldableMeta "maximum") listFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.minimum' @STAN-0014@.
 stan0014 :: Inspection
-stan0014 = mkPartialInspectionPattern
-    (Id "STAN-0014") (mkBaseFoldableMeta "minimum") listFunPattern ""
+stan0014 = mkPartialInspectionListPat
+    (Id "STAN-0014") (mkBaseFoldableMeta "minimum") listFunPattern
 
 orderingFunPattern :: PatternType
 orderingFunPattern = (?) |-> listFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.maximumBy' @STAN-0015@.
 stan0015 :: Inspection
-stan0015 = mkPartialInspectionPattern
-    (Id "STAN-0015") (mkBaseFoldableMeta "maximumBy") orderingFunPattern ""
+stan0015 = mkPartialInspectionListPat
+    (Id "STAN-0015") (mkBaseFoldableMeta "maximumBy") orderingFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.minimumBy' @STAN-0016@.
 stan0016 :: Inspection
-stan0016 = mkPartialInspectionPattern
-    (Id "STAN-0016") (mkBaseFoldableMeta "minimumBy") orderingFunPattern ""
+stan0016 = mkPartialInspectionListPat
+    (Id "STAN-0016") (mkBaseFoldableMeta "minimumBy") orderingFunPattern
 
 -- | 'Inspection' — partial 'Data.Foldable.foldl1' @STAN-0017@.
 stan0017 :: Inspection
-stan0017 = mkPartialInspectionPattern
-    (Id "STAN-0017") (mkBaseFoldableMeta "foldl1") orderingFunPattern ""
+stan0017 = mkPartialInspectionListPat
+    (Id "STAN-0017") (mkBaseFoldableMeta "foldl1") ((?) |-> listFunPattern)
 
 -- | 'Inspection' — partial 'Data.Foldable.foldl1\'' @STAN-0018@.
 stan0018 :: Inspection
-stan0018 = mkPartialInspectionList (Id "STAN-0018") (mkBaseListMeta "foldl1'")
+stan0018 = mkPartialInspectionListPat
+    (Id "STAN-0018") (mkBaseListMeta "foldl1'") ((?) |-> listFunPattern)
 
 -- | 'Inspection' — partial 'Data.Foldable.foldr1' @STAN-0019@.
 stan0019 :: Inspection
-stan0019 = mkPartialInspectionPattern
-    (Id "STAN-0019") (mkBaseFoldableMeta "foldr1") orderingFunPattern ""
+stan0019 = mkPartialInspectionListPat
+    (Id "STAN-0019") (mkBaseFoldableMeta "foldr1") ((?) |-> listFunPattern)
 
 -- | 'Inspection' — partial 'GHC.Exts.fromList' @STAN-0020@.
 stan0020 :: Inspection

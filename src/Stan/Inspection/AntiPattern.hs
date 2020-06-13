@@ -126,6 +126,7 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
     & solutionL .~
         [ "Convert to 'Text' and use 'encodeUtf8' from 'Data.Text.Encoding'"
         , "Use packages that provide UTF-8 encoding functions: 'utf8-string', 'relude'"
+        , "Use 'encodeUtf8' if you have 'relude' in dependencies"
         ]
     & severityL .~ Error
   where
@@ -235,6 +236,8 @@ stan0209 = mkAntiPatternInspection (Id "STAN-0209") "Slow 'nub' for lists"
     & descriptionL .~ "Usage of 'nub' on lists that runs in quadratic time"
     & solutionL .~
         [ "Switch list to 'Set' from 'containers' if this data type works for you"
+        , "Use 'ordNub/hashNub/sortNub/unstableNub' if you have 'relude' in dependencies"
+        , "Use 'nubOrd' from 'containers' or 'extra' if you already have them in dependencies"
         ]
     & severityL .~ Performance
 
