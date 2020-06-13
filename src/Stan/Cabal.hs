@@ -109,6 +109,7 @@ getSubdirsRecursive fp = do
     case dirs of
         [] -> pure []
         ds -> do
+            -- unsafeInterleaveIO is required here for performance reasons
             next <- unsafeInterleaveIO $ foldMapA getSubdirsRecursive ds
             pure $ dirs ++ next
   where

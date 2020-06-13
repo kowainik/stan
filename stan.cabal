@@ -157,6 +157,7 @@ library target
   exposed-modules:     Target.AntiPattern
                          Target.AntiPattern.Stan0206
                          Target.AntiPattern.Stan0206Extensions
+                         Target.AntiPattern.Stan0212
                        Target.Infinite
                        Target.Partial
                        Target.Style

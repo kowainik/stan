@@ -21,6 +21,7 @@ module Stan.Category
     , partial
     , spaceLeak
     , syntax
+    , unsafe
     ) where
 
 import Colourista (formatWith, magentaBg)
@@ -61,6 +62,10 @@ spaceLeak = Category "SpaceLeak"
 syntax :: Category
 syntax = Category "Syntax"
 
+-- | @Unsafe@ category of Stan inspections.
+unsafe :: Category
+unsafe = Category "Unsafe"
+
 -- | The list of all available Stan 'Category's.
 stanCategories :: [Category]
 stanCategories =
@@ -70,4 +75,5 @@ stanCategories =
     , partial
     , spaceLeak
     , syntax
+    , unsafe
     ]
