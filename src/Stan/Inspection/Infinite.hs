@@ -60,7 +60,10 @@ mkInfiniteInspection insId pats@((NameMeta{..},_) :| _) = Inspection
     , inspectionName = "Infinite: " <> nameMetaPackage <> "/" <> nameMetaName
     , inspectionDescription =
         "Usage of the '" <> nameMetaName <> "' function that hangs on infinite lists"
-    , inspectionSolution = []
+    , inspectionSolution =
+        [ "Don't use '" <> nameMetaName <> "' if you expect your function to work with infinite lists"
+        , "{Extra dependency} Use the 'slist' library for fast and safe functions on infinite lists"
+        ]
     , inspectionCategory = Category.infinite :| [Category.list]
     , inspectionSeverity = PotentialBug
     , inspectionAnalysis = FindAst $ namesToPatternAst pats

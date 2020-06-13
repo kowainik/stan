@@ -215,6 +215,7 @@ stan0010 = mkPartialInspectionEnum
     "succ"
     (neg (integerPattern |-> (?)) &&& neg (naturalPattern |-> (?)))
     [ "Use '(+ 1)' for integral types (but be aware of arithmetic overflow)"
+    , "{Extra dependency} Use 'next' from 'Relude.Extra.Enum' in 'relude'"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.pred' @STAN-0011@.
@@ -224,11 +225,14 @@ stan0011 = mkPartialInspectionEnum
     "pred"
     (neg (integerPattern |-> (?)))
     [ "Use '(- 1)' for integral types (but be aware of arithmetic overflow)"
+    , "{Extra dependency} Use 'prev' from 'Relude.Extra.Enum' in 'relude'"
     ]
 
 -- | 'Inspection' — partial 'GHC.Enum.toEnum' @STAN-0012@.
 stan0012 :: Inspection
-stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" (?) []
+stan0012 = mkPartialInspectionEnum (Id "STAN-0012") "toEnum" (?)
+    [ "{Extra dependency} Use 'safeToEnum' from 'Relude.Extra.Enum' in 'relude'"
+    ]
 
 -- | 'Inspection' — partial 'Data.Foldable.maximum' @STAN-0013@.
 stan0013 :: Inspection

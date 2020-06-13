@@ -125,7 +125,8 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
     & descriptionL .~ "Usage of 'pack' function that doesn't handle Unicode characters"
     & solutionL .~
         [ "Convert to 'Text' and use 'encodeUtf8' from 'Data.Text.Encoding'"
-        , "Use packages that provide UTF-8 encoding functions: 'utf8-string', 'relude'"
+        , "{Extra dependency} Use 'encodeUtf8' from 'relude'"
+        , "{Extra dependency} Use the 'utf8-string' package"
         ]
     & severityL .~ Error
   where
@@ -142,7 +143,7 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
     (FindAst $ namesToPatternAst pats)
     & descriptionL .~ "Usage of 'size' or 'length' for 'HashMap' that runs in linear time"
     & solutionL .~
-        [ "Switch to 'Map' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch to 'Map' from 'containers'"
         ]
     & severityL .~ Performance
   where
@@ -165,7 +166,7 @@ stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
            (FindAst $ namesToPatternAst pats)
     & descriptionL .~ "Usage of 'size' or 'length' for 'HashSet' that runs in linear time"
     & solutionL .~
-        [ "Switch to 'Set' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch to 'Set' from 'containers'"
         ]
     & severityL .~ Performance
   where
@@ -221,7 +222,7 @@ stan0208 = mkAntiPatternInspection (Id "STAN-0208") "Slow 'length' for Text"
            (FindAst $ PatternAstName lenNameMeta (textPattern |-> (?)))
     & descriptionL .~ "Usage of 'length' for 'Text' that runs in linear time"
     & solutionL .~
-        [ "Switch to 'ByteString' from 'bytesting' if this data type works for you"
+        [ "{Extra dependency} Switch to 'ByteString' from 'bytesting'"
         ]
     & severityL .~ Performance
   where
@@ -234,7 +235,10 @@ stan0209 = mkAntiPatternInspection (Id "STAN-0209") "Slow 'nub' for lists"
            (FindAst $ PatternAstName (mkBaseOldListMeta "nub") $ listPattern |-> listPattern)
     & descriptionL .~ "Usage of 'nub' on lists that runs in quadratic time"
     & solutionL .~
-        [ "Switch list to 'Set' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch list to 'Set' from 'containers'"
+        , "{Extra dependency} Use 'ordNub/hashNub/sortNub/unstableNub' from 'relude'"
+        , "{Extra dependency} Use 'nubOrd' from 'containers'"
+        , "{Extra dependency} Use 'nubOrd' from 'extra'"
         ]
     & severityL .~ Performance
 
@@ -243,7 +247,7 @@ stan0210 :: Inspection
 stan0210 = mkAntiPatternInspection (Id "STAN-0210") "Slow 'for_' on ranges" (FindAst pat)
     & descriptionL .~ "Usage of 'for_' or 'forM_' on numerical ranges is slow"
     & solutionL .~
-        [ "Use 'loop' library for fast monadic looping"
+        [ "{Extra dependency} Use 'loop' library for fast monadic looping"
         ]
     & severityL .~ Performance
   where
@@ -263,7 +267,7 @@ stan0211 :: Inspection
 stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pat)
     & descriptionL .~ "Usage of '</>' for URLs results in the errors on Windows"
     & solutionL .~
-        [ "Use type-safe library for URLs"
+        [ "{Extra dependency} Use type-safe library for URLs"
         , "Concatenate URLs with slashes '/'"
         ]
     & severityL .~ Error
