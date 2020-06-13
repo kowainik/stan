@@ -34,7 +34,8 @@ import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
 import Stan.Hie.Compat (HieFile (..))
 import Stan.Info (ProjectInfo (..), StanEnv (..))
-import Stan.Inspection (Inspection (..), prettyShowInspection, prettyShowInspectionShort)
+import Stan.Inspection (Inspection (..), inspectionsMd, prettyShowInspection,
+                        prettyShowInspectionShort)
 import Stan.Inspection.All (getInspectionById, inspections, lookupInspectionById)
 import Stan.Observation (Observation (..), prettyShowIgnoredObservations)
 import Stan.Report (generateReport)
@@ -50,6 +51,7 @@ run = runStanCli >>= \case
     StanInspection inspectionArgs -> runInspection inspectionArgs
     StanTomlToCli tomlToCliArgs -> runTomlToCli tomlToCliArgs
     StanCliToToml cliToTomlArgs -> runCliToToml cliToTomlArgs
+    StanInspectionsToMd -> putTextLn $ inspectionsMd inspections
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do

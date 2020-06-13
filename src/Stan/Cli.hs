@@ -24,10 +24,10 @@ import Colourista.Short (b)
 import Data.Char (toUpper)
 import Options.Applicative (CommandFields, Mod, Parser, ParserInfo (..), ParserPrefs, auto, columns,
                             command, commandGroup, customExecParser, flag, flag', fullDesc, help,
-                            helpLongEquals, helper, hidden, hsubparser, info, infoOption, long,
-                            metavar, multiSuffix, option, prefs, progDesc, short, showDefaultWith,
-                            showHelpOnEmpty, showHelpOnError, strArgument, strOption,
-                            subparserInline, value)
+                            helpLongEquals, helper, hidden, hsubparser, info, infoOption, internal,
+                            long, metavar, multiSuffix, option, prefs, progDesc, short,
+                            showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
+                            strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
 import Trial (TaggedTrial, fiasco, withTag)
 import Trial.OptparseApplicative (taggedTrialParser)
@@ -49,6 +49,7 @@ data StanCommand
     | StanInspection !InspectionArgs  -- ^ @stan inspection@.
     | StanTomlToCli !TomlToCliArgs  -- ^ @stan toml-to-cli@
     | StanCliToToml !CliToTomlArgs  -- ^ @stan cli-to-toml@
+    | StanInspectionsToMd  -- ^ @stan inspections-to-md@
 
 -- | Options used for the main @stan@ command.
 data StanArgs = StanArgs
@@ -100,7 +101,11 @@ stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
 command.
 -}
 stan :: Parser StanCommand
-stan = stanInspectionP <|> stanTomlToCliP <|> stanCliToTomlP <|> stanP
+stan =  stanInspectionP
+    <|> stanTomlToCliP
+    <|> stanCliToTomlP
+    <|> stanInspectionsToMd
+    <|> stanP
 
 -- | @stan@ command parser.
 stanP :: Parser StanCommand
@@ -155,6 +160,15 @@ stanCliToTomlP = hsubparser $ commandGroup "TOML Configurations"
         cliToTomlArgsFilePath <- configFileP
         cliToTomlArgsConfig   <- configP
         pure $ StanCliToToml CliToTomlArgs{..}
+
+stanInspectionsToMd :: Parser StanCommand
+stanInspectionsToMd = hsubparser
+    $  command "inspections-to-md"
+        (info (pure StanInspectionsToMd)
+             (progDesc "Create md with all inspections info")
+        )
+    <> help "Create md with all inspections info"
+    <> hidden <> internal
 
 hiedirP :: Parser FilePath
 hiedirP = strOption $ mconcat
