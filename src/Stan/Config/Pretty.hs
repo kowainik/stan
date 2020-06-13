@@ -10,9 +10,13 @@ module Stan.Config.Pretty
     ( ConfigAction (..)
     , prettyConfigAction
     , configActionClass
+    , configActionColour
+    , prettyConfigCli
 
     , configToTriples
     ) where
+
+import Colourista (bold, formatWith, green, magenta, red, yellow)
 
 import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), Config, ConfigP (..), Scope (..))
@@ -28,10 +32,10 @@ data ConfigAction
 
 prettyConfigAction :: ConfigAction -> Text
 prettyConfigAction = \case
-    RemoveAction  -> "— Remove"
+    RemoveAction  -> "— Remove "
     IncludeAction -> "∪ Include"
     ExcludeAction -> "∩ Exclude"
-    IgnoreAction  -> "✖ Ignore"
+    IgnoreAction  -> "✖ Ignore "
 
 configActionClass :: ConfigAction -> Text
 configActionClass = \case
@@ -39,6 +43,13 @@ configActionClass = \case
     IncludeAction -> "include"
     ExcludeAction -> "exclude"
     IgnoreAction  -> "ignore"
+
+configActionColour :: ConfigAction -> Text
+configActionColour = \case
+    RemoveAction  -> red
+    IncludeAction -> green
+    ExcludeAction -> yellow
+    IgnoreAction  -> magenta
 
 configToTriples :: Config -> [(ConfigAction, Text, Text)]
 configToTriples ConfigP{..} =
@@ -60,7 +71,7 @@ checkTypeToAction = \case
 
 prettyFilter :: CheckFilter -> Text
 prettyFilter = \case
-    CheckInspection ins -> unId ins
+    CheckInspection ins -> "ID: " <> unId ins
     CheckSeverity sev -> "Severity: " <> show sev
     CheckCategory cat -> "Category: " <> unCategory cat
     CheckAll -> "All inspections"
@@ -70,3 +81,12 @@ prettyScope = \case
     ScopeFile fp -> "File: " <> toText fp
     ScopeDirectory dir -> "Directory: " <> toText dir
     ScopeAll -> "All files"
+
+prettyConfigCli :: Config -> Text
+prettyConfigCli = unlines . concatMap action . configToTriples
+  where
+    action :: (ConfigAction, Text, Text) -> [Text]
+    action (act, check, scope) =
+          formatWith [configActionColour act, bold] (prettyConfigAction act)
+        :  [ "    " <> check | check /= ""]
+        ++ [ "    " <> scope | scope /= ""]
