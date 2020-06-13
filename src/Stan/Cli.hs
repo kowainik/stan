@@ -94,7 +94,7 @@ stanParserPrefs = prefs $ mconcat
 
 stanCliParser :: ParserInfo StanCommand
 stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
-    fullDesc <> progDesc "Haskell Static Analyser"
+    fullDesc
 
 {- | Stan tool parser. It either uses the named commands or the main @stan@
 command.
@@ -239,7 +239,7 @@ configP = do
     cmd name h cc p = hsubparser
         ( command name
             (info (cc <$> p) (progDesc h))
-        <> commandVar (map toUpper name) -- TODO: should we: <> " !{--" <> name <> "-options}")
+        <> commandVar (map toUpper name)
         <> help ("Command to " <> h)
         <> commandGroup "CLI Configurations"
         )
