@@ -24,6 +24,8 @@ module Stan.Inspection
       -- * Pretty print
     , prettyShowInspection
     , prettyShowInspectionShort
+      -- ** Markdown
+    , inspectionsMd
     ) where
 
 import Relude.Extra.Lens (Lens', lens)
@@ -31,7 +33,7 @@ import Relude.Extra.Lens (Lens', lens)
 import Colourista (blue, bold, formatWith, green)
 import Colourista.Short (b, i)
 
-import Stan.Category (Category, prettyShowCategory)
+import Stan.Category (Category (..), prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Pattern.Ast (PatternAst)
 import Stan.Severity (Severity, prettyShowSeverity)
@@ -121,3 +123,37 @@ prettyShowInspectionShort Inspection{..} =
     " ❋ "
     <> formatWith [bold, blue] ("[" <> unId inspectionId <> "] ")
     <> i inspectionName
+
+{- | Create the MarkDown text for all inspections.
+The generated MD has a ToC and separate sections for each inspection.
+
+This is used to keep the Wiki page of the project up to date.
+-}
+inspectionsMd :: [Inspection] -> Text
+inspectionsMd inss = intro <> toc <> unlines (map inspectionToMd inss)
+  where
+    intro :: Text
+    intro = "This document contains information about all inspections used in Stan to find observations in your projects. Below you can see more details about each inspection individually\n\n"
+
+    toc :: Text
+    toc = "## Table of all Inspections\n\n" <> unlines (map insLink inss) <> "\n"
+
+    insLink :: Inspection -> Text
+    insLink (unId . inspectionId -> ins)= " * [" <> ins <> "](#" <> ins <> ")"
+
+inspectionToMd :: Inspection -> Text
+inspectionToMd Inspection{..} = unlines $
+    [ "## " <> unId inspectionId
+    , ""
+    , "[[Back to the Table of all Inspections] ↑](#table-of-all-inspections)"
+    , ""
+    , "| Property | Value |"
+    , "|--|--|"
+    , "| ID          | " <> unId inspectionId <> " |"
+    , "| Name        | " <> inspectionName <> " |"
+    , "| Description | " <> inspectionDescription <> " |"
+    , "| Severity    | " <> show inspectionSeverity <> " |"
+    , "| Category    | " <> "#" <> T.intercalate " #" (map unCategory $ toList inspectionCategory) <> " |"
+    , ""
+    , "#### Possible solutions for " <> unId inspectionId
+    ] <> map ("  - " <>) inspectionSolution
