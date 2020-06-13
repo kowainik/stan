@@ -13,7 +13,6 @@ module Stan.Analysis
 
 import Extensions (ExtensionsError (..), OnOffExtension, ParsedExtensions (..),
                    SafeHaskellExtension, parseSourceWithPath)
-import HieTypes (HieFile (..))
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Analysis.Analyser (analysisByInspection)
@@ -22,6 +21,7 @@ import Stan.Core.Id (Id)
 import Stan.Core.ModuleName (fromGhcModule)
 import Stan.FileInfo (FileInfo (..), FileMap)
 import Stan.Hie (countLinesOfCode)
+import Stan.Hie.Compat (HieFile (..))
 import Stan.Inspection (Inspection)
 import Stan.Inspection.All (lookupInspectionById)
 import Stan.Observation (Observation (..), Observations)

@@ -13,7 +13,7 @@ module Stan.Core.ModuleName
     , fromGhcModuleName
     ) where
 
-import qualified Module as GHC
+import qualified Stan.Ghc.Compat as Ghc
 
 
 -- | Wrapper around Haskell module name.
@@ -23,9 +23,9 @@ newtype ModuleName = ModuleName
       deriving newtype (Eq, Hashable, IsString)
 
 -- | Convert 'GHC.ModuleName' to 'ModuleName'.
-fromGhcModuleName :: GHC.ModuleName -> ModuleName
-fromGhcModuleName = ModuleName . toText . GHC.moduleNameString
+fromGhcModuleName :: Ghc.ModuleName -> ModuleName
+fromGhcModuleName = ModuleName . toText . Ghc.moduleNameString
 
 -- | Extract 'ModuleName' from 'GHC.Module'.
-fromGhcModule :: GHC.Module -> ModuleName
-fromGhcModule = fromGhcModuleName . GHC.moduleName
+fromGhcModule :: Ghc.Module -> ModuleName
+fromGhcModule = fromGhcModuleName . Ghc.moduleName

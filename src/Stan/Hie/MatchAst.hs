@@ -17,13 +17,12 @@ module Stan.Hie.MatchAst
     ) where
 
 import Data.Char (toLower)
-import FastString (FastString)
-import HieTypes (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..), TypeIndex)
-import Name (nameOccName)
-import OccName (occNameString)
-import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Core.List (checkWith)
+import Stan.Ghc.Compat (FastString, RealSrcSpan, nameOccName, occNameString, srcSpanEndCol,
+                        srcSpanStartCol, srcSpanStartLine)
+import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..),
+                        TypeIndex)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..))

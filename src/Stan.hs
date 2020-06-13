@@ -16,7 +16,6 @@ module Stan
     ) where
 
 import Colourista (errorMessage, formatWith, infoMessage, italic)
-import HieTypes (HieFile (..))
 import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
@@ -32,6 +31,7 @@ import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
 import Stan.Hie (readHieFiles)
+import Stan.Hie.Compat (HieFile (..))
 import Stan.Info (ProjectInfo (..), StanEnv (..))
 import Stan.Inspection (Inspection (..), prettyShowInspection, prettyShowInspectionShort)
 import Stan.Inspection.All (getInspectionById, inspections, lookupInspectionById)

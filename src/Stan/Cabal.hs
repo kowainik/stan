@@ -19,11 +19,12 @@ import Colourista (errorMessage, infoMessage, warningMessage)
 import Control.Exception (catch)
 import Extensions (CabalException, ExtensionsError (..), ExtensionsResult, ParsedExtensions (..),
                    mergeAnyExtensions, parseCabalFileExtensions)
-import HieTypes (HieFile (..))
 import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory,
                          makeRelativeToCurrentDirectory)
 import System.FilePath (takeExtension, (</>))
 import System.IO.Unsafe (unsafeInterleaveIO)
+
+import Stan.Hie.Compat (HieFile (..))
 
 import qualified Data.Map.Strict as Map
 

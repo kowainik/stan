@@ -24,16 +24,15 @@ module Stan.Observation
 
 import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
 import Data.List (partition)
-import HieTypes (HieFile (..))
 import Relude.Unsafe ((!!))
 import Slist (Slist)
-import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
 
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
 import Stan.Core.Toggle (isHidden)
-import Stan.Hie.Debug ()
+import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
+import Stan.Hie.Compat (HieFile (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
 import Stan.Report.Settings (ReportSettings (..))

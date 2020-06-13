@@ -91,9 +91,11 @@ library
                          Stan.Core.List
                          Stan.Core.ModuleName
                          Stan.Core.Toggle
+                         Stan.Ghc.Compat
                          Stan.EnvVars
                          Stan.FileInfo
                          Stan.Hie
+                           Stan.Hie.Compat
                            Stan.Hie.Debug
                            Stan.Hie.MatchAst
                            Stan.Hie.MatchType

@@ -15,14 +15,13 @@ module Stan.Analysis.Analyser
 
 import Extensions (ExtensionsResult)
 import GHC.LanguageExtensions.Type (Extension (Strict, StrictData))
-import HieTypes (HieAST (..), HieASTs (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
-import Name (nameOccName)
-import OccName (isSymOcc, occNameString)
 import Slist (Slist, slist)
-import SrcLoc (RealSrcSpan)
 
 import Stan.Core.Id (Id)
 import Stan.FileInfo (isExtensionDisabled)
+import Stan.Ghc.Compat (RealSrcSpan, isSymOcc, nameOccName, occNameString)
+import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieFile (..), Identifier, NodeInfo (..),
+                        TypeIndex)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.Observation (Observations, mkObservation)

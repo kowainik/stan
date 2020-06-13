@@ -30,12 +30,11 @@ module Stan.Hie.MatchType
     ( hieMatchPatternType
     ) where
 
-import BasicTypes (PromotionFlag (NotPromoted))
 import Data.Array (Array)
-import HieTypes (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
-import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..))
 
 import Stan.Core.List (checkWith)
+import Stan.Ghc.Compat (IfaceTyCon (..), IfaceTyConInfo (..), PromotionFlag (NotPromoted))
+import Stan.Hie.Compat (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
 import Stan.NameMeta (compareNames)
 import Stan.Pattern.Type (PatternType (..))
 
