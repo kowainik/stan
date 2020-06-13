@@ -126,7 +126,7 @@ stan0203 = mkAntiPatternInspection (Id "STAN-0203") "Data.ByteString.Char8.pack"
     & solutionL .~
         [ "Convert to 'Text' and use 'encodeUtf8' from 'Data.Text.Encoding'"
         , "{Extra dependency} Use 'encodeUtf8' from 'relude'"
-        , "{Extra dependency} Use 'utf8-string'"
+        , "{Extra dependency} Use the 'utf8-string' package"
         ]
     & severityL .~ Error
   where
@@ -143,7 +143,7 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
     (FindAst $ namesToPatternAst pats)
     & descriptionL .~ "Usage of 'size' or 'length' for 'HashMap' that runs in linear time"
     & solutionL .~
-        [ "{Extra dependency} Switch to 'Map' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch to 'Map' from 'containers'"
         ]
     & severityL .~ Performance
   where
@@ -166,7 +166,7 @@ stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
            (FindAst $ namesToPatternAst pats)
     & descriptionL .~ "Usage of 'size' or 'length' for 'HashSet' that runs in linear time"
     & solutionL .~
-        [ "{Extra dependency} Switch to 'Set' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch to 'Set' from 'containers'"
         ]
     & severityL .~ Performance
   where
@@ -222,7 +222,7 @@ stan0208 = mkAntiPatternInspection (Id "STAN-0208") "Slow 'length' for Text"
            (FindAst $ PatternAstName lenNameMeta (textPattern |-> (?)))
     & descriptionL .~ "Usage of 'length' for 'Text' that runs in linear time"
     & solutionL .~
-        [ "{Extra dependency} Switch to 'ByteString' from 'bytesting' if this data type works for you"
+        [ "{Extra dependency} Switch to 'ByteString' from 'bytesting'"
         ]
     & severityL .~ Performance
   where
@@ -235,7 +235,7 @@ stan0209 = mkAntiPatternInspection (Id "STAN-0209") "Slow 'nub' for lists"
            (FindAst $ PatternAstName (mkBaseOldListMeta "nub") $ listPattern |-> listPattern)
     & descriptionL .~ "Usage of 'nub' on lists that runs in quadratic time"
     & solutionL .~
-        [ "{Extra dependency} Switch list to 'Set' from 'containers' if this data type works for you"
+        [ "{Extra dependency} Switch list to 'Set' from 'containers'"
         , "{Extra dependency} Use 'ordNub/hashNub/sortNub/unstableNub' from 'relude'"
         , "{Extra dependency} Use 'nubOrd' from 'containers'"
         , "{Extra dependency} Use 'nubOrd' from 'extra'"
