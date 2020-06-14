@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -24,6 +26,15 @@ module Stan.Pattern.Ast
     , range
     , tuple
     , typeSig
+
+      -- * Pattern matching
+    , case'
+    , lambdaCase
+    , patternMatchBranch
+    , patternMatchArrow
+    , patternMatch_
+    , literalPat
+    , wildPat
     ) where
 
 import Stan.Ghc.Compat (FastString)
@@ -78,6 +89,7 @@ data Literal
     = ExactNum !Int
     | ExactStr !ByteString
     | PrefixStr !ByteString
+    | AnyLiteral
     deriving stock (Show, Eq)
 
 {- | Function that creates 'PatternAst' from the given non-empty list of pairs
@@ -103,6 +115,45 @@ opApp x op y = PatternAstNodeExact (one ("OpApp", "HsExpr")) [x, op, y]
 -- | @range a b@ is a pattern for @[a .. b]@
 range :: PatternAst -> PatternAst -> PatternAst
 range from to = PatternAstNodeExact (one ("ArithSeq", "HsExpr")) [from, to]
+
+-- | 'lambdaCase' is a pattern for @\case@ expression (not considering branches).
+lambdaCase :: PatternAst
+lambdaCase = PatternAstNode (one ("HsLamCase", "HsExpr"))
+
+-- | 'case'' is a pattern for @case EXP of@ expression (not considering branches).
+case' :: PatternAst
+case' = PatternAstNode (one ("HsCase", "HsExpr"))
+
+-- | Pattern to represent one pattern matching branch.
+patternMatchBranch :: PatternAst
+patternMatchBranch = PatternAstNode (one ("Match", "Match"))
+
+{- | Pattern for @_@ in pattern matching.
+
+__Note:__ presents on GHC >=8.10 only.
+-}
+wildPat :: PatternAst
+wildPat = PatternAstNode (one ("WildPat", "Pat"))
+
+{- | Pattern for literals in pattern matching.
+
+__Note:__ presents on GHC >=8.10 only.
+-}
+literalPat :: PatternAst
+literalPat = PatternAstNode (one ("NPat", "Pat"))
+    ||| PatternAstNode (one ("LitPat", "Pat"))
+
+-- | Pattern to represent one pattern matching branch on @_@.
+patternMatch_ :: PatternAst -> PatternAst
+patternMatch_ val = PatternAstNodeExact (one ("Match", "Match"))
+#if __GLASGOW_HASKELL__ >= 810
+    $ wildPat :
+#endif
+    [patternMatchArrow val]
+
+-- | Pattern to represent right side of the pattern matching, e.g. @-> "foo"@.
+patternMatchArrow :: PatternAst -> PatternAst
+patternMatchArrow x = PatternAstNodeExact (one ("GRHS", "GRHS")) [x]
 
 {- | Pattern for the top-level fixity declaration:
 

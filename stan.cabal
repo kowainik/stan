@@ -163,6 +163,7 @@ library target
                          Target.AntiPattern.Stan0206
                          Target.AntiPattern.Stan0206Extensions
                          Target.AntiPattern.Stan0212
+                         Target.AntiPattern.Stan0213
                        Target.Infinite
                        Target.Partial
                        Target.Style

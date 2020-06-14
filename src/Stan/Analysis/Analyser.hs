@@ -25,7 +25,10 @@ import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieFile (..), Identifier, Nod
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.Observation (Observations, mkObservation)
-import Stan.Pattern.Ast (PatternAst, constructor, dataDecl, fixity, lazyField, tuple, typeSig)
+import Stan.Pattern.Ast (Literal (..), PatternAst (..), case', constructor, dataDecl, fixity,
+                         lambdaCase, lazyField, literalPat, patternMatchArrow, patternMatchBranch,
+                         patternMatch_, tuple, typeSig)
+import Stan.Pattern.Edsl (neg, (?), (|||))
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
@@ -48,6 +51,7 @@ analysisByInspection exts Inspection{..} = case inspectionAnalysis of
         (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
         (analyseLazyFields inspectionId)
     BigTuples -> analyseBigTuples inspectionId
+    PatternMatchOn_ -> analysePatternMatch_ inspectionId
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}
@@ -75,8 +79,8 @@ analyseBigTuples insId hie =
   where
     isBigTuple :: HieAST TypeIndex -> Bool
     isBigTuple Node{..} = case nodeChildren of
-        _:_:_:_:_ -> True
-        _         -> False
+        _:_:_:_:_  -> True
+        _lessThan4 -> False
 
 {- | Check for occurrences lazy fields in all constructors. Ignores
 @newtype@s. Currently HIE Ast doesn't have information whether the
@@ -132,6 +136,68 @@ analyseLazyFields insId hie =
     -- matches record fields non-recursively
     matchField :: HieAST TypeIndex -> Slist RealSrcSpan
     matchField = createMatch lazyField hie
+
+{- | Check for occurrences of pattern matching on @_@ for sum types (except
+literals).
+-}
+analysePatternMatch_ :: Id Inspection -> HieFile -> Observations
+analysePatternMatch_ insId hie =
+    mkObservation insId hie <$> analyseAstWith matchPatternMatch hie
+  where
+    matchPatternMatch :: HieAST TypeIndex -> Slist RealSrcSpan
+    matchPatternMatch node = memptyIfFalse
+        -- return empty list if it's not a case or lambda case
+        (hieMatchPatternAst hie node $ lambdaCase ||| case')
+        -- get list of all case branches
+        $ case nodeChildren node of
+              -- no branches = not observations
+              []     -> mempty
+              -- lambda case, first kid is pattern matching
+              [pm]   -> analyseBranches pm
+              -- case, first kid is @case exp of@, the second is pattern matching
+              _:pm:_ -> analyseBranches pm
+
+    {- Check the pattern matching child on some particular expressions.
+
+    -}
+    analyseBranches :: HieAST TypeIndex -> Slist RealSrcSpan
+    analyseBranches pm = case nodeChildren pm of
+        -- if there is no children = no observations
+        [] -> mempty
+        -- we need to check first and all other children separately
+        -- see 'isFirstPatternMatchBranchOk' comment to understand the first
+        -- child's rules.
+        c:cs -> memptyIfFalse (isFirstPatternMatchBranchOk c) $
+            {- if the first child satisfies rules of the first pattern matching
+            branch, then we need to find the child with pattern matching on @_@.
+            If there is no such expression = all is good.
+            -}
+            case find (\x -> hieMatchPatternAst hie x (patternMatch_ (?))) cs of
+                Nothing -> mempty
+                Just e  -> S.one (nodeSpan e)
+
+    {- The first pattern matching branch should not:
+    1. Be empty (makes no sense)
+    2. Be a literal pattern matching (e.g. on 'Int's or 'String's)
+    In all other cases we can continue our matching checks with other children.
+    -}
+    isFirstPatternMatchBranchOk :: HieAST TypeIndex -> Bool
+    isFirstPatternMatchBranchOk c = hieMatchPatternAst hie c patternMatchBranch &&
+        case takeWhile isNotMatchArrow $ nodeChildren c of
+            []  -> False
+            [x] -> hieMatchPatternAst hie x notLiteral
+            _:_ -> True
+      where
+        isNotMatchArrow :: HieAST TypeIndex -> Bool
+        isNotMatchArrow n = hieMatchPatternAst hie n $ neg $ patternMatchArrow (?)
+
+    notLiteral :: PatternAst
+    notLiteral = neg
+        -- general literal expression
+        ( PatternAstConstant AnyLiteral
+        -- since GHC-8.10 expression for literal in pattern matching
+        ||| literalPat
+        )
 
 {- | Analyse HIE AST to find all operators which lack explicit fixity
 declaration.

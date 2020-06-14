@@ -38,4 +38,4 @@ getEnvVars = do
 envVarsToText :: EnvVars -> Text
 envVarsToText EnvVars{..} = case envVarsUseDefaultConfigFile of
     Result _ (_, res) -> "STAN_USE_DEFAULT_CONFIG=" <> show res
-    _                 -> ""
+    Fiasco _          -> ""

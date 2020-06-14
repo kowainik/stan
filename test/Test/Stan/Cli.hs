@@ -21,7 +21,7 @@ cliSpec = describe "CLI configuration tests" $ do
     it "Converts Config to CLI command and parses it back" $
         case execParserPure stanParserPrefs stanCliParser (stanCommand configExample) of
             Success (Stan StanArgs{..}) -> stanArgsConfig `shouldBe` partialConfigExample
-            _                           -> fail "Toml-To-CLI doesn't match the original config"
+            _failure                    -> fail "Toml-To-CLI doesn't match the original config"
 
   where
     configExample :: Config
@@ -63,7 +63,7 @@ cliConfigRoundtripProperty = hedgehog $ do
     case execParserPure stanParserPrefs stanCliParser (stanCommand config) of
         Success (Stan StanArgs{..}) ->
             trialToMaybe (finaliseConfig stanArgsConfig) === Just config
-        _ -> fail $ "Toml-To-CLI doesn't match the original config:\n"
+        _failure -> fail $ "Toml-To-CLI doesn't match the original config:\n"
             <> toString (configToCliCommand config)
 
 stanCommand :: Config -> [String]

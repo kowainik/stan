@@ -60,6 +60,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
                 ExactNum n  -> readMaybe (decodeUtf8 span) == Just n
                 ExactStr s  -> span == s
                 PrefixStr s -> s `BS.isPrefixOf` span
+                AnyLiteral  -> True
            )
     PatternAstName nameMeta patType ->
         any (matchNameAndType nameMeta patType)
@@ -73,7 +74,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstVarName varName -> isJust $ find
         (\case
             Right x -> varName `Str.isInfixOf` map toLower (occNameString $ nameOccName x)
-            _       -> False
+            Left _ -> False
         )
         $ Map.keys $ nodeIdentifiers nodeInfo
   where
