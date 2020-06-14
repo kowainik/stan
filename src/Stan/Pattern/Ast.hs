@@ -25,7 +25,7 @@ module Stan.Pattern.Ast
     , tuple
     , typeSig
 
-      -- Pattern matching
+      -- * Pattern matching
     , case'
     , lambdaCase
     , patternMatchBranch
