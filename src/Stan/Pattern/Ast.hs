@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -31,6 +33,8 @@ module Stan.Pattern.Ast
     , patternMatchBranch
     , patternMatchArrow
     , patternMatch_
+    , literalPat
+    , wildPat
     ) where
 
 import Stan.Ghc.Compat (FastString)
@@ -124,9 +128,28 @@ case' = PatternAstNode (one ("HsCase", "HsExpr"))
 patternMatchBranch :: PatternAst
 patternMatchBranch = PatternAstNode (one ("Match", "Match"))
 
+{- | Pattern for @_@ in pattern matching.
+
+__Note:__ presents on GHC >=8.10 only.
+-}
+wildPat :: PatternAst
+wildPat = PatternAstNode (one ("WildPat", "Pat"))
+
+{- | Pattern for literals in pattern matching.
+
+__Note:__ presents on GHC >=8.10 only.
+-}
+literalPat :: PatternAst
+literalPat = PatternAstNode (one ("NPat", "Pat"))
+    ||| PatternAstNode (one ("LitPat", "Pat"))
+
 -- | Pattern to represent one pattern matching branch on @_@.
 patternMatch_ :: PatternAst -> PatternAst
-patternMatch_ val = PatternAstNodeExact (one ("Match", "Match")) [patternMatchArrow val]
+patternMatch_ val = PatternAstNodeExact (one ("Match", "Match"))
+#if __GLASGOW_HASKELL__ >= 810
+    $ wildPat :
+#endif
+    [patternMatchArrow val]
 
 -- | Pattern to represent right side of the pattern matching, e.g. @-> "foo"@.
 patternMatchArrow :: PatternAst -> PatternAst

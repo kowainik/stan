@@ -58,3 +58,8 @@ stanMaybeLambdaCaseNo i = \case
 stanMaybeLambdaCaseFirst_ :: Int -> Maybe Int -> Int
 stanMaybeLambdaCaseFirst_ i = \case
     _ -> i + 1
+
+stanLambdaLitChar :: Char -> String
+stanLambdaLitChar = \case
+    'c' -> "One"
+    _ -> "Other"

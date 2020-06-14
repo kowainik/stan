@@ -169,3 +169,6 @@ patternMatchSpec analysis = describe "STAN-0212: Pattern Matching on _" $ do
         noObservation AntiPattern.stan0213 56
     it "not triggered for lambda case on one branch _" $
         noObservation AntiPattern.stan0213 60
+
+    it "not triggered for lambda case on Chars" $
+        noObservation AntiPattern.stan0213 65

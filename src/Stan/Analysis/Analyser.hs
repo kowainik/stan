@@ -26,7 +26,7 @@ import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), case', constructor, dataDecl, fixity,
-                         lambdaCase, lazyField, patternMatchArrow, patternMatchBranch,
+                         lambdaCase, lazyField, literalPat, patternMatchArrow, patternMatchBranch,
                          patternMatch_, tuple, typeSig)
 import Stan.Pattern.Edsl (neg, (?), (|||))
 
@@ -192,7 +192,12 @@ analysePatternMatch_ insId hie =
         isNotMatchArrow n = hieMatchPatternAst hie n $ neg $ patternMatchArrow (?)
 
     notLiteral :: PatternAst
-    notLiteral = neg (PatternAstConstant AnyLiteral)
+    notLiteral = neg
+        -- general literal expression
+        ( PatternAstConstant AnyLiteral
+        -- since GHC-8.10 expression for literal in pattern matching
+        ||| literalPat
+        )
 
 {- | Analyse HIE AST to find all operators which lack explicit fixity
 declaration.
