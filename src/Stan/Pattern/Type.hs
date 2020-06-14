@@ -31,7 +31,7 @@ module Stan.Pattern.Type
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom, primTypeMeta, textNameFrom)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 
@@ -143,14 +143,7 @@ eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
 
 -- | 'PatternType' for pair @(,)@.
 pairPattern :: PatternType
-pairPattern = tupleNameMeta |:: [ (?), (?) ]
-  where
-    tupleNameMeta :: NameMeta
-    tupleNameMeta = NameMeta
-        { nameMetaName       = "(,)"
-        , nameMetaModuleName = "GHC.Tuple"
-        , nameMetaPackage    = "ghc-prim"
-        }
+pairPattern = "(,)" `ghcPrimNameFrom` "GHC.Tuple" |:: [ (?), (?) ]
 
 {- | Type patterns for the 'Foldable' typeclass methods. Represented
 as a non-empty list of pairs:

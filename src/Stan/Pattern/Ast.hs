@@ -15,6 +15,7 @@ module Stan.Pattern.Ast
 
       -- * Helpers
     , namesToPatternAst
+    , anyNamesToPatternAst
 
       -- * eDSL
     , app
@@ -22,8 +23,11 @@ module Stan.Pattern.Ast
     , constructor
     , dataDecl
     , fixity
+    , fun
+    , guardBranch
     , lazyField
     , range
+    , rhs
     , tuple
     , typeSig
 
@@ -35,12 +39,17 @@ module Stan.Pattern.Ast
     , patternMatch_
     , literalPat
     , wildPat
+
+      -- * More low-level interface
+    , literalAnns
     ) where
 
 import Stan.Ghc.Compat (FastString)
 import Stan.NameMeta (NameMeta (..))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType)
+
+import qualified Data.Set as Set
 
 
 {- | Query pattern used to search AST nodes in HIE AST. This data type
@@ -103,6 +112,10 @@ namesToPatternAst ((nm, pat) :| []) = PatternAstName nm pat
 namesToPatternAst ((nm, pat) :| x:rest) = PatternAstOr
     (PatternAstName nm pat)
     (namesToPatternAst $ x :| rest)
+
+-- | Like 'namesToPatternAst' but doesn't care about types.
+anyNamesToPatternAst :: NonEmpty NameMeta -> PatternAst
+anyNamesToPatternAst = namesToPatternAst . fmap (, (?))
 
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst
@@ -172,6 +185,19 @@ foo :: Some -> Type
 -}
 typeSig :: PatternAst
 typeSig = PatternAstNode $ one ("TypeSig", "Sig")
+
+{- | Pattern for the function definition:
+
+@
+foo x y = ...
+@
+-}
+fun :: PatternAst
+fun = PatternAstNode $ Set.fromList
+    [ ("AbsBinds", "HsBindLR")
+    , ("FunBind",  "HsBindLR")
+    , ("Match",    "Match")
+    ]
 
 {- | @data@ or @newtype@ declaration.
 -}
@@ -244,3 +270,25 @@ tuple =
     PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple type
     |||
     PatternAstNode (one ("ExplicitTuple", "HsExpr"))  -- tuple literal
+
+{- | Pattern for a single @guard@ branch:
+
+@
+    | x < y = ...
+@
+-}
+guardBranch :: PatternAst
+guardBranch = PatternAstNode $ one ("BodyStmt", "StmtLR")
+
+{- | Pattern for the right-hand-side. Usually an equality sign.
+
+@
+   foo = baz
+@
+-}
+rhs :: PatternAst
+rhs = PatternAstNode $ one ("GRHS", "GRHS")
+
+-- | Annotations for constants: 0, "foo", etc.
+literalAnns :: (FastString, FastString)
+literalAnns = ("HsOverLit", "HsExpr")

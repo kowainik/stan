@@ -39,6 +39,8 @@ module Stan.Inspection.AntiPattern
     , stan0212
       -- *** Anti-pattern: Pattern-matching on @_@
     , stan0213
+      -- *** Anti-pattern: use 'compare'
+    , stan0214
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -52,7 +54,8 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
                       textNameFrom, unorderedNameFrom)
-import Stan.Pattern.Ast (Literal (..), PatternAst (..), app, namesToPatternAst, opApp, range)
+import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
+                         namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, listPattern,
                           stringPattern, textPattern, (|->), (|::))
@@ -78,6 +81,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0211
     , stan0212
     , stan0213
+    , stan0214
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -265,7 +269,7 @@ stan0210 = mkAntiPatternInspection (Id "STAN-0210") "Slow 'for_' on ranges" (Fin
     forType :: PatternType
     forType = listPattern |-> ((?) |-> (?)) |-> (?)
 
--- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0211@.
+-- | 'Inspection' — @</>@ on URLs @STAN-0211@.
 stan0211 :: Inspection
 stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pat)
     & descriptionL .~ "Usage of '</>' for URLs results in the errors on Windows"
@@ -326,13 +330,13 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
     & categoryL %~ (Category.unsafe `NE.cons`)
   where
     pat :: PatternAst
-    pat = namesToPatternAst
-        $ ("undefined" `baseNameFrom` "GHC.Err", (?)) :|
-        [ ("unsafeCoerce" `baseNameFrom` "Unsafe.Coerce", (?))
-        , ("unsafePerformIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
-        , ("unsafeInterleaveIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
-        , ("unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
-        , ("unsafeFixIO" `baseNameFrom` "System.IO.Unsafe", (?))
+    pat = anyNamesToPatternAst
+        $ "undefined" `baseNameFrom` "GHC.Err" :|
+        [ "unsafeCoerce" `baseNameFrom` "Unsafe.Coerce"
+        , "unsafePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
+        , "unsafeInterleaveIO" `baseNameFrom` "GHC.IO.Unsafe"
+        , "unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
+        , "unsafeFixIO" `baseNameFrom` "System.IO.Unsafe"
         ]
 
 -- | 'Inspection' — Pattent matching on @_@ for sum types — @STAN-0213@.
@@ -344,3 +348,12 @@ stan0213 = mkAntiPatternInspection (Id "STAN-0213") "Pattern matching on '_'" Pa
         , "Add meaningful names to holes, e.g. '_anyOtherFailure'"
         ]
     & severityL .~ Warning
+
+-- | 'Inspection' — use 'compare' @STAN-0214@.
+stan0214 :: Inspection
+stan0214 = mkAntiPatternInspection (Id "STAN-0214") "use 'compare'" UseCompare
+    & descriptionL .~ "Usage of multiple comparison operators instead of single 'compare'"
+    & solutionL .~
+        [ "Rewrite code to use single 'compare' instead of many comparison operators"
+        ]
+    & severityL .~ Performance

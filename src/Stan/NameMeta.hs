@@ -15,6 +15,7 @@ module Stan.NameMeta
       -- * Comparison with 'Name'
     , compareNames
     , hieMatchNameMeta
+    , hieFindIdentifier
 
       -- * Smart constructors
     , baseNameFrom
@@ -25,14 +26,16 @@ module Stan.NameMeta
     , unorderedNameFrom
     , textNameFrom
 
+    , ghcPrimNameFrom
     , primTypeMeta
     ) where
 
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
 import Stan.Ghc.Compat (Name, isExternalName, moduleUnitId, nameModule, nameOccName, occNameString)
-import Stan.Hie.Compat (ContextInfo (IEThing), IEType (Import), Identifier, IdentifierDetails (..),
-                        TypeIndex)
+import Stan.Hie.Compat (ContextInfo (IEThing), HieAST (..), IEType (Import), Identifier,
+                        IdentifierDetails (..), NodeInfo (..), TypeIndex)
 
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 
@@ -95,6 +98,17 @@ hieMatchNameMeta nameMeta (identifier, details) = isJust $ do
         -- exact name/module/package
         && compareNames nameMeta name
 
+{- | Check if the given 'HieAST' node is identifier equal to the given
+'NameMeta'.
+-}
+hieFindIdentifier :: NameMeta -> HieAST TypeIndex -> Maybe NameMeta
+hieFindIdentifier nameMeta =
+    (nameMeta <$)
+    . find (hieMatchNameMeta nameMeta)
+    . Map.assocs
+    . nodeIdentifiers
+    . nodeInfo
+
 {- | Create 'NameMeta' for a function from the @base@ package and
 a given 'ModuleName'. module.
 -}
@@ -146,10 +160,17 @@ textNameFrom funName moduleName = NameMeta
     , nameMetaPackage    = "text"
     }
 
--- | 'NameMeta' for primitive types.
-primTypeMeta :: Text -> NameMeta
-primTypeMeta t = NameMeta
-    { nameMetaName       = t
-    , nameMetaModuleName = "GHC.Types"
+{- | Create 'NameMeta' for a function from the @ghc-prim@ package
+and a given 'ModuleName' module.
+-}
+infix 8 `ghcPrimNameFrom`
+ghcPrimNameFrom :: Text -> ModuleName -> NameMeta
+ghcPrimNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
     , nameMetaPackage    = "ghc-prim"
     }
+
+-- | 'NameMeta' for primitive types.
+primTypeMeta :: Text -> NameMeta
+primTypeMeta = (`ghcPrimNameFrom` "GHC.Types")
