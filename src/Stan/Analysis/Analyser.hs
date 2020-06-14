@@ -165,8 +165,9 @@ analysePatternMatch_ insId hie =
         -- if there is no children = no observations
         [] -> mempty
         -- we need to check first and all other children separately
-        -- see 'firstChild' comment to understand the first child rules.
-        c:cs -> memptyIfFalse (firstPatternMatch c) $
+        -- see 'isFirstPatternMatchBranchOk' comment to understand the first
+        -- child's rules.
+        c:cs -> memptyIfFalse (isFirstPatternMatchBranchOk c) $
             {- if the first child satisfies rules of the first pattern matching
             branch, then we need to find the child with pattern matching on @_@.
             If there is no such expression = all is good.
@@ -180,12 +181,15 @@ analysePatternMatch_ insId hie =
     2. Be a literal pattern matching (e.g. on 'Int's or 'String's)
     In all other cases we can continue our matching checks with other children.
     -}
-    firstPatternMatch :: HieAST TypeIndex -> Bool
-    firstPatternMatch c = hieMatchPatternAst hie c patternMatchBranch &&
-        case takeWhile (\n -> hieMatchPatternAst hie n $ neg $ patternMatchArrow (?)) $ nodeChildren c of
+    isFirstPatternMatchBranchOk :: HieAST TypeIndex -> Bool
+    isFirstPatternMatchBranchOk c = hieMatchPatternAst hie c patternMatchBranch &&
+        case takeWhile isNotMatchArrow $ nodeChildren c of
             []  -> False
             [x] -> hieMatchPatternAst hie x notLiteral
             _:_ -> True
+      where
+        isNotMatchArrow :: HieAST TypeIndex -> Bool
+        isNotMatchArrow n = hieMatchPatternAst hie n $ neg $ patternMatchArrow (?)
 
     notLiteral :: PatternAst
     notLiteral = neg (PatternAstConstant AnyLiteral)

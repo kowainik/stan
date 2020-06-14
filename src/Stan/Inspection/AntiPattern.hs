@@ -335,7 +335,7 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
         , ("unsafeFixIO" `baseNameFrom` "System.IO.Unsafe", (?))
         ]
 
--- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0213@.
+-- | 'Inspection' — Pattent matching on @_@ for sum types — @STAN-0213@.
 stan0213 :: Inspection
 stan0213 = mkAntiPatternInspection (Id "STAN-0213") "Pattern matching on '_'" PatternMatchOn_
     & descriptionL .~ "Pattern matching on '_' for sum types can create maintainability issues"
