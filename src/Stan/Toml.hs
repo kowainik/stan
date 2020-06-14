@@ -112,7 +112,8 @@ taggedTrialListCodec key aCodec = do
     res <- taggedTrialStrCodec (Toml.list aCodec) key
     pure $ case res of
         Result _ (_, []) -> res <> fiasco ("No TOML value is specified for key: " <> Toml.prettyKey key)
-        _                -> res
+        Result _ _ -> res
+        Fiasco _ -> res
 
 checkCodec :: TomlCodec Check
 checkCodec = Check
@@ -130,22 +131,22 @@ checkTypeCodec = Toml.enumBounded "type"
 checkInspection :: CheckFilter -> Maybe (Id Inspection)
 checkInspection = \case
     CheckInspection idI -> Just idI
-    _ -> Nothing
+    _other -> Nothing
 
 checkSeverity :: CheckFilter -> Maybe Severity
 checkSeverity = \case
     CheckSeverity sev -> Just sev
-    _ -> Nothing
+    _other -> Nothing
 
 checkCategory :: CheckFilter -> Maybe Category
 checkCategory = \case
     CheckCategory category -> Just category
-    _ -> Nothing
+    _other -> Nothing
 
 checkAll :: CheckFilter -> Maybe ()
 checkAll = \case
     CheckAll -> Just ()
-    _ -> Nothing
+    _other -> Nothing
 
 checkFilterCodec :: TomlCodec CheckFilter
 checkFilterCodec =
@@ -164,17 +165,17 @@ idCodec = Toml.diwrap $ Toml.text "id"
 scopeFile :: Scope -> Maybe FilePath
 scopeFile = \case
     ScopeFile filePath -> Just filePath
-    _ -> Nothing
+    _other -> Nothing
 
 scopeDir :: Scope -> Maybe FilePath
 scopeDir = \case
     ScopeDirectory dir -> Just dir
-    _ -> Nothing
+    _other -> Nothing
 
 scopeAll :: Scope -> Maybe ()
 scopeAll = \case
     ScopeAll -> Just ()
-    _ -> Nothing
+    _other -> Nothing
 
 scopeCodec :: TomlCodec Scope
 scopeCodec =

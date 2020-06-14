@@ -43,8 +43,8 @@ configTomlRoundtripProperty = hedgehog $ do
     case Toml.decode configCodec $ Toml.encode configCodec $ toPartialConfig config of
         Right partialConfig -> case finaliseConfig partialConfig of
             Result _ res -> config === res
-            _            -> fail "Expected Result, but this is Fiasco, bro"
-        _                   -> fail "Expected Right"
+            Fiasco _     -> fail "Expected Result, but this is Fiasco, bro"
+        Left _ -> fail "Expected Right"
 
 toPartialConfig :: Config -> PartialConfig
 toPartialConfig ConfigP{..} = ConfigP

@@ -37,6 +37,8 @@ module Stan.Inspection.AntiPattern
     , stan0211
       -- *** Anti-pattern: unsafe functions
     , stan0212
+      -- *** Anti-pattern: Pattern-matching on @_@
+    , stan0213
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -75,6 +77,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0210
     , stan0211
     , stan0212
+    , stan0213
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -183,7 +186,7 @@ stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
     hsPat :: PatternType
     hsPat = (hs |:: [(?)]) |-> (?)
 
--- | 'Inspection' — missing fixity declaration @STAN-0206@.
+-- | 'Inspection' — missing strictness declaration @STAN-0206@.
 stan0206 :: Inspection
 stan0206 = Inspection
     { inspectionId = Id "STAN-0206"
@@ -310,7 +313,7 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
     urlName :: PatternAst
     urlName = PatternAstVarName "url"
 
--- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0211@.
+-- | 'Inspection' — usage of @unsafe*@ functions @STAN-0212@.
 stan0212 :: Inspection
 stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst pat)
     & descriptionL .~ "Usage of unsafe functions breaks referential transparency"
@@ -331,3 +334,13 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
         , ("unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe", (?))
         , ("unsafeFixIO" `baseNameFrom` "System.IO.Unsafe", (?))
         ]
+
+-- | 'Inspection' — slow 'length' for 'Data.Text' @STAN-0213@.
+stan0213 :: Inspection
+stan0213 = mkAntiPatternInspection (Id "STAN-0213") "Pattern matching on '_'" PatternMatchOn_
+    & descriptionL .~ "Pattern matching on '_' for sum types can create maintainability issues"
+    & solutionL .~
+        [ "Pattern match on each constructor explicitly"
+        , "Add meaningful names to holes, e.g. '_anyOtherFailure'"
+        ]
+    & severityL .~ Warning

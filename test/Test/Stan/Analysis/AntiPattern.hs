@@ -66,6 +66,7 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         noObservation AntiPattern.stan0211 76
 
     unsafeFunctionsSpec analysis
+    patternMatchSpec analysis
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
@@ -130,3 +131,41 @@ unsafeFunctionsSpec analysis = describe "STAN-0212: Unsafe functions" $ do
         checkObservation AntiPattern.stan0212 22 30 52
     it "Find: unsafeFixIO" $
         checkObservation AntiPattern.stan0212 25 19 30
+
+patternMatchSpec :: Analysis -> Spec
+patternMatchSpec analysis = describe "STAN-0212: Pattern Matching on _" $ do
+    let checkObservation = observationAssert
+            "Target/AntiPattern/Stan0213.hs"
+            "Target.AntiPattern.Stan0213"
+            analysis
+    let noObservation = noObservationAssert
+            "Target/AntiPattern/Stan0213.hs"
+            "Target.AntiPattern.Stan0213"
+            analysis
+
+    it "for lambda case" $
+        checkObservation AntiPattern.stan0213 12 5 17
+    it "not triggered for lambda case on integers" $
+        noObservation AntiPattern.stan0213 17
+    it "for case" $
+        checkObservation AntiPattern.stan0213 23 5 18
+    it "not triggered for case on strings" $
+        noObservation AntiPattern.stan0213 29
+    it "not triggered for case on all constructors" $ do
+        noObservation AntiPattern.stan0213 33
+        noObservation AntiPattern.stan0213 34
+        noObservation AntiPattern.stan0213 35
+
+    it "not triggered for lambda case on all constructors" $ do
+        noObservation AntiPattern.stan0213 39
+        noObservation AntiPattern.stan0213 40
+        noObservation AntiPattern.stan0213 41
+
+    it "for case on maybe" $
+        checkObservation AntiPattern.stan0213 46 5 20
+    it "for lambda case on maybe" $
+        checkObservation AntiPattern.stan0213 51 5 20
+    it "not triggered for lambda case on maybe with full pm" $
+        noObservation AntiPattern.stan0213 56
+    it "not triggered for lambda case on one branch _" $
+        noObservation AntiPattern.stan0213 60

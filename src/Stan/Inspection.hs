@@ -101,6 +101,8 @@ data InspectionAnalysis
     | LazyField
     -- | Usage of tuples with size >= 4
     | BigTuples
+    -- | Pattern matching on @_@ for sum types.
+    | PatternMatchOn_
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.
