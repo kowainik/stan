@@ -1,5 +1,6 @@
 module Test.Stan.Analysis.Common
     ( observationAssert
+    , observationAssertMulti
     , noObservationAssert
     , itShouldStr
     , unsafeNameMeta
@@ -33,7 +34,32 @@ observationAssert
     -> Int  -- ^ Span start
     -> Int  -- ^ Span end
     -> Expectation
-observationAssert modulePath moduleName analysis Inspection{..} line start end =
+observationAssert modulePath moduleName analysis inspection line start end =
+    observationAssertMulti modulePath moduleName analysis inspection line start line end
+
+{- | Checks that there's 'Observation' of a given inspection in a
+given line and span.
+-}
+observationAssertMulti
+    :: FilePath  -- ^ Path to module
+    -> ModuleName  -- ^ Module name
+    -> Analysis
+    -> Inspection
+    -> Int  -- ^ Start Line number
+    -> Int  -- ^ Span start
+    -> Int  -- ^ End Line number
+    -> Int  -- ^ Span end
+    -> Expectation
+observationAssertMulti
+    modulePath
+    moduleName
+    analysis
+    Inspection{..}
+    firstLine
+    start
+    lastLine
+    end
+  =
     foundPartialObservation `shouldBe` Just expectedHeadObservation
   where
     foundPartialObservation :: Maybe Observation
@@ -60,8 +86,8 @@ observationAssert modulePath moduleName analysis Inspection{..} line start end =
 
     span :: RealSrcSpan
     span = mkRealSrcSpan
-        (mkRealSrcLoc pathFS line start)
-        (mkRealSrcLoc pathFS line end)
+        (mkRealSrcLoc pathFS firstLine start)
+        (mkRealSrcLoc pathFS lastLine end)
 
     path :: FilePath
     path = "target" </> modulePath

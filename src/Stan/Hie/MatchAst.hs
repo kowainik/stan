@@ -19,21 +19,19 @@ module Stan.Hie.MatchAst
 import Data.Char (toLower)
 
 import Stan.Core.List (checkWith)
-import Stan.Ghc.Compat (FastString, RealSrcSpan, nameOccName, occNameString, srcSpanEndCol,
-                        srcSpanStartCol, srcSpanStartLine)
+import Stan.Ghc.Compat (FastString, nameOccName, occNameString)
+import Stan.Hie (slice)
 import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..),
                         TypeIndex)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
-import Stan.Pattern.Ast (Literal (..), PatternAst (..))
+import Stan.Pattern.Ast (Literal (..), PatternAst (..), literalAnns)
 import Stan.Pattern.Type (PatternType)
 
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as BS8
 import qualified Data.List as Str
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import qualified Relude.Unsafe as Unsafe
 
 
 {- | Matching function that matches current AST node with a given
@@ -55,8 +53,8 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
            hieMatchPatternAst hie node p1
         && hieMatchPatternAst hie node p2
     PatternAstConstant lit ->
-           Set.member ("HsOverLit", "HsExpr") (nodeAnnotations nodeInfo)
-        && ( let span = slice nodeSpan in case lit of
+           Set.member literalAnns (nodeAnnotations nodeInfo)
+        && ( let span = slice nodeSpan hie_hs_src in case lit of
                 ExactNum n  -> readMaybe (decodeUtf8 span) == Just n
                 ExactStr s  -> span == s
                 PrefixStr s -> s `BS.isPrefixOf` span
@@ -78,15 +76,6 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         )
         $ Map.keys $ nodeIdentifiers nodeInfo
   where
-    -- take sub-bytestring from src according to a given span
-    -- TODO: current works only with single-line spans
-    slice :: RealSrcSpan -> ByteString
-    slice span =
-        BS.take (srcSpanEndCol span - srcSpanStartCol span)
-        $ BS.drop (srcSpanStartCol span - 1)
-        $ Unsafe.at (srcSpanStartLine span - 1)
-        $ BS8.lines hie_hs_src
-
     matchAnnotations :: Set (FastString, FastString) -> NodeInfo TypeIndex -> Bool
     matchAnnotations tags NodeInfo{..} = tags `Set.isSubsetOf` nodeAnnotations
 

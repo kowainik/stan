@@ -18,17 +18,21 @@ import GHC.LanguageExtensions.Type (Extension (Strict, StrictData))
 import Slist (Slist, slist)
 
 import Stan.Core.Id (Id)
+import Stan.Core.List (nonRepeatingPairs)
 import Stan.FileInfo (isExtensionDisabled)
 import Stan.Ghc.Compat (RealSrcSpan, isSymOcc, nameOccName, occNameString)
+import Stan.Hie (eqAst)
 import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieFile (..), Identifier, NodeInfo (..),
                         TypeIndex)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
+import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
 import Stan.Observation (Observations, mkObservation)
-import Stan.Pattern.Ast (Literal (..), PatternAst (..), case', constructor, dataDecl, fixity,
-                         lambdaCase, lazyField, literalPat, patternMatchArrow, patternMatchBranch,
-                         patternMatch_, tuple, typeSig)
-import Stan.Pattern.Edsl (neg, (?), (|||))
+import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
+                         dataDecl, fixity, fun, guardBranch, lambdaCase, lazyField, literalPat,
+                         opApp, patternMatchArrow, patternMatchBranch, patternMatch_, rhs, tuple,
+                         typeSig)
+import Stan.Pattern.Edsl (PatternBool (..))
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
@@ -52,6 +56,7 @@ analysisByInspection exts Inspection{..} = case inspectionAnalysis of
         (analyseLazyFields inspectionId)
     BigTuples -> analyseBigTuples inspectionId
     PatternMatchOn_ -> analysePatternMatch_ inspectionId
+    UseCompare -> analyseCompare inspectionId
 
 {- | Check for occurrences of the specified function given via 'NameMeta'.
 -}
@@ -81,6 +86,72 @@ analyseBigTuples insId hie =
     isBigTuple Node{..} = case nodeChildren of
         _:_:_:_:_  -> True
         _lessThan4 -> False
+
+{- | Find usages of multiple comparison operators and suggest using
+'compare'. Currently, handles the following cases:
+
+* Guards
+
+The algorithm is to find all guards, filter them by usage of
+comparison operators and find matches.
+-}
+analyseCompare
+    :: Id Inspection
+    -> HieFile
+    -> Observations
+analyseCompare insId hie =
+    mkObservation insId hie <$> analyseAstWith matchComparisonGuards hie
+  where
+    matchComparisonGuards :: HieAST TypeIndex -> Slist RealSrcSpan
+    matchComparisonGuards node = memptyIfFalse
+        (hieMatchPatternAst hie node fun)
+        $ let guards = mapMaybe extractComparisonGuard (nodeChildren node)
+          in memptyIfFalse (hasManyCompares guards) (S.one $ nodeSpan node)
+
+    {- Extract left argument, name of a comparison operator and right
+    argument from a guard.
+    -}
+    extractComparisonGuard
+        :: HieAST TypeIndex
+        -> Maybe (HieAST TypeIndex, HieAST TypeIndex)
+    extractComparisonGuard node = do
+        -- guard starts with GRHS annotation
+        guard $ hieMatchPatternAst hie node rhs
+        -- guard predicate is a first son
+        stmt:_ <- Just $ nodeChildren node
+        -- check if it's a guard
+        guard $ hieMatchPatternAst hie stmt guardBranch
+        -- check if it's an operator
+        guard $ hieMatchPatternAst hie stmt $ opApp (?) opsPat (?)
+        -- extract comparison
+        x:_opAst:y:_ <- Just $ nodeChildren stmt
+        pure (x, y)
+
+    -- pattern for any comparison operator
+    opsPat :: PatternAst
+    opsPat = anyNamesToPatternAst $ le :| [leq, eq, ge, geq]
+
+    le, leq, eq, ge, geq :: NameMeta
+    le  = opName "<"
+    leq = opName "<="
+    eq  = opName "=="
+    ge  = opName ">"
+    geq = opName ">="
+
+    opName :: Text -> NameMeta
+    opName = (`ghcPrimNameFrom` "GHC.Classes")
+
+    -- return True if any two pairs perform comparison of similar things
+    hasManyCompares :: [(HieAST TypeIndex, HieAST TypeIndex)] -> Bool
+    hasManyCompares = any (uncurry matchingComparions) . nonRepeatingPairs
+
+    matchingComparions
+        :: (HieAST TypeIndex, HieAST TypeIndex)
+        -> (HieAST TypeIndex, HieAST TypeIndex)
+        -> Bool
+    matchingComparions (a, b) (x, y) =
+        (eqAst hie a x && eqAst hie b y) || (eqAst hie a y && eqAst hie b x)
+
 
 {- | Check for occurrences lazy fields in all constructors. Ignores
 @newtype@s. Currently HIE Ast doesn't have information whether the

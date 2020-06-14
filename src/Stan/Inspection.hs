@@ -103,6 +103,8 @@ data InspectionAnalysis
     | BigTuples
     -- | Pattern matching on @_@ for sum types.
     | PatternMatchOn_
+    -- | Replace multiple comparison operations with 'compare'
+    | UseCompare
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.

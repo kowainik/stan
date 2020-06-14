@@ -2,10 +2,10 @@ module Test.Stan.Analysis.AntiPattern
     ( analysisAntiPatternSpec
     ) where
 
-import Test.Hspec (Spec, describe, it)
+import Test.Hspec (Spec, describe, it, xit)
 
 import Stan.Analysis (Analysis)
-import Test.Stan.Analysis.Common (noObservationAssert, observationAssert)
+import Test.Stan.Analysis.Common (noObservationAssert, observationAssert, observationAssertMulti)
 
 import qualified Stan.Inspection.AntiPattern as AntiPattern
 
@@ -67,6 +67,7 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
 
     unsafeFunctionsSpec analysis
     patternMatchSpec analysis
+    compareSpec analysis
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
@@ -172,3 +173,39 @@ patternMatchSpec analysis = describe "STAN-0212: Pattern Matching on _" $ do
 
     it "not triggered for lambda case on Chars" $
         noObservation AntiPattern.stan0213 65
+
+compareSpec :: Analysis -> Spec
+compareSpec analysis = describe "STAN-0214: Replace multiple comparison operators" $ do
+    let checkObservation = observationAssertMulti
+            "Target/AntiPattern/Stan0214.hs"
+            "Target.AntiPattern.Stan0214"
+            analysis
+            AntiPattern.stan0214
+    let noObservation = noObservationAssert
+            "Target/AntiPattern/Stan0214.hs"
+            "Target.AntiPattern.Stan0214"
+            analysis
+            AntiPattern.stan0214
+
+    it "Finds: < and >" $
+        checkObservation 7 1 10 23
+    it "Finds: == and <" $
+        checkObservation 13 1 16 23
+    it "No warning on: == on different expressions" $ do
+        noObservation 19
+        noObservation 20
+        noObservation 21
+        noObservation 22
+    it "No warning on: Single >=" $ do
+        noObservation 25
+        noObservation 26
+        noObservation 27
+    it "No warning on: >= with different constants" $ do
+        noObservation 30
+        noObservation 31
+        noObservation 32
+        noObservation 33
+        noObservation 34
+        noObservation 35
+    xit "Handles functions with pattern-matching" $
+        checkObservation 41 1 44 20
