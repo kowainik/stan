@@ -23,6 +23,7 @@ module Stan.Observation
     ) where
 
 import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
+import Colourista.Short (b, i)
 import Data.List (partition)
 import Relude.Unsafe ((!!))
 import Slist (Slist)
@@ -30,13 +31,12 @@ import Slist (Slist)
 import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
-import Stan.Core.Toggle (isHidden)
-import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanStartCol,
+import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanFile, srcSpanStartCol,
                         srcSpanStartLine)
 import Stan.Hie.Compat (HieFile (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
-import Stan.Report.Settings (ReportSettings (..))
+import Stan.Report.Settings (ReportSettings (..), Verbosity (..), isHidden)
 import Stan.Severity (prettyShowSeverity, severityColour)
 
 import qualified Crypto.Hash.SHA1 as SHA1
@@ -80,18 +80,37 @@ mkObservation insId HieFile{..} srcSpan = Observation
     moduleName :: ModuleName
     moduleName = fromGhcModule hie_module
 
+
 -- | Show 'Observation' in a human-friendly format.
 prettyShowObservation :: ReportSettings -> Observation -> Text
-prettyShowObservation ReportSettings{..} o@Observation{..} = unlines $
-    map (" ┃  " <>)
+prettyShowObservation ReportSettings{..} o@Observation{..} = case reportSettingsVerbosity of
+    NonVerbose -> simpleShowObservation
+    Verbose -> unlines $ map (" ┃  " <>)
         $  observationTable
         <> ("" : prettyObservationSource True o)
         <> ("" : solution)
   where
+    simpleShowObservation :: Text
+    simpleShowObservation =
+        " ✦ "
+        <> b (unId observationId)
+        <>" [" <> sev <> "] "
+        <> i (showSpan observationLoc)
+        <> " — "
+        <> inspectionName inspection
+
+    showSpan :: RealSrcSpan -> Text
+    showSpan s = show (srcSpanFile s)
+        <> "(" <> show (srcSpanStartLine s)
+        <> ":" <> show (srcSpanStartCol s)
+        <> "-" <> show (srcSpanEndLine s)
+        <> ":" <> show (srcSpanEndCol s)
+        <> ")"
+
     observationTable :: [Text]
     observationTable =
         [ element "ID:            " <> b (unId observationId)
-        , element "Severity:      " <> prettyShowSeverity (inspectionSeverity inspection)
+        , element "Severity:      " <> sev
         , element "Inspection ID: " <> unId observationInspectionId
         , element "Name:          " <> inspectionName inspection
         , element "Description:   " <> inspectionDescription inspection
@@ -102,8 +121,8 @@ prettyShowObservation ReportSettings{..} o@Observation{..} = unlines $
         element :: Text -> Text
         element = formatWith [italic] . ("✦ " <>)
 
-        b :: Text -> Text
-        b = formatWith [bold]
+    sev :: Text
+    sev = prettyShowSeverity (inspectionSeverity inspection)
 
     inspection :: Inspection
     inspection = getInspectionById observationInspectionId
@@ -127,7 +146,7 @@ prettyObservationSource
     -> [Text]
 prettyObservationSource isColour Observation{..} =
       alignLine (n - 1)
-    : map (\i -> alignLine i <> getSourceLine i) [n .. endL]
+    : map (\x -> alignLine x <> getSourceLine x) [n .. endL]
     ++ [alignLine (endL + 1) <> arrows]
   where
     n, endL :: Int
@@ -138,8 +157,8 @@ prettyObservationSource isColour Observation{..} =
     alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
 
     getSourceLine :: Int -> Text
-    getSourceLine i = decodeUtf8 $
-        BS.lines observationFileContent !! (i - 1)
+    getSourceLine x = decodeUtf8 $
+        BS.lines observationFileContent !! (x - 1)
 
     arrows :: Text
     arrows = whenColour isColour (severityColour $ inspectionSeverity $ getInspectionById observationInspectionId)

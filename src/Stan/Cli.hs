@@ -36,11 +36,10 @@ import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
                     Scope (..))
 import Stan.Core.Id (Id (..))
-import Stan.Core.Toggle (ToggleSolution (..))
 import Stan.Info (prettyStanVersion, stanVersion)
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation)
-import Stan.Report.Settings (ReportSettings (..))
+import Stan.Report.Settings (ReportSettings (..), ToggleSolution (..), Verbosity (..))
 
 
 -- | Commands used in Stan CLI.
@@ -211,6 +210,7 @@ reportP = do
 
 reportSettingsP :: Parser ReportSettings
 reportSettingsP = do
+    reportSettingsVerbosity <- verbosityP
     reportSettingsSolutionVerbosity <- toggleSolutionP
     pure ReportSettings{..}
 
@@ -219,6 +219,14 @@ toggleSolutionP :: Parser ToggleSolution
 toggleSolutionP = flag ShowSolution HideSolution $ mconcat
     [ long "hide-solution"
     , help "Hide verbose solution information for observations"
+    ]
+
+-- | The 'Observation' is shown juicy by default and gets shortened when option is specified.
+verbosityP :: Parser Verbosity
+verbosityP = flag Verbose NonVerbose $ mconcat
+    [ long "short"
+    , short 's'
+    , help "Hide verbose output information for observations"
     ]
 
 data ConfigCommand

@@ -25,7 +25,7 @@ import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..), extensionsToText)
 import Stan.Observation (Observation (..), prettyShowObservation)
-import Stan.Report.Settings (ReportSettings)
+import Stan.Report.Settings (ReportSettings (..), Verbosity (..))
 
 import qualified Data.HashSet as HS
 import qualified Data.Map.Strict as Map
@@ -38,13 +38,15 @@ import qualified Slist as S
 This functions groups 'Observation's by 'FilePath' they are found in.
 -}
 prettyShowAnalysis :: Analysis -> ReportSettings -> Text
-prettyShowAnalysis an reportSettings = groupedObservations <> summary (analysisToNumbers an)
+prettyShowAnalysis an rs@ReportSettings{..} = case reportSettingsVerbosity of
+    Verbose    -> groupedObservations <> summary (analysisToNumbers an)
+    NonVerbose -> unlines $ toList $ fmap (prettyShowObservation rs) $ analysisObservations an
   where
     groupedObservations :: Text
     groupedObservations =
         Text.intercalate "\n\n"
         $ filter (/= "")
-        $ map (showByFile reportSettings)
+        $ map (showByFile rs)
         $ Map.elems
         $ analysisFileMap an
 
