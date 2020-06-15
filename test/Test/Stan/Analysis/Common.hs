@@ -13,7 +13,7 @@ import Test.Hspec (Expectation, shouldBe)
 
 import Stan.Analysis (Analysis (..))
 import Stan.Core.Id (Id (..))
-import Stan.Core.ModuleName (ModuleName)
+import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, prettyShowNameMeta)
 import Stan.Observation (Observation (..), mkObservationId)
@@ -26,23 +26,21 @@ import qualified Data.Text as Text
 given line and span.
 -}
 observationAssert
-    :: FilePath  -- ^ Path to module
-    -> ModuleName  -- ^ Module name
+    :: [String] -- ^ Module name
     -> Analysis
     -> Inspection
     -> Int  -- ^ Line number
     -> Int  -- ^ Span start
     -> Int  -- ^ Span end
     -> Expectation
-observationAssert modulePath moduleName analysis inspection line start end =
-    observationAssertMulti modulePath moduleName analysis inspection line start line end
+observationAssert moduleParts analysis inspection line start end =
+    observationAssertMulti moduleParts analysis inspection line start line end
 
 {- | Checks that there's 'Observation' of a given inspection in a
 given line and span.
 -}
 observationAssertMulti
-    :: FilePath  -- ^ Path to module
-    -> ModuleName  -- ^ Module name
+    :: [String]  -- ^ Module name parts
     -> Analysis
     -> Inspection
     -> Int  -- ^ Start Line number
@@ -51,8 +49,7 @@ observationAssertMulti
     -> Int  -- ^ Span end
     -> Expectation
 observationAssertMulti
-    modulePath
-    moduleName
+    moduleParts
     analysis
     Inspection{..}
     firstLine
@@ -90,31 +87,39 @@ observationAssertMulti
         (mkRealSrcLoc pathFS lastLine end)
 
     path :: FilePath
-    path = "target" </> modulePath
+    path = filePathFromParts moduleParts
+
+    moduleName :: ModuleName
+    moduleName = moduleFromParts moduleParts
 
     pathFS :: FastString
     pathFS = mkFastString path
 
 -- | Checks that there's no 'Observation' of a given inspection in a given line.
 noObservationAssert
-    :: FilePath  -- ^ Path to module
-    -> ModuleName  -- ^ Module name
+    :: [String]  -- ^ Module parts
     -> Analysis
     -> Inspection
     -> Int  -- ^ Line number
     -> Expectation
-noObservationAssert modulePath moduleName analysis Inspection{..} line =
+noObservationAssert parts analysis Inspection{..} line =
     foundPartialObservation `shouldBe` Nothing
   where
     foundPartialObservation :: Maybe Observation
     foundPartialObservation = find
         (\Observation{..} ->
             observationInspectionId == inspectionId
-            && observationFile == "target" </> modulePath
-            && observationModuleName == moduleName
+            && observationFile == filePathFromParts parts
+            && observationModuleName == moduleFromParts parts
             && srcSpanStartLine observationLoc == line
         )
         (analysisObservations analysis)
+
+filePathFromParts :: [String] -> FilePath
+filePathFromParts parts = "target/Target" </> intercalate "/" parts <> ".hs"
+
+moduleFromParts :: [String] -> ModuleName
+moduleFromParts parts = ModuleName $ toText $ "Target." <> intercalate "." parts
 
 -- | Generates text to be used in tests names.
 itShouldStr :: Inspection -> String

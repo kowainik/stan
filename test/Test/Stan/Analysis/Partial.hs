@@ -20,10 +20,7 @@ analysisPartialSpec :: Analysis -> Spec
 analysisPartialSpec analysis = describe "Partial functions" $ do
     forM_ (zip (sortById partialInspectionsMap) [16, 19 ..]) checkObservation
 
-    let noObservation = noObservationAssert
-            "Target/Partial.hs"
-            "Target.Partial"
-            analysis
+    let noObservation = noObservationAssert ["Partial"] analysis
 
     it "STAN-0010: doesn't trigger on 'succ :: Natural -> Natural'" $
         noObservation Partial.stan0010 81
@@ -49,8 +46,7 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
 
     checkObservationFor :: Inspection -> Int -> Int -> Int -> Expectation
     checkObservationFor ins line start end = observationAssert
-        "Target/Partial.hs"
-        "Target.Partial"
+        ["Partial"]
         analysis
         ins
         line start end

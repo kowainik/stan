@@ -12,14 +12,8 @@ import qualified Stan.Inspection.Style as Style
 
 analysisStyleSpec :: Analysis -> Spec
 analysisStyleSpec analysis = describe "Style" $ do
-    let checkObservation = observationAssert
-            "Target/Style.hs"
-            "Target.Style"
-            analysis
-    let noObservation = noObservationAssert
-            "Target/Style.hs"
-            "Target.Style"
-            analysis
+    let checkObservation = observationAssert ["Style"] analysis
+    let noObservation = noObservationAssert ["Style"] analysis
 
     -- fixity
     it "STAN-0301: finds operator with the missing infix" $

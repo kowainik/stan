@@ -12,14 +12,8 @@ import qualified Stan.Inspection.AntiPattern as AntiPattern
 
 analysisAntiPatternSpec :: Analysis -> Spec
 analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
-    let checkObservation = observationAssert
-            "Target/AntiPattern.hs"
-            "Target.AntiPattern"
-            analysis
-    let noObservation = noObservationAssert
-            "Target/AntiPattern.hs"
-            "Target.AntiPattern"
-            analysis
+    let checkObservation = observationAssert ["AntiPattern"] analysis
+    let noObservation = noObservationAssert ["AntiPattern"] analysis
 
     it "STAN-0201: finds usage of '[0 .. length xs]'" $
         checkObservation AntiPattern.stan0201 16 19 35
@@ -72,14 +66,8 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do
-        let checkObservation = observationAssert
-                "Target/AntiPattern/Stan0206.hs"
-                "Target.AntiPattern.Stan0206"
-                analysis
-        let noObservation = noObservationAssert
-                "Target/AntiPattern/Stan0206.hs"
-                "Target.AntiPattern.Stan0206"
-                analysis
+        let checkObservation = observationAssert ["AntiPattern", "Stan0206"] analysis
+        let noObservation = noObservationAssert ["AntiPattern", "Stan0206"] analysis
 
         it "Doesn't trigger on strict field" $
             noObservation AntiPattern.stan0206 7
@@ -101,10 +89,7 @@ strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
             checkObservation AntiPattern.stan0206 22 11 15
 
     describe "With the 'StrictData' extension" $ do
-        let noObservation = noObservationAssert
-                "Target/AntiPattern/Stan0206Extensions.hs"
-                "Target.AntiPattern.Stan0206Extensions"
-                analysis
+        let noObservation = noObservationAssert ["AntiPattern", "Stan0206Extensions"] analysis
 
         it "Doesn't trigger on a simple record field" $
             noObservation AntiPattern.stan0206 9
@@ -115,10 +100,7 @@ strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
 
 unsafeFunctionsSpec :: Analysis -> Spec
 unsafeFunctionsSpec analysis = describe "STAN-0212: Unsafe functions" $ do
-    let checkObservation = observationAssert
-            "Target/AntiPattern/Stan0212.hs"
-            "Target.AntiPattern.Stan0212"
-            analysis
+    let checkObservation = observationAssert ["AntiPattern", "Stan0212"] analysis
 
     it "Find: undefined" $
         checkObservation AntiPattern.stan0212 10 17 26
@@ -135,14 +117,8 @@ unsafeFunctionsSpec analysis = describe "STAN-0212: Unsafe functions" $ do
 
 patternMatchSpec :: Analysis -> Spec
 patternMatchSpec analysis = describe "STAN-0212: Pattern Matching on _" $ do
-    let checkObservation = observationAssert
-            "Target/AntiPattern/Stan0213.hs"
-            "Target.AntiPattern.Stan0213"
-            analysis
-    let noObservation = noObservationAssert
-            "Target/AntiPattern/Stan0213.hs"
-            "Target.AntiPattern.Stan0213"
-            analysis
+    let checkObservation = observationAssert ["AntiPattern", "Stan0213"] analysis
+    let noObservation = noObservationAssert ["AntiPattern", "Stan0213"] analysis
 
     it "for lambda case" $
         checkObservation AntiPattern.stan0213 12 5 17
@@ -177,13 +153,11 @@ patternMatchSpec analysis = describe "STAN-0212: Pattern Matching on _" $ do
 compareSpec :: Analysis -> Spec
 compareSpec analysis = describe "STAN-0214: Replace multiple comparison operators" $ do
     let checkObservation = observationAssertMulti
-            "Target/AntiPattern/Stan0214.hs"
-            "Target.AntiPattern.Stan0214"
+            ["AntiPattern", "Stan0214"]
             analysis
             AntiPattern.stan0214
     let noObservation = noObservationAssert
-            "Target/AntiPattern/Stan0214.hs"
-            "Target.AntiPattern.Stan0214"
+            ["AntiPattern", "Stan0214"]
             analysis
             AntiPattern.stan0214
 
