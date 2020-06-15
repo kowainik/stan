@@ -8,13 +8,40 @@ Report settings types.
 
 module Stan.Report.Settings
     ( ReportSettings (..)
-    ) where
 
-import Stan.Core.Toggle (ToggleSolution)
+      -- * Verbosity
+    , Verbosity (..)
+    , isVerbose
+      -- * Toggle
+    , ToggleSolution (..)
+    , isHidden
+    ) where
 
 
 {- | Settings for produced report.
 -}
 data ReportSettings = ReportSettings
-    { reportSettingsSolutionVerbosity :: !ToggleSolution
+    { reportSettingsVerbosity         :: !Verbosity
+    , reportSettingsSolutionVerbosity :: !ToggleSolution
     }
+
+data Verbosity
+    = Verbose
+    | NonVerbose
+    deriving stock (Show)
+
+isVerbose :: Verbosity -> Bool
+isVerbose = \case
+     Verbose -> True
+     NonVerbose -> False
+
+-- | Boolean for showing/hiding solution information of observations.
+data ToggleSolution
+    = HideSolution
+    | ShowSolution
+    deriving stock (Show)
+
+-- | Is the toggle option set to 'HideSolution'?
+isHidden :: ToggleSolution -> Bool
+isHidden HideSolution = True
+isHidden ShowSolution = False

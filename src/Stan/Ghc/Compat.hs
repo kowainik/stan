@@ -31,6 +31,7 @@ module Stan.Ghc.Compat
     , srcSpanStartCol
     , srcSpanStartLine
     , srcSpanEndLine
+    , srcSpanFile
 
       -- * Other common types (for debugging and not only)
     , ArgFlag (..)
@@ -53,5 +54,6 @@ import IfaceType (IfaceTyCon (..), IfaceTyConInfo (..), IfaceTyConSort (..), Ifa
 import Module (Module, ModuleName, moduleName, moduleNameString, moduleStableString, moduleUnitId)
 import Name (Name, isExternalName, nameModule, nameOccName, nameStableString)
 import OccName (isSymOcc, occNameString)
-import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanStartCol, srcSpanStartLine)
+import SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanFile, srcSpanStartCol,
+               srcSpanStartLine)
 import Var (ArgFlag (..))
