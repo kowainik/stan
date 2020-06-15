@@ -31,7 +31,8 @@ import Stan.Category (prettyShowCategory)
 import Stan.Core.Id (Id (..))
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
 import Stan.Core.Toggle (isHidden)
-import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
+import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanStartCol,
+                        srcSpanStartLine)
 import Stan.Hie.Compat (HieFile (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
@@ -125,20 +126,20 @@ prettyObservationSource
     -> Observation
     -> [Text]
 prettyObservationSource isColour Observation{..} =
-    [ alignLine (n - 1)
-    , alignLine n <> getSourceLine
-    , alignLine (n + 1) <> arrows
-    ]
+      alignLine (n - 1)
+    : map (\i -> alignLine i <> getSourceLine i) [n .. endL]
+    ++ [alignLine (endL + 1) <> arrows]
   where
-    n :: Int
+    n, endL :: Int
     n = srcSpanStartLine observationLoc
+    endL = srcSpanEndLine observationLoc
 
     alignLine :: Int -> Text
     alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
 
-    getSourceLine :: Text
-    getSourceLine = decodeUtf8 $
-        BS.lines observationFileContent !! (n - 1)
+    getSourceLine :: Int -> Text
+    getSourceLine i = decodeUtf8 $
+        BS.lines observationFileContent !! (i - 1)
 
     arrows :: Text
     arrows = whenColour isColour (severityColour $ inspectionSeverity $ getInspectionById observationInspectionId)
