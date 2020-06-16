@@ -66,9 +66,12 @@ compareNames NameMeta{..} name =
         && occName    == nameMetaName
         && moduleName == nameMetaModuleName
         && ( nameMetaPackage `T.isPrefixOf` package
-           -- This is Cabal hack they made for MacOS. For now, we check for all platforms.
+           -- Cabal hack they made for MacOS. For now, we check for all platforms.
            -- See this issue for more info: https://github.com/kowainik/stan/issues/240
            || withoutVowels nameMetaPackage `T.isPrefixOf` package
+           -- Cabal hack they made for Windows. For now, we check for all platforms
+           -- See this issue for more info: https://github.com/kowainik/stan/issues/274
+           || truncatedWindows nameMetaPackage `T.isPrefixOf` package
            )
   where
     withoutVowels :: Text -> Text
@@ -82,6 +85,9 @@ compareNames NameMeta{..} name =
         'o' -> False
         'u' -> False
         _ -> True
+
+    truncatedWindows :: Text -> Text
+    truncatedWindows s = T.take 13 s <> "_"
 
 {- | Check whether HIE 'Identifier' with details is a given 'NameMeta'.
 -}
