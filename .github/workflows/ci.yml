@@ -54,7 +54,13 @@ jobs:
       run: |
         cabal test --enable-tests --test-show-details=direct stan-test
 
-    - name: Dogfooding
+    - if: matrix.os == 'windows-latest'
+      name: Dogfooding on Windows
+      run: |
+        cabal run stan -- --config-file=.stan-windows.toml
+
+    - if: matrix.os != 'windows-latest'
+      name: Dogfooding
       run: |
         cabal run stan
 
