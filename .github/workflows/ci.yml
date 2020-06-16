@@ -89,3 +89,7 @@ jobs:
     - name: Test
       run: |
         stack test --system-ghc
+
+    - name: Dogfooding
+      run: |
+        stack run stan --system-ghc

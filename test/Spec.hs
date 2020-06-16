@@ -1,6 +1,7 @@
 module Main (main) where
 
 import HieTypes (HieFile (..))
+import System.FilePath ((</>))
 import Test.Hspec (hspec)
 
 import Stan.Hie (readHieFiles)
@@ -21,7 +22,7 @@ main = do
             exitFailure
         testHies -> do
             Just exampleHie <- pure $
-                find ((==) "target/Target/Partial.hs" . hie_hs_file) testHies
+                find ((==) ("target" </> "Target" </> "Partial.hs") . hie_hs_file) testHies
             hspec $ do
                 linesOfCodeSpec exampleHie
                 modulesNumSpec $ length hieFiles
