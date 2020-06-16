@@ -284,14 +284,25 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
         ||| opApp (?) op urlName
 
     op :: PatternAst
-    op = PatternAstName operator ((?) |-> filePathType |-> (?))
+    op = PatternAstName operatorPosix fun
+        ||| PatternAstName operatorWindows fun
       where
-        operator :: NameMeta
-        operator =  NameMeta
+        operatorPosix :: NameMeta
+        operatorPosix =  NameMeta
             { nameMetaName       = "</>"
             , nameMetaModuleName = "System.FilePath.Posix"
             , nameMetaPackage    = "filepath"
             }
+
+        operatorWindows :: NameMeta
+        operatorWindows =  NameMeta
+            { nameMetaName       = "</>"
+            , nameMetaModuleName = "System.FilePath.Windows"
+            , nameMetaPackage    = "filepath"
+            }
+
+        fun :: PatternType
+        fun = (?) |-> filePathType |-> (?)
 
     {- TODO: Note, that at the moment hie somehow thinks that '</>' works with
     'String's even when I specify type of vars to 'FilePath' explicitly.
