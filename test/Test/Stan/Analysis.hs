@@ -3,6 +3,7 @@ module Test.Stan.Analysis
     ) where
 
 import HieTypes (HieFile (..))
+import System.FilePath ((</>))
 import Test.Hspec (Spec, describe, it, runIO, shouldBe)
 
 import Stan (createCabalExtensionsMap)
@@ -37,7 +38,7 @@ analysisSpec hieFiles = describe "Static Analysis" $ do
             checksMap
             ignoredObs
             -- running analysis on a single file to speed up tests
-            [hieFileByName "target/Target/Partial.hs"]
+            [hieFileByName $ "target" </> "Target" </> "Partial.hs"]
     analysisIgnoredObservationsSpec analyseWithIgnored
   where
     hieFileByName :: FilePath -> HieFile

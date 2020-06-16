@@ -1,0 +1,12 @@
+[[remove]]
+directory = "target\\"
+
+[[check]]
+type = "Exclude"
+directory = "test\\"
+id = "STAN-0208"
+
+[[check]]
+type = "Exclude"
+file = "src\\Stan\\Cabal.hs"
+id = "STAN-0212"

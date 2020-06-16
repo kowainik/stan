@@ -1,0 +1,12 @@
+resolver: lts-16.1
+
+extra-deps:
+- dir-traverse-0.2.2.3
+- extensions-0.0.0.1
+
+- github: kowainik/trial
+  commit: 6ea4c31000e13e896a66003f551d40ee16816fe5
+  subdirs:
+    - trial
+    - trial-optparse-applicative
+    - trial-tomland

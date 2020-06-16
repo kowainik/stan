@@ -8,7 +8,7 @@ module Test.Stan.Analysis.Common
 
 import FastString (FastString, mkFastString)
 import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan, srcSpanStartLine)
-import System.FilePath ((</>))
+import System.FilePath (pathSeparator, (</>))
 import Test.Hspec (Expectation, shouldBe)
 
 import Stan.Analysis (Analysis (..))
@@ -116,7 +116,8 @@ noObservationAssert parts analysis Inspection{..} line =
         (analysisObservations analysis)
 
 filePathFromParts :: [String] -> FilePath
-filePathFromParts parts = "target/Target" </> intercalate "/" parts <> ".hs"
+filePathFromParts parts =
+    "target" </> "Target" </> intercalate [pathSeparator] parts <> ".hs"
 
 moduleFromParts :: [String] -> ModuleName
 moduleFromParts parts = ModuleName $ toText $ "Target." <> intercalate "." parts
