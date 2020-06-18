@@ -375,7 +375,7 @@ stan0214 = mkAntiPatternInspection (Id "STAN-0214") "use 'compare'" UseCompare
 -- | 'Inspection' — Slashes in paths @STAN-0215@.
 stan0215 :: Inspection
 stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst pat)
-    & descriptionL .~ "Usage of '/' or '\' in paths results in the errors on different operation systems"
+    & descriptionL .~ "Usage of '/' or '\\' in paths results in the errors on different operation systems"
     & solutionL .~
         [ "{Extra dependency} Use '</>' operator from 'filepath'"
         ]
@@ -387,4 +387,4 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
 
     pathLit :: PatternAst
     pathLit = PatternAstConstant (ContainStr "/")
-        ||| PatternAstConstant (ContainStr "\\")
+        ||| PatternAstConstant (ContainStr "\\\\")
