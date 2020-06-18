@@ -41,6 +41,8 @@ module Stan.Inspection.AntiPattern
     , stan0213
       -- *** Anti-pattern: use 'compare'
     , stan0214
+      -- *** Anti-pattern: Slashes in paths
+    , stan0215
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -82,6 +84,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0212
     , stan0213
     , stan0214
+    , stan0215
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -280,38 +283,8 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
     & severityL .~ Error
   where
     pat :: PatternAst
-    pat =   opApp (httpLit ||| urlName) op (?)
-        ||| opApp (?) op urlName
-
-    op :: PatternAst
-    op = PatternAstName operatorPosix fun
-        ||| PatternAstName operatorWindows fun
-      where
-        operatorPosix :: NameMeta
-        operatorPosix =  NameMeta
-            { nameMetaName       = "</>"
-            , nameMetaModuleName = "System.FilePath.Posix"
-            , nameMetaPackage    = "filepath"
-            }
-
-        operatorWindows :: NameMeta
-        operatorWindows =  NameMeta
-            { nameMetaName       = "</>"
-            , nameMetaModuleName = "System.FilePath.Windows"
-            , nameMetaPackage    = "filepath"
-            }
-
-        fun :: PatternType
-        fun = (?) |-> filePathType |-> (?)
-
-    {- TODO: Note, that at the moment hie somehow thinks that '</>' works with
-    'String's even when I specify type of vars to 'FilePath' explicitly.
-    This is odd and needs more investigation.
-    -}
-    filePathType :: PatternType
-    filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
-        ||| stringPattern
-        -- ||| primTypeMeta "[]" |:: [ charPattern ]
+    pat =   opApp (httpLit ||| urlName) filepathOperator (?)
+        ||| opApp (?) filepathOperator urlName
 
     httpLit :: PatternAst
     httpLit = startWith "\"http:"
@@ -327,6 +300,36 @@ stan0211 = mkAntiPatternInspection (Id "STAN-0211") "'</>' for URLs" (FindAst pa
 
     urlName :: PatternAst
     urlName = PatternAstVarName "url"
+
+filepathOperator :: PatternAst
+filepathOperator = PatternAstName operatorPosix fun
+    ||| PatternAstName operatorWindows fun
+  where
+    operatorPosix :: NameMeta
+    operatorPosix =  NameMeta
+        { nameMetaName       = "</>"
+        , nameMetaModuleName = "System.FilePath.Posix"
+        , nameMetaPackage    = "filepath"
+        }
+
+    operatorWindows :: NameMeta
+    operatorWindows =  NameMeta
+        { nameMetaName       = "</>"
+        , nameMetaModuleName = "System.FilePath.Windows"
+        , nameMetaPackage    = "filepath"
+        }
+
+    fun :: PatternType
+    fun = (?) |-> filePathType |-> (?)
+
+    {- TODO: Note, that at the moment hie somehow thinks that '</>' works with
+    'String's even when I specify type of vars to 'FilePath' explicitly.
+    This is odd and needs more investigation.
+    -}
+    filePathType :: PatternType
+    filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
+        ||| stringPattern
+        -- ||| primTypeMeta "[]" |:: [ charPattern ]
 
 -- | 'Inspection' — usage of @unsafe*@ functions @STAN-0212@.
 stan0212 :: Inspection
@@ -368,3 +371,20 @@ stan0214 = mkAntiPatternInspection (Id "STAN-0214") "use 'compare'" UseCompare
         [ "Rewrite code to use single 'compare' instead of many comparison operators"
         ]
     & severityL .~ Performance
+
+-- | 'Inspection' — Slashes in paths @STAN-0215@.
+stan0215 :: Inspection
+stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst pat)
+    & descriptionL .~ "Usage of '/' or '\\' in paths results in the errors on different operation systems"
+    & solutionL .~
+        [ "{Extra dependency} Use '</>' operator from 'filepath'"
+        ]
+    & severityL .~ Error
+  where
+    pat :: PatternAst
+    pat =   opApp pathLit filepathOperator (?)
+        ||| opApp (?) filepathOperator pathLit
+
+    pathLit :: PatternAst
+    pathLit = PatternAstConstant (ContainStr "/")
+        ||| PatternAstConstant (ContainStr "\\\\")

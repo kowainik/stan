@@ -98,6 +98,7 @@ data Literal
     = ExactNum !Int
     | ExactStr !ByteString
     | PrefixStr !ByteString
+    | ContainStr !ByteString
     | AnyLiteral
     deriving stock (Show, Eq)
 
