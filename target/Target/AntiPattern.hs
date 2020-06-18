@@ -77,3 +77,18 @@ stanUrl4 = fooUral </> "asd"
   where
     fooUral :: FilePath
     fooUral = "asd"
+
+stanSlashesUnix :: FilePath
+stanSlashesUnix = "asd/asd" </> "xxx"
+
+stanSlashesWindows :: FilePath
+stanSlashesWindows = "asd\\asd" </> "xxx"
+
+stanSlashesUnix' :: FilePath
+stanSlashesUnix' = "xxx" </> "asd/asd"
+
+stanSlashesWindows' :: FilePath
+stanSlashesWindows' = "xxx" </> "asd\\asd"
+
+stanSlashesNo :: FilePath
+stanSlashesNo = "xxx" </> "asd"

@@ -63,6 +63,17 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
     patternMatchSpec analysis
     compareSpec analysis
 
+    it "STAN-0215: finds usage of '/' in '</>' path left" $
+        checkObservation AntiPattern.stan0215 82 19 38
+    it "STAN-0215: finds usage of '/' in '</>' path right" $
+        checkObservation AntiPattern.stan0215 88 20 39
+    it "STAN-0215: finds usage of '\\' in '</>' path left" $
+        checkObservation AntiPattern.stan0215 85 22 42
+    it "STAN-0215: finds usage of '\\' in '</>' path right" $
+        checkObservation AntiPattern.stan0215 91 23 43
+    it "STAN-0215: don't triggered when no slashes" $
+        noObservation AntiPattern.stan0215 94
+
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do
