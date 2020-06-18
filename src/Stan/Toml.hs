@@ -21,7 +21,7 @@ import System.Directory (doesFileExist, getCurrentDirectory, getHomeDirectory)
 import System.FilePath ((</>))
 import Toml (AnyValue, BiMap (..), Key, TomlBiMap, TomlCodec, (.=))
 import Trial (TaggedTrial, Trial (..), fiasco)
-import Trial.Tomland (taggedTrialStrCodec)
+import Trial.Tomland (taggedTrialListCodec)
 
 import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
@@ -106,14 +106,6 @@ ignoredCodec = taggedTrialListCodec "ignore" idCodec
 
 checksCodec :: TomlCodec (TaggedTrial Text [Check])
 checksCodec = taggedTrialListCodec "check" checkCodec
-
-taggedTrialListCodec :: Key -> TomlCodec a -> TomlCodec (TaggedTrial Text [a])
-taggedTrialListCodec key aCodec = do
-    res <- taggedTrialStrCodec (Toml.list aCodec) key
-    pure $ case res of
-        Result _ (_, []) -> res <> fiasco ("No TOML value is specified for key: " <> Toml.prettyKey key)
-        Result _ _ -> res
-        Fiasco _ -> res
 
 checkCodec :: TomlCodec Check
 checkCodec = Check
