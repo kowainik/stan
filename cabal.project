@@ -3,17 +3,17 @@ packages: .
 source-repository-package
     type: git
     location: https://github.com/kowainik/trial
-    tag: 6ea4c31000e13e896a66003f551d40ee16816fe5
+    tag: df8b5d882d24c4dcd8adf8b82ccf784b765afa19
     subdir: trial
 
 source-repository-package
     type: git
     location: https://github.com/kowainik/trial
-    tag: 6ea4c31000e13e896a66003f551d40ee16816fe5
+    tag: df8b5d882d24c4dcd8adf8b82ccf784b765afa19
     subdir: trial-optparse-applicative
 
 source-repository-package
     type: git
     location: https://github.com/kowainik/trial
-    tag: 6ea4c31000e13e896a66003f551d40ee16816fe5
+    tag: df8b5d882d24c4dcd8adf8b82ccf784b765afa19
     subdir: trial-tomland

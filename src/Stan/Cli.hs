@@ -29,7 +29,7 @@ import Options.Applicative (CommandFields, Mod, Parser, ParserInfo (..), ParserP
                             showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
                             strOption, subparserInline, value)
 import Options.Applicative.Help.Chunk (stringChunk)
-import Trial (TaggedTrial, fiasco, withTag)
+import Trial (TaggedTrial, fiascoOnEmpty)
 import Trial.OptparseApplicative (taggedTrialParser)
 
 import Stan.Category (Category (..))
@@ -252,9 +252,9 @@ configP = do
     pure $
         let (checks, removed, ignored) = partitionCommands res
         in ConfigP
-            { configChecks  = whenEmpty checks "checks"
-            , configRemoved = whenEmpty removed "remove"
-            , configIgnored = whenEmpty ignored "ignore"
+            { configChecks  = fiascoOnEmpty "CLI" "checks" checks
+            , configRemoved = fiascoOnEmpty "CLI" "remove" removed
+            , configIgnored = fiascoOnEmpty "CLI" "ignore" ignored
             }
   where
     cmd :: String -> String -> (a -> ConfigCommand) -> Parser a -> Parser ConfigCommand
@@ -265,11 +265,6 @@ configP = do
         <> help ("Command to " <> h)
         <> commandGroup "CLI Configurations"
         )
-
-    whenEmpty :: [a] -> Text -> TaggedTrial Text [a]
-    whenEmpty res name = withTag "CLI" $ case res of
-        [] -> fiasco $ "No CLI option specified for: " <> name
-        xs -> pure xs
 
 -- | Parser of an 'Id'. Receives a string to specify in Help what kind of ID is this.
 idP :: String -> Parser (Id a)

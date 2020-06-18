@@ -1,5 +1,3 @@
-{-# LANGUAGE PatternSynonyms #-}
-
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -19,8 +17,8 @@ import Colourista (errorMessage, formatWith, infoMessage, italic, successMessage
 import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
-import Trial (pattern FiascoL, pattern ResultL, Trial (..), prettyTaggedTrial, prettyTrial,
-              prettyTrialWith, trialToMaybe)
+import Trial (Trial (..), prettyTaggedTrial, prettyTrial, prettyTrialWith, trialToMaybe,
+              whenResult_)
 
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
@@ -66,7 +64,7 @@ runStan StanArgs{..} = do
     let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
     infoMessage "The following Configurations are used:\n"
     putTextLn $ indent $ prettyTrialWith (toString . prettyConfigCli) configTrial
-    whenResult configTrial $ \warnings config -> do
+    whenResult_ configTrial $ \warnings config -> do
         hieFiles <- readHieFiles stanArgsHiedir
         -- create cabal default extensions map
         cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
@@ -111,10 +109,6 @@ runStan StanArgs{..} = do
             )
             exitFailure
   where
-    whenResult :: Trial e a -> ([e] -> a -> IO ()) -> IO ()
-    whenResult (FiascoL _) _      = pass
-    whenResult (ResultL es a) act = act es a
-
     getObservationSeverity :: Observation -> Severity
     getObservationSeverity = inspectionSeverity . getInspectionById . observationInspectionId
 
