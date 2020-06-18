@@ -48,11 +48,12 @@ jobs:
 
     - name: Build
       run: |
-        cabal build --enable-tests --enable-benchmarks all
+        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
+        cabal build all
 
     - name: Test
       run: |
-        cabal test --enable-tests --test-show-details=direct stan-test
+        cabal test stan-test
 
     - if: matrix.os == 'windows-latest'
       name: Dogfooding on Windows
