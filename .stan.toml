@@ -10,3 +10,8 @@ id = "STAN-0208"
 type = "Exclude"
 file = "src/Stan/Cabal.hs"
 id = "STAN-0212"
+
+[[check]]
+type = "Exclude"
+file = "src/Stan/Example.hs"
+filter = "all"

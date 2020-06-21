@@ -90,6 +90,7 @@ library
                          Stan.Core.Id
                          Stan.Core.List
                          Stan.Core.ModuleName
+                         Stan.Example
                          Stan.Ghc.Compat
                          Stan.EnvVars
                          Stan.FileInfo

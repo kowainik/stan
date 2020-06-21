@@ -81,8 +81,7 @@ runStan StanArgs{..} = do
         let isNullObs = null observations
         if isNullObs
         then successMessage "All clean! Stan did not find any observations at the moment."
-        else do
-            warningMessage "Stan found the following observations for the project:\n"
+        else warningMessage "Stan found the following observations for the project:\n"
         putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
 
         -- report generation

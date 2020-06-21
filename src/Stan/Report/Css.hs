@@ -177,8 +177,7 @@ collapsible = do
         cursor pointer
         textAlign (alignSide sideLeft)
 
-    ".active" <> (".collapsible" # hover) ? do
-        backgroundColor lightGrey
+    ".active" <> (".collapsible" # hover) ? backgroundColor lightGrey
 
     ".collapsible" # after ? do
         content (stringContent "\\002B")
