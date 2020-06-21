@@ -55,12 +55,12 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      textNameFrom, unorderedNameFrom)
+                      primTypeMeta, textNameFrom, unorderedNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
-import Stan.Pattern.Type (PatternType, foldableMethodsPatterns, foldableTypesPatterns, listPattern,
-                          stringPattern, textPattern, (|->), (|::))
+import Stan.Pattern.Type (PatternType, charPattern, foldableMethodsPatterns, foldableTypesPatterns,
+                          listPattern, stringPattern, textPattern, (|->), (|::))
 import Stan.Severity (Severity (..))
 
 import qualified Data.List.NonEmpty as NE
@@ -329,7 +329,7 @@ filepathOperator = PatternAstName operatorPosix fun
     filePathType :: PatternType
     filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
         ||| stringPattern
-        -- ||| primTypeMeta "[]" |:: [ charPattern ]
+        ||| primTypeMeta "[]" |:: [ charPattern ]
 
 -- | 'Inspection' — usage of @unsafe*@ functions @STAN-0212@.
 stan0212 :: Inspection

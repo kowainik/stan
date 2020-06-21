@@ -1,9 +1,10 @@
 cabal-version:       2.4
 name:                stan
 version:             0.0.0.0
-synopsis:            Haskell static analyser
-description:         Haskell static analyser
-                     See [README.md](https://github.com/kowainik/stan#stan) for more details.
+synopsis:            Haskell STatic ANalyser
+description:
+    Stan is a Haskell __ST__atic __AN__alysis CLI tool.
+    See [README.md](https://github.com/kowainik/stan#stan) for more details.
 homepage:            https://github.com/kowainik/stan
 bug-reports:         https://github.com/kowainik/stan/issues
 license:             MPL-2.0
