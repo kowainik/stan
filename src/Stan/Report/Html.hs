@@ -138,12 +138,19 @@ stanSummary analysis AnalysisNumbers{..} = do
     ul ! (A.class_ "col-10") $ do
         liSum $ do
             h4 (toHtml $ "Project health: " <> prettyHealth anHealth)
-            span $ toHtml @Text "This was calculated TODO"
+            span $ toHtml @Text $ fold
+                [ "This number was calculated based on the total number of used inspections "
+                , "and the number of triggered inspections in the project. The calculated number "
+                , "also defines the overall project health status."
+                ]
         liSum $ do
-            h4 (toHtml $ "The project " <> showProjectHealth (toProjectHealth anHealth))
-            span "Conclusions TODO"
+            h4 (toHtml $ "The project " <> showProjectHealth projectHealth)
+            span $ toHtml $ showHealthConclusions projectHealth
         summary
   where
+    projectHealth :: ProjectHealth
+    projectHealth = toProjectHealth anHealth
+
     showProjectHealth :: ProjectHealth -> Text
     showProjectHealth = \case
         Unhealthy    -> "is unhealthy"
@@ -151,11 +158,30 @@ stanSummary analysis AnalysisNumbers{..} = do
         MediumHealth -> "has medium health"
         Healthy      -> "is healthy"
 
+    showHealthConclusions :: ProjectHealth -> Text
+    showHealthConclusions = fold . \case
+        Unhealthy ->
+            [ "According to the Stan analysis, the project has a lot of vulnerabilities. "
+            , "But this also means that there is a room for improving code quality! "
+            , "Don't give up and continue doing great work!"
+            ]
+        LowHealth ->
+            [ "According to the Stan analysis, the project has issues of a different variety. But you can improve that! "
+            , "Stan provides solutions to the observed problems to help you improve the code quality."
+            ]
+        MediumHealth ->
+            [ "Stan discovered several potential issues in the project. "
+            , "Nice job, the overall project quality is good. And you can easily make it even better!"
+            ]
+        Healthy ->
+            [ "Excellent work! Stan haven't found any vulnerabilities in the code."
+            ]
+
     summary :: Html
     summary = case createSummary analysis of
         Nothing -> liSum $ do
             h4 "Congratulations! Your project has zero vulnerabilities!"
-            span "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project"
+            span "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project."
         Just Summary{..} -> do
             liSum $ do
                 h4 $ toHtml ("Watch out for " <> unId summaryInspectionId)
