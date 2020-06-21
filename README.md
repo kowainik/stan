@@ -286,7 +286,8 @@ can use the TOML configuration to disable some inspections, enable
 them only in particular Haskell modules, ignore some observations or
 completely remove some files from the analysis.
 
-See Haddock documentation for explanation of how the TOML
+See [Haddock documentation](http://hackage.haskell.org/package/stan-0.0.0.0/docs/Stan-Config.html#g:5)
+for explanation of how the TOML
 configuration works and examples of the different use cases.
 
 In case you have a number of TOML files locally, the following rules
