@@ -11,7 +11,27 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
 > ⚠️ Note: Stan is in the beta phase. The API is the subject to be
 > changed if required by our needs ⚠️
 
-## What this tool about
+## Table of Contents
+
+ * [What this tool is about](#what-this-tool-is-about)
+ * [Goals](#goals)
+ * [Features](#features)
+ * [How it works](#how-it-works)
+ * [Installation instructions](#installation-instructions)
+    * [Using Cabal](#using-cabal)
+    * [Using Stack](#using-stack)
+ * [Usage instructions](#usage-instructions)
+    * [General configuration info](#general-configuration-info)
+    * [TOML configurations](#toml-configurations)
+    * [Command-line Interface](#command-line-interface)
+       * [Main command](#main-command)
+       * [Inspections](#inspections)
+       * [Converting between TOML and CLI configurations](#converting-between-toml-and-cli-configurations)
+ * [Links to Wiki](#links-to-wiki)
+
+## What this tool is about
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Stan is a command-line tool for analysing Haskell projects and
 outputting discovered vulnerabilities in a helpful way with possible
@@ -32,6 +52,8 @@ system or GHC.
 
 ## Goals
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 Stan design and implementation is driven by the following goals:
 
 - Catch common vulnerabilities, anti-patterns, performance issues
@@ -44,6 +66,8 @@ Stan design and implementation is driven by the following goals:
   (including e.g. opt-in and opt-out inspections)
 
 ## Features
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Stan is a configurable CLI tool. Besides the main feature of analysing
 Haskell projects statically, Stan has a list of features that make it
@@ -65,6 +89,8 @@ of what sorts of analysis you can expect from Stan:
 ![Stan terminal example](https://user-images.githubusercontent.com/4276606/85208720-89326100-b32a-11ea-94fd-4aa149626b74.png)
 
 ## How it works
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Stan analysis is based on the [HIE files][hie] — compile-time
 information about Haskell source code gathered and recorded by
@@ -108,6 +134,8 @@ glossary:
 
 ## Installation instructions
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 Stan takes advantage of the
 [GHC API](http://hackage.haskell.org/package/ghc) to provide its
 analysis. Because of this, Stan and the analysed project need to be
@@ -119,6 +147,8 @@ sources on your machine.
 > __Note:__ Stan is compatible with the GHC versions ⩾ 8.8
 
 ### Using Cabal
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Below are the steps to install Stan using the Cabal build tool.
 
@@ -150,6 +180,8 @@ $ cp dist-newstyle/build/x86_64-linux/ghc-8.8.3/stan-0.0.0.0/x/stan/build/stan/s
 
 ### Using Stack
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 Below are the steps to install Stan using the Stack build tool.
 
 > You need to have [Stack ⩾ 2.1.3](http://haskellstack.org)
@@ -176,6 +208,8 @@ $ cp "$(stack path --local-install-root)/bin/stan" ~/.local/bin/stan
 ```
 
 ## Usage instructions
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Stan works with the [HIE files][hie] to analyse Haskell
 projects. Therefore, Stan requires users to generate HIE files in
@@ -221,6 +255,8 @@ with your particular use case.
 
 ### General configuration info
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 Stan's work can be configured from the multiple sources (in increasing
 order of priority):
 
@@ -240,6 +276,8 @@ were used and how they were set.
 ![Configuration explanation](https://user-images.githubusercontent.com/4276606/85208889-bb908e00-b32b-11ea-8256-c576a33cbf38.png)
 
 ### TOML configurations
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 Stan supports [TOML][toml] runtime configuration in order to customize
 the work of the tool based on the user's individual requirements. You
@@ -272,6 +310,8 @@ describe how Stan decides which TOML configuration file to use:
 
 ### Command-line Interface
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 This section describes what is possible to achieve with the Stan
 CLI. If you have already installed the analyser, you can use
 
@@ -283,6 +323,8 @@ to get the short information of all possible commands and options in
 your terminal.
 
 #### Main command
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 The main command is the one that actually would analyse the Haskell
 codebase. There are plenty of configurations and options you can tune
@@ -361,6 +403,8 @@ $ stan check --exclude --filter-all --scope-all \
 
 #### Inspections
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 You can find the list of all available inspections with description
 and additional information on our
 [dedicated wiki page][inspections]. However, with the tool you can get
@@ -381,6 +425,8 @@ Available options:
 ```
 
 #### Converting between TOML and CLI configurations
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 It is usually convenient to have a proper configuration file that
 suits your project, which you can reuse each run of the Stan.
@@ -416,7 +462,9 @@ Usage:
       ]
 ```
 
-## Links to wiki
+## Links to Wiki
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
 
 * [Glossary][glossary]
 * [All inspections][inspections]
