@@ -1,3 +1,5 @@
+{- HLINT ignore "Eta reduce" -}
+
 module Test.Stan.Analysis.Common
     ( observationAssert
     , observationAssertMulti

@@ -93,8 +93,7 @@ stanParserPrefs = prefs $ mconcat
     ]
 
 stanCliParser :: ParserInfo StanCommand
-stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) $
-    fullDesc
+stanCliParser = modifyHeader $ info (helper <*> versionP <*> stan) fullDesc
 
 {- | Stan tool parser. It either uses the named commands or the main @stan@
 command.

@@ -54,9 +54,9 @@ stanHtml an config warnings env project =
         stanJs
 
 stanHeader :: Html
-stanHeader = header ! (A.class_ "centre") $ do
+stanHeader = header ! A.class_ "centre" $ do
     divClass "row" (h1 "Stan Report")
-    nav ! (A.class_ "row") $ do
+    nav ! A.class_ "row" $ do
       navItem "General Info"
       navItem "Observations"
       navItem "Configurations"
@@ -64,10 +64,10 @@ stanHeader = header ! (A.class_ "centre") $ do
   where
     navItem :: Text -> Html
     navItem h = divClass "col-3 nav-item"
-        (a ! (A.href $ fromText $ "#" <> hToId h) $ toHtml h)
+        (a ! A.href (fromText $ "#" <> hToId h) $ toHtml h)
 
 stanMain :: Analysis -> Config -> [Text] -> StanEnv -> ProjectInfo -> Html
-stanMain an config warnings env project = main  ! (A.class_ "container") $ do
+stanMain an config warnings env project = main  ! A.class_ "container" $ do
     divClass "row" (p "This is Haskell Static Analysis report by Stan.")
     divIdClassH "Stan Info" "row" (stanInfo env)
     divIdClass "general-info" "row" $ do
@@ -92,7 +92,7 @@ stanInfo StanEnv{..} = do
     divClass "row" (blockP "General information about Stan and its compile time and runtime environments: how and where it was built and executed")
     divClass "col-10" $
         table ! (A.class_ "border-shadow" <> A.style "table-layout:fixed") $ do
-            colgroup (col ! (A.style "width:25%") >> col)
+            colgroup (col ! A.style "width:25%" >> col)
             tr2 "Stan Version"
             tableRow "Version"       svVersion
             tableRow "Git Revision"  svGitRevision
@@ -113,7 +113,7 @@ stanProject :: ProjectInfo -> Html
 stanProject ProjectInfo{..} = do
     divClass "row" (blockP "Information about the analysed project")
     tableWithShadow "" $ do
-        colgroup (col ! (A.class_ "info-name") >> col ! (A.class_ "info-data"))
+        colgroup (col ! A.class_ "info-name" >> col ! A.class_ "info-data")
         tableRow "Project name"  piName
         tableRow "Cabal Files"   (List.unwords piCabalFiles)
         tableRow "HIE Files Directory" piHieDir
@@ -135,7 +135,7 @@ stanAnalysis AnalysisNumbers{..} = do
 stanSummary :: Analysis -> AnalysisNumbers -> Html
 stanSummary analysis AnalysisNumbers{..} = do
     divClass "row" (blockP "Summary of the static analysis report")
-    ul ! (A.class_ "col-10") $ do
+    ul ! A.class_ "col-10" $ do
         liSum $ do
             h4 (toHtml $ "Project health: " <> prettyHealth anHealth)
             span $ toHtml @Text $ fold
@@ -204,17 +204,17 @@ stanSummary analysis AnalysisNumbers{..} = do
                 severity (show @Text summarySeverity)
 
     liSum :: Html -> Html
-    liSum = li ! (A.class_ "sum")
+    liSum = li ! A.class_ "sum"
 
 stanObservations :: Analysis -> Html
 stanObservations Analysis{..} = do
     divClass "row" (blockP "List of found vulnerabilities per file")
-    sequence_ $ map stanPerFile $
+    traverse_ stanPerFile $
         filter (not . null . fileInfoObservations) $ Map.elems analysisFileMap
 
 stanPerFile :: FileInfo -> Html
 stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
-    h3 ! (A.class_ "grey-bg") $ toHtml $ "📄 " <> fileInfoPath
+    h3 ! A.class_ "grey-bg" $ toHtml $ "📄 " <> fileInfoPath
     ul $ do
         li $ tableWithShadow "col-6" $ do
             tableRow "Module" $ code $ toHtml $ unModuleName fileInfoModuleName
@@ -222,14 +222,14 @@ stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
         li $ divClass "extensions" $ do
             stanExtensions ".cabal" (extensionsToText fileInfoCabalExtensions)
             stanExtensions "module" (extensionsToText fileInfoExtensions)
-        li ! (A.class_ "col-12 obs-li") $ divClass "observations col-12" $ do
+        li ! A.class_ "col-12 obs-li" $ divClass "observations col-12" $ do
             h4 "Observations"
             traverse_ stanObservation fileInfoObservations
 
 stanExtensions :: Text -> [Text] -> Html
 stanExtensions from exts = divClass "col-6" $ do
-    button ! (A.class_ "collapsible") $ toHtml $ "Extensions from " <> from
-    ol ! (A.class_ "content") $ sequence_ $ map (li . toHtml) exts
+    button ! A.class_ "collapsible" $ toHtml $ "Extensions from " <> from
+    ol ! A.class_ "content" $ traverse_ (li . toHtml) exts
 
 inspectionLink :: Id Inspection -> Html
 inspectionLink ins = a ! A.class_ "ins-link" ! A.href (fromText $ "#" <> insId) $ toHtml insId
@@ -253,8 +253,8 @@ stanObservation o@Observation{..} = divIdClass (unId observationId) "observation
 
     tableR :: ToMarkup a => Text -> a -> Html
     tableR name val = tr $ do
-        td ! (A.class_ "info-name very-light-bg") $ toHtml name
-        td ! (A.class_ "info-data") $ toHtml val
+        td ! A.class_ "info-name very-light-bg" $ toHtml name
+        td ! A.class_ "info-data" $ toHtml val
 
     inspection :: Inspection
     inspection = getInspectionById observationInspectionId
@@ -263,16 +263,17 @@ severityFromIns :: Inspection -> Html
 severityFromIns ins = severity $ show @Text $ inspectionSeverity ins
 
 severity :: Text -> Html
-severity severityTxt = span ! (A.class_ "severity") $ do
-    span ! (A.class_ $ fromText $ "severity" <> severityTxt) $ toHtml @Text ""
-    span ! (A.class_ "severityText") $ toHtml severityTxt
+severity severityTxt = span ! A.class_ "severity" $ do
+    span ! A.class_ (fromText $ "severity" <> severityTxt) $ toHtml @Text ""
+    span ! A.class_ "severityText" $ toHtml severityTxt
 
 categories :: Text -> NonEmpty Category -> Html
-categories cl cats = ul ! (A.class_ $ fromText $ "cats " <> cl) $ sequence_ $
-    map ((li ! (A.class_ "cat")) . toHtml . unCategory) $ toList cats
+categories cl cats = ul ! A.class_ (fromText $ "cats " <> cl)
+    $ traverse_ ((li ! A.class_ "cat") . toHtml . unCategory)
+    $ toList cats
 
 solutionsDiv :: Inspection -> Html
-solutionsDiv ins = memptyIfTrue (null solutions) $ divClass ("solutions border-shadow") $ do
+solutionsDiv ins = memptyIfTrue (null solutions) $ divClass "solutions border-shadow" $ do
     h4 "Possible solutions"
     uList solutions
   where
@@ -282,7 +283,7 @@ solutionsDiv ins = memptyIfTrue (null solutions) $ divClass ("solutions border-s
 stanInspections :: HashSet (Id Inspection) -> Html
 stanInspections ins = do
     divClass "row" (blockP "List of Inspections used for analysing the project")
-    div $ sequence_ $ map stanInspection $ sortWith unId $ toList ins
+    div $ traverse_ stanInspection $ sortWith unId $ toList ins
 
 stanInspection :: Id Inspection -> Html
 stanInspection (getInspectionById -> ins@Inspection{..}) = do
@@ -304,7 +305,7 @@ stanConfig Analysis{..} config warnings = divClass "col-12" $ do
     divClass "row" (blockP "Description of the custom Stan configuration and explanation of how it was assembled")
     divClass "row" $ table $ do
         tr (th "Action" >> th "Filter" >> th "Scope")
-        sequence_ $ map toRows (configToTriples config)
+        traverse_ toRows (configToTriples config)
     divClass "ignored-observations row" $ do
         toUl ignoredIds "Ignored Observations"
             "These observations are flagged as ignored through the configurations and are not considered in the final report"
@@ -319,8 +320,8 @@ stanConfig Analysis{..} config warnings = divClass "col-12" $ do
   where
     toRows :: (ConfigAction, Text, Text) -> Html
     toRows (act, fil, sc) = tr !
-      (A.class_ $ fromText $ configActionClass act) $ do
-        td ! (A.class_ "centre") $ span $ strong $ toHtml $ prettyConfigAction act
+      A.class_ (fromText $ configActionClass act) $ do
+        td ! A.class_ "centre" $ span $ strong $ toHtml $ prettyConfigAction act
         td $ toHtml fil
         td $ toHtml sc
 
@@ -342,7 +343,7 @@ stanSeverityExplained = do
 
     tableWithShadow "col-7" $ do
         tr ! greyBg $ (th "Severity" >> th "Description")
-        sequence_ $ map toSeverityRow (universe @Severity)
+        traverse_ toSeverityRow (universe @Severity)
   where
     toSeverityRow :: Severity -> Html
     toSeverityRow s = tr $ do
@@ -354,12 +355,12 @@ stanFooter = footer $ do
     divClass "container" $ do
         divClass "row footer-link" $ do
             span "This report was generated by "
-            a ! (A.href "https://github.com/kowainik/stan") $
+            a ! A.href "https://github.com/kowainik/stan" $
                 toHtml @Text "Stan — Haskell Static Analysis Tool."
         divClass "row footer-link" $ do
             span "Stan is created and maintained by "
-            a ! (A.href "https://kowainik.github.io") $ toHtml @Text "Kowainik"
-    nav ! (A.class_ "row centre") $ h3 $ strong "© Kowainik 2020"
+            a ! A.href "https://kowainik.github.io" $ toHtml @Text "Kowainik"
+    nav ! A.class_ "row centre" $ h3 $ strong "© Kowainik 2020"
 
 stanHead :: Html
 stanHead = head $ do
@@ -394,7 +395,7 @@ stanJs = script $ toHtml $ List.unlines
     ]
 
 divClass :: Text -> Html -> Html
-divClass c = div ! (A.class_ (fromText c))
+divClass c = div ! A.class_ (fromText c)
 
 divIdClass :: Text -> Text -> Html -> Html
 divIdClass aId c = div ! (A.id (fromText aId) <> A.class_ (fromText c))
@@ -407,11 +408,11 @@ blockP = blockquote . p . toHtml
 
 tableRow :: ToMarkup a => Text -> a -> Html
 tableRow name val = tr $ do
-    td ! (A.class_ "info-name") $ toHtml name
-    td ! (A.class_ "info-data very-light-bg") $ toHtml val
+    td ! A.class_ "info-name" $ toHtml name
+    td ! A.class_ "info-data very-light-bg" $ toHtml val
 
 tableWithShadow :: Text -> Html -> Html
-tableWithShadow cl = table ! (A.class_ $ fromText $ "border-shadow " <> cl)
+tableWithShadow cl = table ! A.class_ (fromText $ "border-shadow " <> cl)
 
 uList :: ToMarkup a => [a] -> Html
 uList = ul . traverse_ (li . toHtml)
