@@ -5,9 +5,12 @@ set -euxo pipefail
 # This script is for Stan Report testing
 # Runs Stan with some predefined config options.
 
-cabal run stan -- check --exclude --filter-all --directory=test/ \
-     check --include --filter-all --scope-all \
-     check --exclude --id=STAN-0002 --scope-all \
+cabal run stan -- \
+     check --exclude --filter-all --directory=test/ \
+     check --exclude --filter-all --directory=src/ \
+     check --include --filter-all --file=src/Stan/Example.hs \
+     check --exclude --id=STAN-0103 --scope-all \
      check --exclude --id=STAN-0001 --file=src/MyFile.hs \
      ignore --id="OBS-00001" \
+     ignore --id="OBS-STAN-0212-emMVqk-114:21" \
      report
