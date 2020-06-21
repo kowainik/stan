@@ -1,3 +1,4 @@
+{- HLINT ignore "Unused LANGUAGE pragma" -}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 {-# LANGUAGE NoUndecidableInstances #-}
