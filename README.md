@@ -27,6 +27,7 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
        * [Main command](#main-command)
        * [Inspections](#inspections)
        * [Converting between TOML and CLI configurations](#converting-between-toml-and-cli-configurations)
+ * [Roadmap](#roadmap)
  * [Links to Wiki](#links-to-wiki)
 
 ## What this tool is about
@@ -461,6 +462,20 @@ Usage:
         | IGNOREs {ID option}
       ]
 ```
+
+## Roadmap
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
+Our plan for the nearest future:
+
+ - [ ] Opt-in inspections
+ - [ ] Custom users' inspections
+ - [ ] More inspections on potential bugs and performance
+ - [ ] Single-pass traverse on AST
+
+We have much more ideas to work on.
+See more detailed plan in the dedicated [GitHub Project page](https://github.com/kowainik/stan/projects/1).
 
 ## Links to Wiki
 
