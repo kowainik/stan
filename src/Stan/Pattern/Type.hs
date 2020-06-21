@@ -1,3 +1,5 @@
+{- HLINT ignore "Avoid lambda using `infix`" -}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0

@@ -40,7 +40,7 @@ This functions groups 'Observation's by 'FilePath' they are found in.
 prettyShowAnalysis :: Analysis -> ReportSettings -> Text
 prettyShowAnalysis an rs@ReportSettings{..} = case reportSettingsVerbosity of
     Verbose    -> groupedObservations <> summary (analysisToNumbers an)
-    NonVerbose -> unlines $ toList $ fmap (prettyShowObservation rs) $ analysisObservations an
+    NonVerbose -> unlines $ toList $ prettyShowObservation rs <$> analysisObservations an
   where
     groupedObservations :: Text
     groupedObservations =

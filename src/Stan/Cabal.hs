@@ -55,7 +55,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
             infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
             pure mempty
         -- else concat map for each @.cabal@ file.
-        cabals -> fmap mconcat $ mapM getExtensionsWithCabal cabals
+        cabals -> mconcat <$> mapM getExtensionsWithCabal cabals
     -- if cabal file specified via CLI option
     cabals -> fmap mconcat $ forM (ordNub cabals) $ \cabal ->
         ifM (doesFileExist cabal)

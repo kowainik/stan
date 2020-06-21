@@ -17,8 +17,8 @@ import System.Environment (lookupEnv)
 import Trial (TaggedTrial, Trial (..), fiasco, withTag)
 
 
-data EnvVars = EnvVars
-    { envVarsUseDefaultConfigFile :: !(TaggedTrial Text Bool)
+newtype EnvVars = EnvVars
+    { envVarsUseDefaultConfigFile :: TaggedTrial Text Bool
     }
 
 getEnvVars :: IO EnvVars

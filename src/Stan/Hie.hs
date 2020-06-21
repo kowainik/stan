@@ -1,3 +1,5 @@
+{- HLINT ignore "Redundant if" -}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
