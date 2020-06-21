@@ -139,9 +139,9 @@ stanSummary analysis AnalysisNumbers{..} = do
         liSum $ do
             h4 (toHtml $ "Project health: " <> prettyHealth anHealth)
             span $ toHtml @Text $ fold
-                [ "This number was calculated based on total number of used inspections "
-                , "and number of triggered inspections in the project. The calculated number "
-                , "also defines overall project health status."
+                [ "This number was calculated based on the total number of used inspections "
+                , "and the number of triggered inspections in the project. The calculated number "
+                , "also defines the overall project health status."
                 ]
         liSum $ do
             h4 (toHtml $ "The project " <> showProjectHealth projectHealth)
@@ -161,17 +161,17 @@ stanSummary analysis AnalysisNumbers{..} = do
     showHealthConclusions :: ProjectHealth -> Text
     showHealthConclusions = fold . \case
         Unhealthy ->
-            [ "According to Stan analysis, the project has a lot of vulnerabilities. "
+            [ "According to the Stan analysis, the project has a lot of vulnerabilities. "
             , "But this also means that there is a room for improving code quality! "
             , "Don't give up and continue doing great work!"
             ]
         LowHealth ->
-            [ "The project has problems of different variety. But you can fix them! "
-            , "Stan provides solutions to problems to help you improve code quality."
+            [ "According to the Stan analysis, the project has issues of a different variety. But you can improve that! "
+            , "Stan provides solutions to the observed problems to help you improve the code quality."
             ]
         MediumHealth ->
             [ "Stan discovered several potential issues in the project. "
-            , "Overall project quality is good. And you can make it even better!"
+            , "Nice job, the overall project quality is good. And you can easily make it even better!"
             ]
         Healthy ->
             [ "Excellent work! Stan haven't found any vulnerabilities in the code."
