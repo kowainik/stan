@@ -103,7 +103,7 @@ focus more on the unique features.
 
 To analyse HIE files easily, we developed an eDSL for defining AST and
 Type patterns based on the
-[_final taggless_](http://okmij.org/ftp/tagless-final/course/lecture.pdf)
+[_final tagless_](http://okmij.org/ftp/tagless-final/course/lecture.pdf)
 approach. Stan algorithm traverses HIE AST for each HIE file in the
 project, and matches every AST node with the given pattern to find
 potential vulnerabilities in the code.
