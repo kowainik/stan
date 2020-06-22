@@ -162,10 +162,16 @@ $ git clone https://github.com/kowainik/stan.git
 $ cd stan
 ```
 
-Then, you need to build it using Cabal:
+Then, you need to build and install it using Cabal:
 
 ```shell
-$ cabal v2-build exe:stan
+$ cabal install exe:stan --overwite-policy=always
+```
+
+If you want to simply build and move the binary to a custom location, issue
+
+```shell
+$ cabal build exe:stan
 ```
 
 Finally, you can copy the resulting executable under the desired
