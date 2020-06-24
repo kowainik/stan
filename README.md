@@ -27,6 +27,7 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
        * [Main command](#main-command)
        * [Inspections](#inspections)
        * [Converting between TOML and CLI configurations](#converting-between-toml-and-cli-configurations)
+ * [Other tools](#other-tools)
  * [Roadmap](#roadmap)
  * [Links to Wiki](#links-to-wiki)
 
@@ -463,6 +464,40 @@ Usage:
         | IGNOREs {ID option}
       ]
 ```
+
+## Other tools
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
+* [GHC](https://www.haskell.org/ghc/) — __Glasgow Haskell Compiler__
+
+  GHC is the most popular Haskell compiler. As it has access to all steps of the
+  code compilation, GHC can warn about different aspects of your code:
+  non-exhaustive pattern matching, unused variables, etc.
+
+  However, it is not supposed to be used as a static analysis tool. It provides
+  errors and warnings as a part of the whole compilation pipeline.
+
+* [Weeder](https://github.com/ocharles/weeder) — __Haskell dead-code analysis tool__
+
+  Weeder is a tool that analyses the code but in a very specific and limited
+  case. It helps to eliminate unreachable code in your project. Similarly to
+  Stan, the Weeder tool is also working with the HIE files to get this
+  information.
+
+* [HLint](https://github.com/ndmitchell/hlint) — __Haskell Linter Tool__
+
+  HLint is a linter tool that suggests code improvements to make code simpler.
+
+  Unlike Stan, that uses the HIE files for analysis and accesses the complete
+  compile-time info produced by GHC, HLint relies only on parsing, which has its
+  own benefits but also limits its capabilities.
+
+  Stan and HLint are complementary tools that have different scopes and goals.
+  There is no intention to duplicate HLint in Stan.
+
+To learn more about the implementation and goals of our project, please read the
+sections above that describe the Stan project in detail.
 
 ## Roadmap
 
