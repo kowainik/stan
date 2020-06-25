@@ -232,7 +232,7 @@ stan0208 = mkAntiPatternInspection (Id "STAN-0208") "Slow 'length' for Text"
            (FindAst $ PatternAstName lenNameMeta (textPattern |-> (?)))
     & descriptionL .~ "Usage of 'length' for 'Text' that runs in linear time"
     & solutionL .~
-        [ "{Extra dependency} Switch to 'ByteString' from 'bytesting'"
+        [ "{Extra dependency} Switch to 'ByteString' from 'bytestring'"
         ]
     & severityL .~ Performance
   where
