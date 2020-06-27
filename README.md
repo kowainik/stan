@@ -20,6 +20,7 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
  * [Installation instructions](#installation-instructions)
     * [Using Cabal](#using-cabal)
     * [Using Stack](#using-stack)
+    * [Hackage](#hackage)
  * [Usage instructions](#usage-instructions)
     * [General configuration info](#general-configuration-info)
     * [TOML configurations](#toml-configurations)
@@ -207,6 +208,25 @@ so:
 
 ```shell
 $ cp "$(stack path --local-install-root)/bin/stan" ~/.local/bin/stan
+```
+
+### Hackage
+
+Stan is available on Hackage. You can install the tool from there as well:
+
+```shell
+$ cabal v2-install stan --install-method=copy --overwrite-policy=always
+```
+
+You can also choose with which GHC version you want to have Stan installed, and
+optionally add some suffix to the executable name:
+
+```shell
+$ cabal v2-install stan \
+    -w ghc-8.10.1 \
+    --install-method=copy \
+    --overwrite-policy=always \
+    --program-suffix=-8.10.1
 ```
 
 ## Usage instructions
