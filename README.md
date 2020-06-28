@@ -430,15 +430,20 @@ Sub-commands options:
     --directory=DIRECTORY_PATH
                            Directory to exclude or include
     --scope-all              Apply check to all files
+
+Report options:
+
+  -b,--browse              Open report in a browser
 ```
 
-For example, if you want to run Stan analysis only on a single file and generate
-the HTML report, you can use the following command:
+For example, if you want to run Stan analysis only on a single file, generate
+the HTML report and immediately open report in a browser, you can use
+the following command:
 
 ```shell
 $ stan check --exclude --filter-all --scope-all \
        check --include --filter-all --file=src/Stan/Example.hs \
-       report
+       report --browse
 ```
 
 #### Inspections

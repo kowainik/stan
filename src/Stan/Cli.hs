@@ -11,6 +11,7 @@ CLI commands and options for @stan@.
 module Stan.Cli
     ( StanCommand (..)
     , StanArgs (..)
+    , ReportArgs (..)
     , InspectionArgs (..)
     , TomlToCliArgs (..)
     , CliToTomlArgs (..)
@@ -27,7 +28,7 @@ import Options.Applicative (CommandFields, Mod, Parser, ParserInfo (..), ParserP
                             helpLongEquals, helper, hidden, hsubparser, info, infoOption, internal,
                             long, metavar, multiSuffix, option, prefs, progDesc, short,
                             showDefaultWith, showHelpOnEmpty, showHelpOnError, strArgument,
-                            strOption, subparserInline, value)
+                            strOption, subparserInline, switch, value)
 import Options.Applicative.Help.Chunk (stringChunk)
 import Trial (TaggedTrial, fiascoOnEmpty)
 import Trial.OptparseApplicative (taggedTrialParser)
@@ -36,10 +37,10 @@ import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
                     Scope (..))
 import Stan.Core.Id (Id (..))
-import Stan.Info (prettyStanVersion, stanVersion, stanSystem)
+import Stan.Info (prettyStanVersion, stanSystem, stanVersion)
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation)
-import Stan.Report.Settings (ReportSettings (..), ToggleSolution (..), Verbosity (..))
+import Stan.Report.Settings (OutputSettings (..), ToggleSolution (..), Verbosity (..))
 
 
 -- | Commands used in Stan CLI.
@@ -54,11 +55,15 @@ data StanCommand
 data StanArgs = StanArgs
     { stanArgsHiedir               :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath        :: ![FilePath]  -- ^ Path to @.cabal@ files.
-    , stanArgsReportSettings       :: !ReportSettings  -- ^ Settings for report
-    , stanArgsReport               :: !Bool  -- ^ Create @HTML@ report?
+    , stanArgsOutputSettings       :: !OutputSettings  -- ^ Settings for report
+    , stanArgsReport               :: !(Maybe ReportArgs)  -- ^ @HTML@ report settings
     , stanArgsUseDefaultConfigFile :: !(TaggedTrial Text Bool)  -- ^ Use default @.stan.toml@ file
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
     , stanArgsConfig               :: !PartialConfig
+    }
+
+newtype ReportArgs = ReportArgs
+    { reportArgsBrowse :: Bool  -- ^ Open HTML report in a browser
     }
 
 -- | Options used for the @stan inspection@ command.
@@ -114,7 +119,7 @@ stanP = do
     stanArgsCabalFilePath <- cabalFilePathP
     stanArgsConfigFile <- configFileP
     stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
-    stanArgsReportSettings <- reportSettingsP
+    stanArgsOutputSettings <- outputSettingsP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -197,21 +202,30 @@ useDefaultConfigFileP = taggedTrialParser "no-default" $ flag' False $ mconcat
     , help "Ignore local .stan.toml configuration file"
     ]
 
-reportP :: Parser Bool
-reportP = do
-    res <- optional $ hsubparser $
-        command "report"
-            (info pass (progDesc "Generate HTML Report"))
-        <> commandGroup "Reporting"
-        <> commandVar "REPORT"
-        <> help "Command to generate an HTML Report"
-    pure $ isJust res
+reportP :: Parser (Maybe ReportArgs)
+reportP = optional
+    $  hsubparser
+    $  command "report" (info reportArgsP (progDesc "Generate HTML Report"))
+    <> commandGroup "Reporting"
+    <> commandVar "REPORT"
+    <> help "Command to generate an HTML Report"
+  where
+    reportArgsP :: Parser ReportArgs
+    reportArgsP = do
+        reportArgsBrowse <- browseP
+        pure ReportArgs{..}
 
-reportSettingsP :: Parser ReportSettings
-reportSettingsP = do
-    reportSettingsVerbosity <- verbosityP
-    reportSettingsSolutionVerbosity <- toggleSolutionP
-    pure ReportSettings{..}
+    browseP :: Parser Bool
+    browseP = switch
+        $  long "browse"
+        <> short 'b'
+        <> help "Open report in a browser"
+
+outputSettingsP :: Parser OutputSettings
+outputSettingsP = do
+    outputSettingsVerbosity <- verbosityP
+    outputSettingsSolutionVerbosity <- toggleSolutionP
+    pure OutputSettings{..}
 
 -- | The solution is shown by default and gets hidden when option is specified.
 toggleSolutionP :: Parser ToggleSolution
@@ -318,7 +332,7 @@ scopeP =
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
 versionP = infoOption (prettyStanVersion stanVersion stanSystem)
-    $ long "version"
+    $  long "version"
     <> short 'v'
     <> help "Show Stan's version"
     <> hidden

@@ -5,6 +5,8 @@ The change log is available [on GitHub][2].
 
 ## Unreleased
 
+* [#320](https://github.com/kowainik/stan/issues/320):
+  Add `-b|--browse` option to the `report` command.
 * [#327](https://github.com/kowainik/stan/issues/327):
   When the generated HIE files are incomplete (missing the source code),
   print `<UNAVAILABLE>` as the source instead of failing.

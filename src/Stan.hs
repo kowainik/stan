@@ -22,9 +22,10 @@ import Trial (Trial (..), prettyTaggedTrial, prettyTrial, prettyTrialWith, trial
 
 import Stan.Analysis (Analysis (..), runAnalysis)
 import Stan.Analysis.Pretty (prettyShowAnalysis)
+import Stan.Browse (openBrowser)
 import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
-import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), StanArgs (..), StanCommand (..),
-                 TomlToCliArgs (..), runStanCli)
+import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), ReportArgs (..), StanArgs (..),
+                 StanCommand (..), TomlToCliArgs (..), runStanCli)
 import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
 import Stan.Config.Pretty (prettyConfigCli)
 import Stan.Core.Id (Id (..))
@@ -82,10 +83,10 @@ runStan StanArgs{..} = do
         if isNullObs
         then successMessage "All clean! Stan did not find any observations at the moment."
         else warningMessage "Stan found the following observations for the project:\n"
-        putTextLn $ prettyShowAnalysis analysis stanArgsReportSettings
+        putTextLn $ prettyShowAnalysis analysis stanArgsOutputSettings
 
         -- report generation
-        when stanArgsReport $ do
+        whenJust stanArgsReport $ \ReportArgs{..} -> do
             -- Project Info
             piName <- takeFileName <$> getCurrentDirectory
             piCabalFiles <- usedCabalFiles stanArgsCabalFilePath
@@ -100,6 +101,7 @@ runStan StanArgs{..} = do
                     }
             generateReport analysis config warnings stanEnv ProjectInfo{..}
             infoMessage "Report is generated here -> stan.html"
+            when reportArgsBrowse $ openBrowser "stan.html"
 
         -- decide on exit status
         when
