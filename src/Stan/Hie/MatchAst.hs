@@ -21,8 +21,8 @@ import Data.Char (toLower)
 import Stan.Core.List (checkWith)
 import Stan.Ghc.Compat (FastString, nameOccName, occNameString)
 import Stan.Hie (slice)
-import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, IdentifierDetails, NodeInfo (..),
-                        TypeIndex)
+import Stan.Hie.Compat (ContextInfo (..), DeclType, HieAST (..), HieFile (..), Identifier,
+                        IdentifierDetails (..), NodeInfo (..), TypeIndex)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), literalAnns)
@@ -76,6 +76,8 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
             Left _ -> False
         )
         $ Map.keys $ nodeIdentifiers nodeInfo
+    PatternAstIdentifierDetailsDecl declType -> any (any (isDecl declType) . identInfo) $
+        Map.elems $ nodeIdentifiers nodeInfo
   where
     matchAnnotations :: Set (FastString, FastString) -> NodeInfo TypeIndex -> Bool
     matchAnnotations tags NodeInfo{..} = tags `Set.isSubsetOf` nodeAnnotations
@@ -90,3 +92,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         && case nodeType nodeInfo of
             []    -> False
             t : _ -> hieMatchPatternType hie_types patType t
+
+    isDecl :: DeclType -> ContextInfo -> Bool
+    isDecl myDeclType (Decl curDeclType _) = myDeclType == curDeclType
+    isDecl _declType _otherContext         = False

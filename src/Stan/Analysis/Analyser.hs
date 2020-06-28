@@ -29,9 +29,9 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
-                         dataDecl, fixity, fun, guardBranch, lambdaCase, lazyField, literalPat,
-                         opApp, patternMatchArrow, patternMatchBranch, patternMatch_, rhs, tuple,
-                         typeSig)
+                         constructorNameIdentifier, dataDecl, fixity, fun, guardBranch, lambdaCase,
+                         lazyField, literalPat, opApp, patternMatchArrow, patternMatchBranch,
+                         patternMatch_, rhs, tuple, typeSig)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 import qualified Data.HashMap.Strict as HM
@@ -184,12 +184,13 @@ analyseLazyFields insId hie =
     -- Extract fields as AST nodes. Return empty list if only one field
     -- (as a workaround for the @newtype@ problem)
     --
-    -- record constructors have 2 children:
-    --   1. Constructor name.
-    --   2. Dummy child with all fields as childrens
+    -- record constructors have the following children:
+    --   1. One or many constraints (e.g. forall a . Num a =>)
+    --   2. Constructor name.
+    --   3. Dummy child with all fields as childrens
     -- plain constructors have constructor name and children in the same list
     extractFields :: Bool -> HieAST TypeIndex -> [HieAST TypeIndex]
-    extractFields hasManyCtors ctor = case drop 1 $ nodeChildren ctor of
+    extractFields hasManyCtors ctor = case drop 1 $ dropWhile isConstraint $ nodeChildren ctor of
         [] -> []  -- no fields
         [n] ->  -- single field, maybe dummy record node
             if isDummyRecordNode n
@@ -203,6 +204,10 @@ analyseLazyFields insId hie =
         -- simple check for the dummy AST node
         isDummyRecordNode :: HieAST TypeIndex -> Bool
         isDummyRecordNode = Set.null . nodeAnnotations . nodeInfo
+
+        -- Not the constructor identifier
+        isConstraint :: HieAST TypeIndex -> Bool
+        isConstraint n = not $ hieMatchPatternAst hie n constructorNameIdentifier
 
     -- matches record fields non-recursively
     matchField :: HieAST TypeIndex -> Slist RealSrcSpan
