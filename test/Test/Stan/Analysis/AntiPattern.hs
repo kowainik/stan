@@ -98,16 +98,33 @@ strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
             noObservation AntiPattern.stan0206 21
         it "Finds single lazy field in a sum type with multiple constructors" $
             checkObservation AntiPattern.stan0206 22 11 15
-        it "Doesn't trigger on forall constraint with 1 var" $
+        it "Doesn't trigger on forall wo constraint with 1 var" $
             noObservation AntiPattern.stan0206 25
-        it "Finds single lazy field after forall constraint with 1 var" $
+        it "Finds single lazy field after forall wo constraint with 1 var" $
             checkObservation AntiPattern.stan0206 26 16 17
-        it "Doesn't trigger on forall constraint with 2 var" $
+        it "Doesn't trigger on forall wo constraint with 2 var" $
             noObservation AntiPattern.stan0206 27
-        it "Finds single lazy field after forall constraint with 2 var" $
+        it "Finds single lazy field after forall wo constraint with 2 var" $
             checkObservation AntiPattern.stan0206 28 17 18
-        it "Doesn't trigger on strict field after forall constraint with 2 var" $
+        it "Doesn't trigger on strict field after forall wo constraint with 2 var" $
             noObservation AntiPattern.stan0206 29
+        it "Doesn't trigger on forall constraint with 1 var" $
+            noObservation AntiPattern.stan0206 30
+        it "Finds single lazy field after forall constraint with 1 var" $
+            checkObservation AntiPattern.stan0206 31 17 18
+        it "Doesn't trigger on forall constraint with 2 var" $
+            noObservation AntiPattern.stan0206 32
+        it "Finds single lazy field after forall constraint with 2 var" $
+            checkObservation AntiPattern.stan0206 33 17 18
+        it "Doesn't trigger on strict field after forall constraint with 2 var" $
+            noObservation AntiPattern.stan0206 34
+
+        it "Doesn't trigger on forall constraint on record type" $
+            noObservation AntiPattern.stan0206 36
+        it "Findsa lazy Int field after forall constraint on record type" $
+            checkObservation AntiPattern.stan0206 38 7 19
+        it "Finds a lazy constrainted field after forall on record type" $
+            checkObservation AntiPattern.stan0206 39 7 17
 
     describe "With the 'StrictData' extension" $ do
         let noObservation = noObservationAssert ["AntiPattern", "Stan0206Extensions"] analysis

@@ -76,7 +76,8 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
             Left _ -> False
         )
         $ Map.keys $ nodeIdentifiers nodeInfo
-    PatternAstIdentifierDetailsDecl declType -> any (any (isDecl declType) . identInfo) $ Map.elems $ nodeIdentifiers nodeInfo
+    PatternAstIdentifierDetailsDecl declType -> any (any (isDecl declType) . identInfo) $
+        Map.elems $ nodeIdentifiers nodeInfo
   where
     matchAnnotations :: Set (FastString, FastString) -> NodeInfo TypeIndex -> Bool
     matchAnnotations tags NodeInfo{..} = tags `Set.isSubsetOf` nodeAnnotations

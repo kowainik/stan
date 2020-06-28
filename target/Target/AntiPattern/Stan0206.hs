@@ -27,3 +27,14 @@ data ConstraintExample
     | forall a b .
         Constr2 a
           !b
+    | forall a . (Num a) =>
+        Constr3 a
+    | forall a b . (Num a, Ord b) =>
+        Constr4 a
+          !b
+
+data ConstraintRecord = forall a . (Num a) =>
+    ConstraintRecord
+    { crInt :: Int
+    , crNum :: a
+    }
