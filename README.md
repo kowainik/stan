@@ -307,6 +307,14 @@ can use the TOML configuration to disable some inspections, enable
 them only in particular Haskell modules, ignore some observations or
 completely remove some files from the analysis.
 
+Specifically, you can use the following variables to set up custom configurations with TOML:
+
+| Variable | Description | Examples |
+|----------|-------------|----------|
+| `check` | Set up rules to control the set of inspections per scope. | `check = [{type = "Exclude", id = "STAN-0101", scope = "all"}]`            |
+| `remove` | Remove some files from the analysis completely. Stan won't be run in the specified scope at all. | `remove = [ {file = "src/File.hs"}, {directory = "folder/"} ]` |
+| `ignore` | Ignore specific observation that was found in your project   | `ignore = [{ id = "OBS-STAN-0001-YrzpQi-11:42" }]` |
+
 See [Haddock documentation](http://hackage.haskell.org/package/stan-0.0.0.0/docs/Stan-Config.html#g:5)
 for explanation of how the TOML
 configuration works and examples of the different use cases.
@@ -364,6 +372,14 @@ for each run (similarly to the TOML configurations):
 - Generate the HTML report file
 - Set up the output verbosity
 
+Here is the high-level explanation of the available sub-commands:
+
+| Sub-command | Description | Examples |
+|-------------|-------------|----------|
+| `check` | Set up rules to control the set of inspections per scope. | `stan check --exclude --category=Infinity --scope=all check --include --id "STAN-0101" --file=src/File.hs` |
+| `remove` | Remove some files from the analysis completely. Stan won't be run in the specified scope at all. | `stan remove --file=src/File.hs remove --directory=folder/`         |
+| `ignore` | Ignore specific observation that was found in your project   | `stan ignore --id "OBS-STAN-0001-YrzpQi-11:42"`          |
+
 More precisely the commands and options are described in here:
 
 ```
@@ -416,12 +432,13 @@ Sub-commands options:
     --scope-all              Apply check to all files
 ```
 
-For example, if you want to run Stan analysis only on a single file,
-you can use the following command:
+For example, if you want to run Stan analysis only on a single file and generate
+the HTML report, you can use the following command:
 
 ```shell
 $ stan check --exclude --filter-all --scope-all \
-       check --include --filter-all --file=src/Stan/Example.hs
+       check --include --filter-all --file=src/Stan/Example.hs \
+       report
 ```
 
 #### Inspections
