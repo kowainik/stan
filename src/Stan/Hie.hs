@@ -30,7 +30,6 @@ import Stan.Pattern.Ast (literalAnns)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Set as Set
-import qualified Relude.Unsafe as Unsafe
 
 
 {- | Returns contents of all @.hie@ files recursively in the given
@@ -66,13 +65,17 @@ countLinesOfCode HieFile{..} = length $ BS8.lines hie_hs_src
 
 {- | Take sub-bytestring according to a given span.
 
+When the given source is empty returns 'Nothing'.
+
 TODO: currently works only with single-line spans
 -}
-slice :: RealSrcSpan -> ByteString -> ByteString
+slice :: RealSrcSpan -> ByteString -> Maybe ByteString
 slice span =
-    BS.take (srcSpanEndCol span - srcSpanStartCol span)
-    . BS.drop (srcSpanStartCol span - 1)
-    . Unsafe.at (srcSpanStartLine span - 1)
+    fmap
+        ( BS.take (srcSpanEndCol span - srcSpanStartCol span)
+        . BS.drop (srcSpanStartCol span - 1)
+        )
+    . flip (!!?) (srcSpanStartLine span - 1)
     . BS8.lines
 
 {- | Compare two AST nodes on equality. This is a more relaxed version
