@@ -72,7 +72,6 @@ common common-relude
                               , Relude.Extra.Lens
                               , Relude.Extra.Map
                               , Relude.Extra.Tuple
-                              , Relude.Unsafe
                               )
 
 library

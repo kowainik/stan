@@ -25,7 +25,6 @@ module Stan.Observation
 import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
 import Colourista.Short (b, i)
 import Data.List (partition)
-import Relude.Unsafe ((!!))
 import Slist (Slist)
 
 import Stan.Category (prettyShowCategory)
@@ -157,8 +156,10 @@ prettyObservationSource isColour Observation{..} =
     alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
 
     getSourceLine :: Int -> Text
-    getSourceLine x = decodeUtf8 $
-        BS.lines observationFileContent !! (x - 1)
+    getSourceLine x = maybe
+        "<UNAVAILABLE> Open the issue in the tool that created the HIE files for you."
+        decodeUtf8
+        (BS.lines observationFileContent !!? (x - 1))
 
     arrows :: Text
     arrows = whenColour isColour (severityColour $ inspectionSeverity $ getInspectionById observationInspectionId)
