@@ -55,7 +55,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstConstant lit ->
            Set.member literalAnns (nodeAnnotations nodeInfo)
         && ( let span = slice nodeSpan hie_hs_src in case lit of
-                ExactNum n   -> (decodeUtf8 <$> span >>= readMaybe) == Just n
+                ExactNum n   -> (span >>= readMaybe . decodeUtf8) == Just n
                 ExactStr s   -> span == Just s
                 PrefixStr s  -> maybe False (s `BS.isPrefixOf`) span
                 ContainStr s -> maybe False (s `BS.isInfixOf`) span
