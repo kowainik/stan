@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
-
+{-# LANGUAGE ExistentialQuantification #-}
 module Target.AntiPattern.Stan0206 where
 
 
@@ -20,3 +20,10 @@ data PlainExample
         Int
     | Mk2 !Int
     | Mk3 Bool
+
+data ConstraintExample
+    = forall a .
+        Constr a
+    | forall a b .
+        Constr2 a
+          !b

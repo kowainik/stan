@@ -21,6 +21,7 @@ module Stan.Pattern.Ast
     , app
     , opApp
     , constructor
+    , constructorNameIdentifier
     , dataDecl
     , fixity
     , fun
@@ -45,6 +46,7 @@ module Stan.Pattern.Ast
     ) where
 
 import Stan.Ghc.Compat (FastString)
+import Stan.Hie.Compat (DeclType (..))
 import Stan.NameMeta (NameMeta (..))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType)
@@ -79,6 +81,8 @@ data PatternAst
     | PatternAstAnd !PatternAst !PatternAst
     -- | Negation of pattern. Should match everything except this pattern.
     | PatternAstNeg !PatternAst
+    -- | AST node with the specified Identifier details (only 'DeclType')
+    | PatternAstIdentifierDetailsDecl !DeclType
     deriving stock (Show, Eq)
 
 instance PatternBool PatternAst where
@@ -210,6 +214,11 @@ that matches this pattern are constructor fields.
 -}
 constructor :: PatternAst
 constructor = PatternAstNode $ one ("ConDeclH98", "ConDecl")
+
+{- | Constructor name Identifier info
+-}
+constructorNameIdentifier :: PatternAst
+constructorNameIdentifier = PatternAstIdentifierDetailsDecl ConDec
 
 {- | Lazy data type field. Comes in two shapes:
 

@@ -21,6 +21,7 @@ module Stan.Hie.Compat
     , IdentifierDetails (..)
     , NodeInfo (..)
     , TypeIndex
+    , DeclType (..)
 
       -- * Binary interface to hie files
     , HieFileResult (hie_file_result)
@@ -33,8 +34,8 @@ module Stan.Hie.Compat
     ) where
 
 import HieBin (HieFileResult (hie_file_result), readHieFile)
-import HieTypes (ContextInfo (..), HieAST (..), HieASTs (..), HieArgs (..), HieFile (..),
-                 HieType (..), HieTypeFlat, IEType (..), Identifier, IdentifierDetails (..),
-                 NodeInfo (..), TypeIndex)
+import HieTypes (ContextInfo (..), DeclType (..), HieAST (..), HieASTs (..), HieArgs (..),
+                 HieFile (..), HieType (..), HieTypeFlat, IEType (..), Identifier,
+                 IdentifierDetails (..), NodeInfo (..), TypeIndex)
 import NameCache (NameCache, initNameCache)
 import UniqSupply (mkSplitUniqSupply)

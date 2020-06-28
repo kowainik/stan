@@ -10,6 +10,8 @@ The change log is available [on GitHub][2].
   print `<UNAVAILABLE>` as the source instead of failing.
 * [#329](https://github.com/kowainik/stan/issues/329):
   Add GHC version to the `--version` output.
+* [#326](https://github.com/kowainik/stan/issues/326):
+  Handle constraints before constructors in `STAN-0206`.
 
 ## 0.0.0.0
 

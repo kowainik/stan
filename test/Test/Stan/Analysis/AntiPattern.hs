@@ -98,6 +98,16 @@ strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
             noObservation AntiPattern.stan0206 21
         it "Finds single lazy field in a sum type with multiple constructors" $
             checkObservation AntiPattern.stan0206 22 11 15
+        it "Doesn't trigger on forall constraint with 1 var" $
+            noObservation AntiPattern.stan0206 25
+        it "Finds single lazy field after forall constraint with 1 var" $
+            checkObservation AntiPattern.stan0206 26 16 17
+        it "Doesn't trigger on forall constraint with 2 var" $
+            noObservation AntiPattern.stan0206 27
+        it "Finds single lazy field after forall constraint with 2 var" $
+            checkObservation AntiPattern.stan0206 28 17 18
+        it "Doesn't trigger on strict field after forall constraint with 2 var" $
+            noObservation AntiPattern.stan0206 29
 
     describe "With the 'StrictData' extension" $ do
         let noObservation = noObservationAssert ["AntiPattern", "Stan0206Extensions"] analysis
