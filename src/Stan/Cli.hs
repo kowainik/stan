@@ -55,7 +55,7 @@ data StanCommand
 data StanArgs = StanArgs
     { stanArgsHiedir               :: !FilePath  -- ^ Directory with HIE files
     , stanArgsCabalFilePath        :: ![FilePath]  -- ^ Path to @.cabal@ files.
-    , stanArgsOutputSettings       :: !OutputSettings  -- ^ Settings for report
+    , stanArgsOutputSettings       :: !OutputSettings  -- ^ Settings for output terminal report
     , stanArgsReport               :: !(Maybe ReportArgs)  -- ^ @HTML@ report settings
     , stanArgsUseDefaultConfigFile :: !(TaggedTrial Text Bool)  -- ^ Use default @.stan.toml@ file
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
