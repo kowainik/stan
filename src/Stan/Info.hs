@@ -51,11 +51,12 @@ stanVersion = StanVersion
 
 {- | Colourful pretty 'StanVersion' representation used in the @CLI@.
 -}
-prettyStanVersion :: StanVersion -> String
-prettyStanVersion StanVersion{..} = toString $ intercalate "\n"
+prettyStanVersion :: StanVersion -> StanSystem -> String
+prettyStanVersion StanVersion{..} StanSystem{..} = toString $ intercalate "\n"
     [ sVersion
     , sHash
     , sDate
+    , sGhc
     ]
   where
     fmt :: String -> String
@@ -65,6 +66,7 @@ prettyStanVersion StanVersion{..} = toString $ intercalate "\n"
     sVersion = fmt $ "Stan " <> "v" <> svVersion
     sHash = " ➤ " <> fmt "Git revision: " <> svGitRevision
     sDate = " ➤ " <> fmt "Commit date:  " <> svCommitDate
+    sGhc  = " ➤ " <> fmt "GHC version:  " <> ssCompilerVersion
 
 {- | Contains all @stan@ System information
 -}
