@@ -25,7 +25,7 @@ import Stan.Analysis (Analysis (..))
 import Stan.Core.ModuleName (ModuleName (..))
 import Stan.FileInfo (FileInfo (..), extensionsToText)
 import Stan.Observation (Observation (..), prettyShowObservation)
-import Stan.Report.Settings (ReportSettings (..), Verbosity (..))
+import Stan.Report.Settings (OutputSettings (..), Verbosity (..))
 
 import qualified Data.HashSet as HS
 import qualified Data.Map.Strict as Map
@@ -37,8 +37,8 @@ import qualified Slist as S
 {- | Shows analysed output of Stan work.
 This functions groups 'Observation's by 'FilePath' they are found in.
 -}
-prettyShowAnalysis :: Analysis -> ReportSettings -> Text
-prettyShowAnalysis an rs@ReportSettings{..} = case reportSettingsVerbosity of
+prettyShowAnalysis :: Analysis -> OutputSettings -> Text
+prettyShowAnalysis an rs@OutputSettings{..} = case outputSettingsVerbosity of
     Verbose    -> groupedObservations <> summary (analysisToNumbers an)
     NonVerbose -> unlines $ toList $ prettyShowObservation rs <$> analysisObservations an
   where
@@ -153,8 +153,8 @@ summary AnalysisNumbers{..} = unlines
     mid = separator "┣" "╋" "┫"
     bot = separator "┗" "┻" "┛"
 
-showByFile :: ReportSettings -> FileInfo -> Text
-showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
+showByFile :: OutputSettings -> FileInfo -> Text
+showByFile outputSettings FileInfo{..} = if len == 0 then "" else unlines
     [ i "  File:         " <> b (toText fileInfoPath)
     , i "  Module:       " <> b (unModuleName fileInfoModuleName)
     , i "  LoC:          " <> b (show fileInfoLoc)
@@ -165,7 +165,7 @@ showByFile reportSettings FileInfo{..} = if len == 0 then "" else unlines
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
-        (toList $ prettyShowObservation reportSettings <$> S.sortOn observationLoc fileInfoObservations)
+        (toList $ prettyShowObservation outputSettings <$> S.sortOn observationLoc fileInfoObservations)
   where
     len :: Int
     len = length fileInfoObservations

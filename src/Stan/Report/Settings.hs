@@ -7,7 +7,7 @@ Report settings types.
 -}
 
 module Stan.Report.Settings
-    ( ReportSettings (..)
+    ( OutputSettings (..)
 
       -- * Verbosity
     , Verbosity (..)
@@ -20,9 +20,9 @@ module Stan.Report.Settings
 
 {- | Settings for produced report.
 -}
-data ReportSettings = ReportSettings
-    { reportSettingsVerbosity         :: !Verbosity
-    , reportSettingsSolutionVerbosity :: !ToggleSolution
+data OutputSettings = OutputSettings
+    { outputSettingsVerbosity         :: !Verbosity
+    , outputSettingsSolutionVerbosity :: !ToggleSolution
     }
 
 data Verbosity

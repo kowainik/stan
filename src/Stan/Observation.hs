@@ -35,7 +35,7 @@ import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanFile,
 import Stan.Hie.Compat (HieFile (..))
 import Stan.Inspection (Inspection (..))
 import Stan.Inspection.All (getInspectionById)
-import Stan.Report.Settings (ReportSettings (..), Verbosity (..), isHidden)
+import Stan.Report.Settings (OutputSettings (..), Verbosity (..), isHidden)
 import Stan.Severity (prettyShowSeverity, severityColour)
 
 import qualified Crypto.Hash.SHA1 as SHA1
@@ -81,8 +81,8 @@ mkObservation insId HieFile{..} srcSpan = Observation
 
 
 -- | Show 'Observation' in a human-friendly format.
-prettyShowObservation :: ReportSettings -> Observation -> Text
-prettyShowObservation ReportSettings{..} o@Observation{..} = case reportSettingsVerbosity of
+prettyShowObservation :: OutputSettings -> Observation -> Text
+prettyShowObservation OutputSettings{..} o@Observation{..} = case outputSettingsVerbosity of
     NonVerbose -> simpleShowObservation
     Verbose -> unlines $ map (" ┃  " <>)
         $  observationTable
@@ -132,7 +132,7 @@ prettyShowObservation ReportSettings{..} o@Observation{..} = case reportSettings
 
     solution :: [Text]
     solution
-        | isHidden reportSettingsSolutionVerbosity || null sols = []
+        | isHidden outputSettingsSolutionVerbosity || null sols = []
         | otherwise = "💡 " <> formatWith [italic, green] "Possible solution:" :
             map ("    ⍟ " <>) sols
       where
