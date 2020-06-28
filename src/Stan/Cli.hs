@@ -36,7 +36,7 @@ import Stan.Category (Category (..))
 import Stan.Config (Check (..), CheckFilter (..), CheckType (..), ConfigP (..), PartialConfig,
                     Scope (..))
 import Stan.Core.Id (Id (..))
-import Stan.Info (prettyStanVersion, stanVersion)
+import Stan.Info (prettyStanVersion, stanVersion, stanSystem)
 import Stan.Inspection (Inspection)
 import Stan.Observation (Observation)
 import Stan.Report.Settings (ReportSettings (..), ToggleSolution (..), Verbosity (..))
@@ -317,7 +317,7 @@ scopeP =
 
 -- | Show the version of the tool.
 versionP :: Parser (a -> a)
-versionP = infoOption (prettyStanVersion stanVersion)
+versionP = infoOption (prettyStanVersion stanVersion stanSystem)
     $ long "version"
     <> short 'v'
     <> help "Show Stan's version"
