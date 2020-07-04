@@ -25,12 +25,13 @@ module Stan.Category
     ) where
 
 import Colourista (formatWith, magentaBg)
+import Data.Aeson.Micro (ToJSON)
 
 
 -- | A type of the inspection.
 newtype Category = Category
     { unCategory :: Text
-    } deriving newtype (Show, Eq, Hashable)
+    } deriving newtype (Show, Eq, Hashable, ToJSON)
 
 -- | Show 'Category' in a human-friendly format.
 prettyShowCategory :: Category -> Text

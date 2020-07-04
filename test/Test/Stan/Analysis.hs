@@ -21,7 +21,7 @@ import qualified Data.Set as Set
 
 analysisSpec :: [HieFile] -> Spec
 analysisSpec hieFiles = describe "Static Analysis" $ do
-    extensionsMap <- runIO $ createCabalExtensionsMap ["stan.cabal"] hieFiles
+    extensionsMap <- runIO $ createCabalExtensionsMap True ["stan.cabal"] hieFiles
     let checksMap = mkDefaultChecks (map hie_hs_file hieFiles)
 
     -- tests without ignorance

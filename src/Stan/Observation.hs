@@ -24,6 +24,7 @@ module Stan.Observation
 
 import Colourista (blue, bold, formatWith, green, italic, reset, yellow)
 import Colourista.Short (b, i)
+import Data.Aeson.Micro (ToJSON (..), object, (.=))
 import Data.List (partition)
 import Slist (Slist)
 
@@ -57,6 +58,15 @@ data Observation = Observation
     , observationModuleName   :: !ModuleName
     , observationFileContent  :: !ByteString
     } deriving stock (Show, Eq)
+
+instance ToJSON Observation where
+    toJSON Observation{..} = object
+        [ "id"           .= observationId
+        , "inspectionId" .= observationInspectionId
+        , "loc"          .= showSpan observationLoc
+        , "file"         .= toText observationFile
+        , "moduleName"   .= observationModuleName
+        ]
 
 -- | Type alias for the sized list of 'Observation's.
 type Observations = Slist Observation
@@ -98,13 +108,6 @@ prettyShowObservation OutputSettings{..} o@Observation{..} = case outputSettings
         <> " — "
         <> inspectionName inspection
 
-    showSpan :: RealSrcSpan -> Text
-    showSpan s = show (srcSpanFile s)
-        <> "(" <> show (srcSpanStartLine s)
-        <> ":" <> show (srcSpanStartCol s)
-        <> "-" <> show (srcSpanEndLine s)
-        <> ":" <> show (srcSpanEndCol s)
-        <> ")"
 
     observationTable :: [Text]
     observationTable =
@@ -169,6 +172,20 @@ prettyObservationSource isColour Observation{..} =
       where
         start = srcSpanStartCol observationLoc - 1
         arrow = srcSpanEndCol observationLoc - start - 1
+
+{- | Show 'RealSrcSpan' in the following format:
+
+@
+filename.ext(11:12-13:14)
+@
+-}
+showSpan :: RealSrcSpan -> Text
+showSpan s = show (srcSpanFile s)
+    <> "(" <> show (srcSpanStartLine s)
+    <> ":" <> show (srcSpanStartCol s)
+    <> "-" <> show (srcSpanEndLine s)
+    <> ":" <> show (srcSpanEndCol s)
+    <> ")"
 
 {- | Checkes the predicate on colourfulness and returns an empty text when the
 colouroing is disabled.

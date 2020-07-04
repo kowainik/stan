@@ -17,6 +17,7 @@ module Stan.Severity
     ) where
 
 import Colourista (blue, bold, cyan, formatWith, magenta, red, yellow)
+import Data.Aeson.Micro (ToJSON (..))
 
 
 {- | Severity level of the inspection.
@@ -48,6 +49,9 @@ data Severity
     -- | Dangerous behaviour.
     | Error
     deriving stock (Show, Read, Eq, Ord, Enum, Bounded)
+
+instance ToJSON Severity where
+    toJSON = toJSON . show @Text
 
 -- | Description of each 'Severity' level.
 severityDescription :: Severity -> Text

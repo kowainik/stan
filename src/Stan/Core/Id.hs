@@ -19,6 +19,7 @@ module Stan.Core.Id
     , castId
     ) where
 
+import Data.Aeson.Micro (ToJSON)
 import Data.Type.Equality (type (==))
 
 
@@ -28,7 +29,7 @@ structures by using a phantom parameter.
 newtype Id a = Id
     { unId :: Text
     } deriving stock (Show)
-      deriving newtype (Eq, Ord, Hashable)
+      deriving newtype (Eq, Ord, Hashable, ToJSON)
 
 {- | A type alias for the situations when we don't care about the parameter of
 'Id' but don't want to deal with type variables.

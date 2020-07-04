@@ -42,17 +42,19 @@ usedCabalFiles fs = do
 (that are in .cabal file) to the resulting parsed extensions for each.
 -}
 createCabalExtensionsMap
-    :: [FilePath]  -- ^ @.cabal@ files
+    :: Bool  -- ^ Do print into terminal?
+    -> [FilePath]  -- ^ @.cabal@ files
     -> [HieFile]
     -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
-createCabalExtensionsMap cabalPath hies = case cabalPath of
+createCabalExtensionsMap isLoud cabalPath hies = case cabalPath of
     -- if cabal files are not specified via CLI option
     -- try to find cabal files in current directory
     [] -> findCabalFiles >>= \case
         -- if cabal file is not found, pass the empty map instead
         [] -> do
-            warningMessage ".cabal file not found in the current directory."
-            infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
+            when isLoud $ do
+                warningMessage ".cabal file not found in the current directory."
+                infoMessage " 💡 Try using --cabal-file-path option to specify the path to the .cabal file.\n"
             pure mempty
         -- else concat map for each @.cabal@ file.
         cabals -> mconcat <$> mapM getExtensionsWithCabal cabals
@@ -66,7 +68,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
         :: FilePath
         -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
     getExtensionsWithCabal cabal = do
-        infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
+        when isLoud $ infoMessage $ "Using the following .cabal file: " <> toText cabal <> "\n"
         (Right <<$>> parseCabalFileExtensions cabal)
             `catch` handleCabalErr
       where
@@ -74,7 +76,7 @@ createCabalExtensionsMap cabalPath hies = case cabalPath of
             :: CabalException
             -> IO (Map FilePath (Either ExtensionsError ParsedExtensions))
         handleCabalErr err = do
-            errorMessage "Error when parsing cabal file. Stan will continue without information from .cabal file"
+            when isLoud $ errorMessage "Error when parsing cabal file. Stan will continue without information from .cabal file"
             pure $ Map.fromList $
                 map (toSnd (const $ Left $ CabalError err) . hie_hs_file) hies
 

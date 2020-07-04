@@ -55,8 +55,8 @@ usedTomlFiles useDefault mFile = do
     memptyIfNotExist :: FilePath -> IO [FilePath]
     memptyIfNotExist fp = ifM (doesFileExist fp) (pure [fp]) (pure [])
 
-getTomlConfig :: Bool -> Maybe FilePath -> IO PartialConfig
-getTomlConfig useDefault mTomlFile = do
+getTomlConfig :: Bool -> Bool -> Maybe FilePath -> IO PartialConfig
+getTomlConfig isLoud useDefault mTomlFile = do
     def <-
         if useDefault
         then defaultCurConfigFile >>= readToml >>= \case
@@ -74,7 +74,7 @@ getTomlConfig useDefault mTomlFile = do
         isFile <- doesFileExist file
         if isFile
         then do
-            infoMessage $ "Reading Configurations from " <> toText file <> " ..."
+            when isLoud $ infoMessage $ "Reading Configurations from " <> toText file <> " ..."
             pure <$> Toml.decodeFile configCodec file
         else pure $ fiasco $ "TOML Configurations file doesn't exist: " <> toText file
 

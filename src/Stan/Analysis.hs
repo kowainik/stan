@@ -11,8 +11,9 @@ module Stan.Analysis
     , runAnalysis
     ) where
 
+import Data.Aeson.Micro (ToJSON (..), object, (.=))
 import Extensions (ExtensionsError (..), OnOffExtension, ParsedExtensions (..),
-                   SafeHaskellExtension, parseSourceWithPath)
+                   SafeHaskellExtension, parseSourceWithPath, showOnOffExtension)
 import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Analysis.Analyser (analysisByInspection)
@@ -43,6 +44,22 @@ data Analysis = Analysis
     , analysisIgnoredObservations :: !Observations
     , analysisFileMap             :: !FileMap
     } deriving stock (Show)
+
+instance ToJSON Analysis where
+    toJSON Analysis{..} = object
+        [ "modulesNum"  .= analysisModulesNum
+        , "linesOfCode" .= analysisLinesOfCode
+        , "usedExtensions" .=
+            let (ext, safeExt) = analysisUsedExtensions
+            in map showOnOffExtension (toList ext)
+            <> map (show @Text) (toList safeExt)
+        , "inspections"  .= toList analysisInspections
+        , "observations" .= toJsonObs analysisObservations
+        , "ignoredObservations" .= toJsonObs analysisIgnoredObservations
+        , "fileMap" .= map (first toText) (Map.toList analysisFileMap)
+        ]
+      where
+        toJsonObs = toList . S.sortOn observationLoc
 
 modulesNumL :: Lens' Analysis Int
 modulesNumL = lens
