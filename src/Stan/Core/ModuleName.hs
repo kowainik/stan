@@ -13,6 +13,8 @@ module Stan.Core.ModuleName
     , fromGhcModuleName
     ) where
 
+import Data.Aeson.Micro (ToJSON)
+
 import qualified Stan.Ghc.Compat as Ghc
 
 
@@ -20,7 +22,7 @@ import qualified Stan.Ghc.Compat as Ghc
 newtype ModuleName = ModuleName
     { unModuleName :: Text
     } deriving stock (Show)
-      deriving newtype (Eq, Hashable, IsString)
+      deriving newtype (Eq, Hashable, IsString, ToJSON)
 
 -- | Convert 'GHC.ModuleName' to 'ModuleName'.
 fromGhcModuleName :: Ghc.ModuleName -> ModuleName

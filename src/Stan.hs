@@ -14,6 +14,7 @@ module Stan
     ) where
 
 import Colourista (errorMessage, formatWith, infoMessage, italic, successMessage, warningMessage)
+import Data.Aeson.Micro (encode)
 import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Environment (getArgs)
 import System.FilePath (takeFileName)
@@ -54,36 +55,42 @@ run = runStanCli >>= \case
 
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
+    let notJson = not stanArgsJsonOut
     -- ENV vars
     env@EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
-    infoMessage "Checking environment variables and CLI arguments for default configurations file usage..."
-    putTextLn $ indent $ prettyTaggedTrial defConfTrial
+    when notJson $ do
+        infoMessage "Checking environment variables and CLI arguments for default configurations file usage..."
+        putTextLn $ indent $ prettyTaggedTrial defConfTrial
     let useDefConfig = maybe True snd (trialToMaybe defConfTrial)
     -- config
-    tomlConfig <- getTomlConfig useDefConfig stanArgsConfigFile
+    tomlConfig <- getTomlConfig notJson useDefConfig stanArgsConfigFile
     let configTrial = finaliseConfig $ defaultConfig <> tomlConfig <> stanArgsConfig
-    infoMessage "The following Configurations are used:\n"
-    putTextLn $ indent $ prettyTrialWith (toString . prettyConfigCli) configTrial
+    when notJson $ do
+        infoMessage "The following Configurations are used:\n"
+        putTextLn $ indent $ prettyTrialWith (toString . prettyConfigCli) configTrial
     whenResult_ configTrial $ \warnings config -> do
         hieFiles <- readHieFiles stanArgsHiedir
         -- create cabal default extensions map
-        cabalExtensionsMap <- createCabalExtensionsMap stanArgsCabalFilePath hieFiles
+        cabalExtensionsMap <- createCabalExtensionsMap notJson stanArgsCabalFilePath hieFiles
         -- get checks for each file
         let checksMap = applyConfig (map hie_hs_file hieFiles) config
 
         let analysis = runAnalysis cabalExtensionsMap checksMap (configIgnored config) hieFiles
         -- show what observations are ignored
-        putText $ indent $ prettyShowIgnoredObservations
+        when notJson $ putText $ indent $ prettyShowIgnoredObservations
             (configIgnored config)
             (analysisIgnoredObservations analysis)
         -- show the result
         let observations = analysisObservations analysis
         let isNullObs = null observations
-        if isNullObs
-        then successMessage "All clean! Stan did not find any observations at the moment."
-        else warningMessage "Stan found the following observations for the project:\n"
-        putTextLn $ prettyShowAnalysis analysis stanArgsOutputSettings
+        if notJson
+        then do
+            if isNullObs
+            then successMessage "All clean! Stan did not find any observations at the moment."
+            else warningMessage "Stan found the following observations for the project:\n"
+            putTextLn $ prettyShowAnalysis analysis stanArgsOutputSettings
+        else putLBSLn $ encode analysis
 
         -- report generation
         whenJust stanArgsReport $ \ReportArgs{..} -> do
@@ -100,7 +107,7 @@ runStan StanArgs{..} = do
                     , ..
                     }
             generateReport analysis config warnings stanEnv ProjectInfo{..}
-            infoMessage "Report is generated here -> stan.html"
+            when notJson $ infoMessage "Report is generated here -> stan.html"
             when reportArgsBrowse $ openBrowser "stan.html"
 
         -- decide on exit status
@@ -128,7 +135,7 @@ runInspection InspectionArgs{..} = case inspectionArgsId of
 runTomlToCli :: TomlToCliArgs -> IO ()
 runTomlToCli TomlToCliArgs{..} = do
     let useDefConfig = isNothing tomlToCliArgsFilePath
-    partialConfig <- getTomlConfig useDefConfig tomlToCliArgsFilePath
+    partialConfig <- getTomlConfig True useDefConfig tomlToCliArgsFilePath
     case finaliseConfig partialConfig of
         Result _ res -> putTextLn $ configToCliCommand res
         fiasco -> do

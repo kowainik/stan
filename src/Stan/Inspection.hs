@@ -32,6 +32,7 @@ import Relude.Extra.Lens (Lens', lens)
 
 import Colourista (blue, bold, formatWith, green)
 import Colourista.Short (b, i)
+import Data.Aeson.Micro (ToJSON (..), object, (.=))
 
 import Stan.Category (Category (..), prettyShowCategory)
 import Stan.Core.Id (Id (..))
@@ -54,6 +55,16 @@ data Inspection = Inspection
     , inspectionSeverity    :: !Severity
     , inspectionAnalysis    :: !InspectionAnalysis
     } deriving stock (Show, Eq)
+
+instance ToJSON Inspection where
+    toJSON Inspection{..} = object
+        [ "id"          .= inspectionId
+        , "name"        .= inspectionName
+        , "description" .= inspectionDescription
+        , "solution"    .= inspectionSolution
+        , "category"    .= toList inspectionCategory
+        , "severity"    .= inspectionSeverity
+        ]
 
 descriptionL :: Lens' Inspection Text
 descriptionL = lens

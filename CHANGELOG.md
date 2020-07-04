@@ -14,6 +14,9 @@ The change log is available [on GitHub][2].
   Add GHC version to the `--version` output.
 * [#326](https://github.com/kowainik/stan/issues/326):
   Handle constraints before constructors in `STAN-0206`.
+* [#323](https://github.com/kowainik/stan/issues/323):
+  Add `--json-output` option that output the results in machine readable JSON
+  format instead. Also all other printing is turned off then.
 
 ## 0.0.0.0
 

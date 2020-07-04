@@ -60,6 +60,7 @@ data StanArgs = StanArgs
     , stanArgsUseDefaultConfigFile :: !(TaggedTrial Text Bool)  -- ^ Use default @.stan.toml@ file
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
     , stanArgsConfig               :: !PartialConfig
+    , stanArgsJsonOut              :: !Bool  -- ^ Output the machine-readable output in JSON format instead.
     }
 
 newtype ReportArgs = ReportArgs
@@ -120,6 +121,7 @@ stanP = do
     stanArgsConfigFile <- configFileP
     stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
     stanArgsOutputSettings <- outputSettingsP
+    stanArgsJsonOut <- jsonOutputP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -200,6 +202,12 @@ useDefaultConfigFileP :: Parser (TaggedTrial Text Bool)
 useDefaultConfigFileP = taggedTrialParser "no-default" $ flag' False $ mconcat
     [ long "no-default"
     , help "Ignore local .stan.toml configuration file"
+    ]
+
+jsonOutputP :: Parser Bool
+jsonOutputP = switch $ mconcat
+    [ long "json-output"
+    , help "Output the machine-readable output in JSON format instead"
     ]
 
 reportP :: Parser (Maybe ReportArgs)

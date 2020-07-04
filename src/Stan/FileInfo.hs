@@ -14,6 +14,7 @@ module Stan.FileInfo
     , isExtensionDisabled
     ) where
 
+import Data.Aeson.Micro (ToJSON (..), object, (.=))
 import Extensions (Extensions (..), ExtensionsError, ExtensionsResult, OnOffExtension (..),
                    ParsedExtensions (..), showOnOffExtension)
 import GHC.LanguageExtensions.Type (Extension)
@@ -34,6 +35,16 @@ data FileInfo = FileInfo
     , fileInfoMergedExtensions :: !ExtensionsResult
     , fileInfoObservations     :: !Observations
     } deriving stock (Show, Eq)
+
+instance ToJSON FileInfo where
+    toJSON FileInfo{..} = object
+        [ "path"            .= toText fileInfoPath
+        , "moduleName"      .= fileInfoModuleName
+        , "loc"             .= fileInfoLoc
+        , "cabalExtensions" .= extensionsToText fileInfoCabalExtensions
+        , "extensions"      .= extensionsToText fileInfoExtensions
+        , "observations"    .= toList fileInfoObservations
+        ]
 
 type FileMap = Map FilePath FileInfo
 

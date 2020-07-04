@@ -371,6 +371,7 @@ for each run (similarly to the TOML configurations):
   categories or severities
 - Generate the HTML report file
 - Set up the output verbosity
+- Choose to have machine readable JSON output instead
 
 Here is the high-level explanation of the available sub-commands:
 
@@ -395,6 +396,7 @@ stan
     [--no-default]
     [-s|--short]
     [--hide-solution]
+    [--json-output]
     [-h|--help]
     [-v|--version]
 
@@ -411,6 +413,7 @@ Description:
   --no-default             Ignore local .stan.toml configuration file
   -s,--short               Hide verbose output information for observations
   --hide-solution          Hide verbose solution information for observations
+  --json-output            Output the machine-readable output in JSON format instead
   -h,--help                Show this help text
   -v,--version             Show Stan's version
 
