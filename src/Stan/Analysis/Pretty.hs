@@ -125,7 +125,7 @@ summary AnalysisNumbers{..} = unlines
     , mid
     , alignText "Total Haskel2010 extensions" <> alignNum anExts
     , mid
-    , alignText "Total SafeHaskel extensions" <> alignNum anSafeExts
+    , alignText "Total SafeHaskell extensions" <> alignNum anSafeExts
     , mid
     , alignText "Total checked inspections" <> alignNum anIns
     , mid
