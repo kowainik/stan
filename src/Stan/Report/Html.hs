@@ -138,7 +138,7 @@ stanAnalysis AnalysisNumbers{..} = do
         tableRow "Modules"               anModules
         tableRow "LoC"                   anLoc
         tableRow "Extensions"            anExts
-        tableRow "SafeHaskel Extensions" anSafeExts
+        tableRow "SafeHaskell Extensions" anSafeExts
         tableRow "Available inspections" (HM.size inspectionsMap)
         tableRow "Checked inspections"   anIns
         tableRow "Found Observations"    anFoundObs

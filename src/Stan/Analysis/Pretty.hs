@@ -123,7 +123,7 @@ summary AnalysisNumbers{..} = unlines
     , mid
     , alignText "Analysed Lines of Code" <> alignNum anLoc
     , mid
-    , alignText "Total Haskel2010 extensions" <> alignNum anExts
+    , alignText "Total Haskell2010 extensions" <> alignNum anExts
     , mid
     , alignText "Total SafeHaskell extensions" <> alignNum anSafeExts
     , mid
@@ -144,10 +144,10 @@ summary AnalysisNumbers{..} = unlines
     alignVal x = " ┃ " <> Text.justifyLeft 6 ' ' x <> " ┃"
 
     alignText :: Text -> Text
-    alignText txt ="┃ " <> Text.justifyLeft 27 ' ' txt
+    alignText txt ="┃ " <> Text.justifyLeft 28 ' ' txt
 
     separator :: Text -> Text -> Text -> Text
-    separator l c r = l <> Text.replicate 29 "━" <> c <> Text.replicate 8 "━" <> r
+    separator l c r = l <> Text.replicate 30 "━" <> c <> Text.replicate 8 "━" <> r
     top, mid, bot :: Text
     top = separator "┏" "┳" "┓"
     mid = separator "┣" "╋" "┫"
