@@ -76,11 +76,12 @@ jobs:
         run: |
           mkdir dist
           cabal install exe:stan --install-method=copy --overwrite-policy=always --installdir=dist
+          strip dist/stan
 
-      - name: Compress binary
-        uses: svenstaro/upx-action@v2
-        with:
-          file: dist/stan
+      # - name: Compress binary
+      #   uses: svenstaro/upx-action@v2
+      #   with:
+      #     file: dist/stan
 
       - name: Load Release URL File from release job
         uses: actions/download-artifact@v1
