@@ -53,7 +53,7 @@ import qualified Slist as S
 data Observation = Observation
     { observationId           :: !(Id Observation)
     , observationInspectionId :: !(Id Inspection)
-    , observationLoc          :: !RealSrcSpan
+    , observationSrcSpan      :: !RealSrcSpan
     , observationFile         :: !FilePath
     , observationModuleName   :: !ModuleName
     , observationFileContent  :: !ByteString
@@ -63,7 +63,11 @@ instance ToJSON Observation where
     toJSON Observation{..} = object
         [ "id"           .= observationId
         , "inspectionId" .= observationInspectionId
-        , "loc"          .= showSpan observationLoc
+        , "srcSpan"      .= showSpan observationSrcSpan
+        , "startLine"    .= srcSpanStartLine observationSrcSpan
+        , "startCol"     .= srcSpanStartCol observationSrcSpan
+        , "endLine"      .= srcSpanEndLine observationSrcSpan
+        , "endCol"       .= srcSpanEndCol observationSrcSpan
         , "file"         .= toText observationFile
         , "moduleName"   .= observationModuleName
         ]
@@ -80,7 +84,7 @@ mkObservation
 mkObservation insId HieFile{..} srcSpan = Observation
     { observationId = mkObservationId insId moduleName srcSpan
     , observationInspectionId = insId
-    , observationLoc = srcSpan
+    , observationSrcSpan = srcSpan
     , observationFile = hie_hs_file
     , observationModuleName = moduleName
     , observationFileContent = hie_hs_src
@@ -104,7 +108,7 @@ prettyShowObservation OutputSettings{..} o@Observation{..} = case outputSettings
         " ✦ "
         <> b (unId observationId)
         <>" [" <> sev <> "] "
-        <> i (showSpan observationLoc)
+        <> i (showSpan observationSrcSpan)
         <> " — "
         <> inspectionName inspection
 
@@ -139,6 +143,7 @@ prettyShowObservation OutputSettings{..} o@Observation{..} = case outputSettings
         | otherwise = "💡 " <> formatWith [italic, green] "Possible solution:" :
             map ("    ⍟ " <>) sols
       where
+        sols :: [Text]
         sols = inspectionSolution inspection
 
 
@@ -152,8 +157,8 @@ prettyObservationSource isColour Observation{..} =
     ++ [alignLine (endL + 1) <> arrows]
   where
     n, endL :: Int
-    n = srcSpanStartLine observationLoc
-    endL = srcSpanEndLine observationLoc
+    n = srcSpanStartLine observationSrcSpan
+    endL = srcSpanEndLine observationSrcSpan
 
     alignLine :: Int -> Text
     alignLine x = Text.justifyRight 4 ' ' (show x) <> " ┃ "
@@ -170,8 +175,8 @@ prettyObservationSource isColour Observation{..} =
         <> Text.replicate arrow "^"
         <> whenColour isColour reset
       where
-        start = srcSpanStartCol observationLoc - 1
-        arrow = srcSpanEndCol observationLoc - start - 1
+        start = srcSpanStartCol observationSrcSpan - 1
+        arrow = srcSpanEndCol observationSrcSpan - start - 1
 
 {- | Show 'RealSrcSpan' in the following format:
 

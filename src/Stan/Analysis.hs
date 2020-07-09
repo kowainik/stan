@@ -59,7 +59,8 @@ instance ToJSON Analysis where
         , "fileMap" .= map (first toText) (Map.toList analysisFileMap)
         ]
       where
-        toJsonObs = toList . S.sortOn observationLoc
+        toJsonObs :: Observations -> [Observation]
+        toJsonObs = toList . S.sortOn observationSrcSpan
 
 modulesNumL :: Lens' Analysis Int
 modulesNumL = lens

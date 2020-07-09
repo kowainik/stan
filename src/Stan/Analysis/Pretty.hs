@@ -165,7 +165,7 @@ showByFile outputSettings FileInfo{..} = if len == 0 then "" else unlines
     ]
 
     <> Text.intercalate (" ┃\n ┃" <> Text.replicate 78 "~" <> "\n ┃\n")
-        (toList $ prettyShowObservation outputSettings <$> S.sortOn observationLoc fileInfoObservations)
+        (toList $ prettyShowObservation outputSettings <$> S.sortOn observationSrcSpan fileInfoObservations)
   where
     len :: Int
     len = length fileInfoObservations

@@ -242,7 +242,7 @@ stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
             stanExtensions "module" (extensionsToText fileInfoExtensions)
         li ! A.class_ "col-12 obs-li" $ divClass "observations col-12" $ do
             h4 "Observations"
-            traverse_ stanObservation $ S.sortOn observationLoc fileInfoObservations
+            traverse_ stanObservation $ S.sortOn observationSrcSpan fileInfoObservations
 
 stanExtensions :: Text -> [Text] -> Html
 stanExtensions from exts = divClass "col-6" $ do
