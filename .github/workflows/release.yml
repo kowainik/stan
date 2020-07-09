@@ -35,11 +35,11 @@ jobs:
 
   build_artifact:
     needs: [create_release]
-    name: Build Artifact ${{ github.ref }} / ${{ matrix.os }} / GHC ${{ matrix.ghc }}
+    name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest]
         ghc:
           - "8.8.3"
           - "8.10.1"
