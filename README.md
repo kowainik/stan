@@ -274,7 +274,7 @@ $ sudo apt install stan
 [[Back to the Table of Contents] ↑](#table-of-contents)
 
 You can download binary directly
-[from GitHub releases](https://github.com/kowainik/stan/releases).
+[from GitHub releases](https://github.com/kowainik/stan/releases/latest).
 
 After downloading binary, make it executable and copy it under
 convenient location, e.g.:
