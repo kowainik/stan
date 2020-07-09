@@ -21,6 +21,7 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
     * [Using Cabal](#using-cabal)
     * [Using Stack](#using-stack)
     * [Hackage](#hackage)
+    * [Homebrew](#homebrew)
  * [Usage instructions](#usage-instructions)
     * [General configuration info](#general-configuration-info)
     * [TOML configurations](#toml-configurations)
@@ -228,6 +229,20 @@ $ cabal v2-install stan \
     --overwrite-policy=always \
     --program-suffix=-8.10.1
 ```
+
+### Homebrew
+
+If you are on MacOS, you can get Stan using Homebrew Kowainik's Tap.
+
+You need to run the following command for that:
+
+```shell
+$ brew install kowainik/tap/stan
+```
+
+> NOTE: Homebrew installs the Stan version build with the latest supported GHC
+> version. This means that this version of Stan is working with the project with
+> the same GHC version due to the GHC issues described above.
 
 ## Usage instructions
 
