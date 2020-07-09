@@ -37,7 +37,6 @@ jobs:
 
     - name: Freeze
       run: |
-        ghc --version
         cabal freeze
 
     - uses: actions/cache@v1
