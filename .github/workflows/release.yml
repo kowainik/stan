@@ -39,11 +39,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
         ghc:
           - "8.8.3"
           - "8.10.1"
         cabal: ["3.2"]
+        exclude:
+          - os: windows-latest
+            ghc: 8.8.3
 
     steps:
       - name: Check out code
@@ -72,9 +75,12 @@ jobs:
       - name: Build binary
         run: |
           mkdir dist
-          cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
-          cabal build exe:stan
           cabal install exe:stan --install-method=copy --overwrite-policy=always --installdir=dist
+
+      - name: Compress binary
+        uses: svenstaro/upx-action@v2
+        with:
+          file: dist/stan
 
       - name: Load Release URL File from release job
         uses: actions/download-artifact@v1
