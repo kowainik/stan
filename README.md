@@ -22,6 +22,8 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
     * [Using Stack](#using-stack)
     * [Hackage](#hackage)
     * [Homebrew](#homebrew)
+    * [Ubuntu PPA](#ubuntu-ppa)
+    * [Download binary](#download-binary)
  * [Usage instructions](#usage-instructions)
     * [General configuration info](#general-configuration-info)
     * [TOML configurations](#toml-configurations)
@@ -213,6 +215,8 @@ $ cp "$(stack path --local-install-root)/bin/stan" ~/.local/bin/stan
 
 ### Hackage
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 Stan is available on Hackage. You can install the tool from there as well:
 
 ```shell
@@ -232,6 +236,8 @@ $ cabal v2-install stan \
 
 ### Homebrew
 
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
 If you are on MacOS, you can get Stan using Homebrew Kowainik's Tap.
 
 You need to run the following command for that:
@@ -243,6 +249,43 @@ $ brew install kowainik/tap/stan
 > NOTE: Homebrew installs the Stan version build with the latest supported GHC
 > version. This means that this version of Stan is working with the project with
 > the same GHC version due to the GHC issues described above.
+
+### Ubuntu PPA
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
+If you are on Ubuntu, you can get Stan using
+[Kowainik's PPA](https://launchpad.net/~kowainik/+archive/ubuntu/stan).
+
+You need to run the following commands for that:
+
+```shell
+$ sudo add-apt-repository ppa:kowainik/stan
+$ sudo apt update
+$ sudo apt install stan
+```
+
+> NOTE: `apt-get` installs the Stan version build with the latest supported GHC
+> version. This means that this version of Stan is working with the project with
+> the same GHC version due to the GHC issues described above.
+
+### Download binary
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
+You can download binary directly
+[from GitHub releases](https://github.com/kowainik/stan/releases/latest).
+
+After downloading binary, make it executable and copy it under
+convenient location, e.g.:
+
+```shell
+$ chmod +x stan-0.0.1.0-Linux-ghc-8.10.1
+$ mv stan-0.0.1.0-Linux-ghc-8.10.1 ~/.local/bin/stan
+```
+
+> NOTE: you need to download binary for your specific OS and
+> specicific GHC version you use due to the GHC issues described above.
 
 ## Usage instructions
 
