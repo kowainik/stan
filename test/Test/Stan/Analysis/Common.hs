@@ -70,7 +70,7 @@ observationAssertMulti
     expectedHeadObservation = Observation
         { observationId = obsId
         , observationInspectionId = inspectionId
-        , observationLoc = span
+        , observationSrcSpan = span
         , observationFile = path
         , observationModuleName = moduleName
         , observationFileContent = maybe "" observationFileContent foundPartialObservation
@@ -113,7 +113,7 @@ noObservationAssert parts analysis Inspection{..} line =
             observationInspectionId == inspectionId
             && observationFile == filePathFromParts parts
             && observationModuleName == moduleFromParts parts
-            && srcSpanStartLine observationLoc == line
+            && srcSpanStartLine observationSrcSpan == line
         )
         (analysisObservations analysis)
 
