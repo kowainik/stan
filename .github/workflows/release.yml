@@ -1,0 +1,99 @@
+name: Stan Release
+
+on:
+  # Trigger the workflow on the new 'v*' tag created
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create_release:
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: false
+
+      - name: Output Release URL File
+        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+      - name: Save Release URL File for publish
+        uses: actions/upload-artifact@v1
+        with:
+          name: release_url
+          path: release_url.txt
+
+  build_artifact:
+    needs: [create_release]
+    name: Build Artifact ${{ github.ref }} / ${{ matrix.os }} / GHC ${{ matrix.ghc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        ghc:
+          - "8.8.3"
+          - "8.10.1"
+        cabal: ["3.2"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set tag name
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
+
+      - name: Setup Haskell
+        uses: actions/setup-haskell@v1.1.1
+        id: setup-haskell-cabal
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: ${{ matrix.cabal }}
+
+      - name: Freeze
+        run: |
+          cabal freeze
+
+      - name: Cache ~/.cabal/store
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
+          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+
+      - name: Build binary
+        run: |
+          mkdir dist
+          cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
+          cabal build exe:stan
+          cabal install exe:stan --install-method=copy --overwrite-policy=always --installdir=dist
+
+      - name: Load Release URL File from release job
+        uses: actions/download-artifact@v1
+        with:
+          name: release_url
+
+      - name: Get Release File Name & Upload URL
+        id: get_release_info
+        run: |
+          value=`cat release_url/release_url.txt`
+          echo ::set-output name=upload_url::$value
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ./dist/stan
+          asset_name: stan-${{ env.RELEASE_VERSION }}-${{ runner.os }}-ghc${{ matrix.ghc }}
+          asset_content_type: application/octet-stream

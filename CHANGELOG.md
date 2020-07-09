@@ -3,7 +3,7 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
-## Unreleased
+## 0.0.1.0 — Jul 9, 2020
 
 * [#320](https://github.com/kowainik/stan/issues/320):
   Add `-b|--browse` option to the `report` command.
@@ -17,6 +17,7 @@ The change log is available [on GitHub][2].
 * [#323](https://github.com/kowainik/stan/issues/323):
   Add `--json-output` option that output the results in machine readable JSON
   format instead. Also all other printing is turned off then.
+* Minor documentation improvements.
 
 ## 0.0.0.0
 
