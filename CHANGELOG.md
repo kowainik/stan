@@ -3,6 +3,11 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## Unreleased
+
+* [#55](https://github.com/kowainik/stan/issues/55):
+  Implement single-pass HIE AST traversal.
+
 ## 0.0.1.0 — Jul 9, 2020
 
 * [#320](https://github.com/kowainik/stan/issues/320):
