@@ -16,7 +16,7 @@ import Extensions (ExtensionsError (..), OnOffExtension, ParsedExtensions (..),
                    SafeHaskellExtension, parseSourceWithPath, showOnOffExtension)
 import Relude.Extra.Lens (Lens', lens, over)
 
-import Stan.Analysis.Analyser (analysisByInspection)
+import Stan.Analysis.Analyser (analyseAst)
 import Stan.Cabal (mergeParsedExtensions)
 import Stan.Core.Id (Id)
 import Stan.Core.ModuleName (fromGhcModule)
@@ -184,10 +184,9 @@ analyseHieFile hieFile@HieFile{..} cabalExts obs insIds = do
     -- merge cabal and module extensions and update overall exts
     let fileInfoMergedExtensions = mergeParsedExtensions fileInfoCabalExtensions fileInfoExtensions
     -- get list of inspections for the file
-    let ins = mapMaybe lookupInspectionById (toList insIds)
-    let allObservations = S.concatMap
-            (\iId -> analysisByInspection fileInfoMergedExtensions iId hieFile)
-            ins
+    let inss = mapMaybe lookupInspectionById (toList insIds)
+    -- get all observations by analysing ast
+    let allObservations = analyseAst hieFile fileInfoMergedExtensions inss
     let (ignoredObs, fileInfoObservations) = S.partition ((`elem` obs) . observationId) allObservations
 
     incModulesNum

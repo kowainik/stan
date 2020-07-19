@@ -83,6 +83,7 @@ library
                            Stan.Analysis.Analyser
                            Stan.Analysis.Pretty
                            Stan.Analysis.Summary
+                           Stan.Analysis.Visitor
                          Stan.Browse
                          Stan.Cabal
                          Stan.Category

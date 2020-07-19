@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -10,20 +8,21 @@ Analysing functions by 'InspectionAnalysis' for the corresponding
 -}
 
 module Stan.Analysis.Analyser
-    ( analysisByInspection
+    ( analyseAst
     ) where
 
 import Extensions (ExtensionsResult)
 import GHC.LanguageExtensions.Type (Extension (Strict, StrictData))
-import Slist (Slist, slist)
+import Slist (Slist)
 
+import Stan.Analysis.Visitor (Visitor (..), VisitorState (..), addFixity, addObservation,
+                              addObservations, addOpDecl, getFinalObservations)
 import Stan.Core.Id (Id)
 import Stan.Core.List (nonRepeatingPairs)
 import Stan.FileInfo (isExtensionDisabled)
 import Stan.Ghc.Compat (RealSrcSpan, isSymOcc, nameOccName, occNameString)
 import Stan.Hie (eqAst)
-import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieFile (..), Identifier, NodeInfo (..),
-                        TypeIndex)
+import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
@@ -34,39 +33,38 @@ import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, ca
                          patternMatch_, rhs, tuple, typeSig)
 import Stan.Pattern.Edsl (PatternBool (..))
 
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Slist as S
 
-
-{- | Create analysing function for 'Inspection' by pattern-matching
-over 'InspectionAnalysis'.
--}
-analysisByInspection
-    :: ExtensionsResult
-    -> Inspection
-    -> HieFile
-    -> Observations
-analysisByInspection exts Inspection{..} = case inspectionAnalysis of
-    FindAst patAst -> analyseAst inspectionId patAst
-    Infix -> analyseInfix inspectionId
-    LazyField -> memptyIfFalse
-        (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
-        (analyseLazyFields inspectionId)
-    BigTuples -> analyseBigTuples inspectionId
-    PatternMatchOn_ -> analysePatternMatch_ inspectionId
-    UseCompare -> analyseCompare inspectionId
-
-{- | Check for occurrences of the specified function given via 'NameMeta'.
+{- | Analyses the whole AST starting from the very top.
 -}
 analyseAst
-    :: Id Inspection
-    -> PatternAst
-    -> HieFile
+    :: HieFile
+    -> ExtensionsResult
+    -> [Inspection]
     -> Observations
-analyseAst insId patAst hie =
-    mkObservation insId hie <$> analyseAstWith (createMatch patAst hie) hie
+analyseAst hie exts = getFinalObservations hie . createVisitor hie exts
+
+{- | Create a sinble 'Visitor' value from a list of 'Inspection's and
+additional read-only context. This 'Visitor' can be used to traverse
+HIE AST in a single pass.
+-}
+createVisitor
+    :: HieFile
+    -> ExtensionsResult
+    -> [Inspection]
+    -> Visitor
+createVisitor hie exts inspections = Visitor $ \node ->
+    forM_ inspections $ \Inspection{..} -> case inspectionAnalysis of
+        FindAst patAst -> matchAst inspectionId patAst hie node
+        Infix -> analyseInfix hie node
+        LazyField -> when
+            (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
+            (analyseLazyFields inspectionId hie node)
+        BigTuples -> analyseBigTuples inspectionId hie node
+        PatternMatchOn_ -> analysePatternMatch_ inspectionId hie node
+        UseCompare -> analyseCompare inspectionId hie node
 
 {- | Check for big tuples (size >= 4) in the following places:
 
@@ -76,11 +74,9 @@ analyseAst insId patAst hie =
 analyseBigTuples
     :: Id Inspection
     -> HieFile
-    -> Observations
-analyseBigTuples insId hie =
-    S.map (mkObservation insId hie . nodeSpan)
-    $ S.filter isBigTuple
-    $ analyseAstWith (createMatchAst tuple hie) hie
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analyseBigTuples insId = matchAstWith isBigTuple insId tuple
   where
     isBigTuple :: HieAST TypeIndex -> Bool
     isBigTuple Node{..} = case nodeChildren of
@@ -98,9 +94,10 @@ comparison operators and find matches.
 analyseCompare
     :: Id Inspection
     -> HieFile
-    -> Observations
-analyseCompare insId hie =
-    mkObservation insId hie <$> analyseAstWith matchComparisonGuards hie
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analyseCompare insId hie curNode =
+    addObservations $ mkObservation insId hie <$> matchComparisonGuards curNode
   where
     matchComparisonGuards :: HieAST TypeIndex -> Slist RealSrcSpan
     matchComparisonGuards node = memptyIfFalse
@@ -161,9 +158,10 @@ with a single constructor and single field inside that constructor.
 analyseLazyFields
     :: Id Inspection
     -> HieFile
-    -> Observations
-analyseLazyFields insId hie =
-    mkObservation insId hie <$> analyseAstWith matchLazyField hie
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analyseLazyFields insId hie curNode =
+    addObservations $ mkObservation insId hie <$> matchLazyField curNode
   where
     matchLazyField :: HieAST TypeIndex -> Slist RealSrcSpan
     matchLazyField node = memptyIfFalse
@@ -216,9 +214,13 @@ analyseLazyFields insId hie =
 {- | Check for occurrences of pattern matching on @_@ for sum types (except
 literals).
 -}
-analysePatternMatch_ :: Id Inspection -> HieFile -> Observations
-analysePatternMatch_ insId hie =
-    mkObservation insId hie <$> analyseAstWith matchPatternMatch hie
+analysePatternMatch_
+    :: Id Inspection
+    -> HieFile
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analysePatternMatch_ insId hie curNode =
+    addObservations $ mkObservation insId hie <$> matchPatternMatch curNode
   where
     matchPatternMatch :: HieAST TypeIndex -> Slist RealSrcSpan
     matchPatternMatch node = memptyIfFalse
@@ -286,129 +288,93 @@ declarations in a single pass.
 declaration.
 -}
 analyseInfix
-    :: Id Inspection
-    -> HieFile
-    -> Observations
-analyseInfix insId hie =
-    let opDecls = analyseAstWith (matchInfix <> matchOperator) hie
-        (fixities, topOperators) = partitionDecls opDecls
-        operatorsWithoutFixity = HM.difference topOperators fixities
-    in mkObservation insId hie <$> slist (toList operatorsWithoutFixity)
+    :: HieFile
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analyseInfix hie curNode = do
+    matchInfix curNode
+    matchOperator curNode
   where
-    -- returns list of operator names defined in a single fixity declaration:
+    -- adds to the state list of operator names defined in a single
+    -- fixity declaration:
     -- infix 5 ***, +++, ???
-    matchInfix :: HieAST TypeIndex -> Slist OperatorDecl
-    matchInfix node@Node{..} = memptyIfFalse
+    matchInfix :: HieAST TypeIndex -> State VisitorState ()
+    matchInfix node@Node{..} = when
         (hieMatchPatternAst hie node fixity)
-        (S.concatMap nodeIds nodeChildren)
+        (traverse_ addFixity $ concatMap nodeIds nodeChildren)
 
-    -- singleton or empty list with the top-level operator definition
-    matchOperator :: HieAST TypeIndex -> Slist OperatorDecl
-    matchOperator node@Node{..} = memptyIfFalse
+    -- add to state a singleton or empty list with the top-level
+    -- operator definition:
+    -- (+++) :: ...
+    matchOperator :: HieAST TypeIndex -> State VisitorState ()
+    matchOperator node@Node{..} = when
         (hieMatchPatternAst hie node typeSig)
-        (maybeToMonoid $ viaNonEmpty (extractOperatorName . head) nodeChildren)
-        -- first child of a parent is a name of a function/operator
+        (whenJust
+            -- do nothing when cannot extract name
+            -- first child of a parent is a name of a function/operator
+            (viaNonEmpty (extractOperatorName . head) nodeChildren)
+            -- add each operator decl from a list (should be singleton list)
+            (traverse_ (uncurry addOpDecl))
+        )
 
     -- return AST node identifier names as a sized list of texts
-    nodeIds :: HieAST TypeIndex -> Slist OperatorDecl
+    nodeIds :: HieAST TypeIndex -> [Text]
     nodeIds =
-        S.concatMap identifierName
+        concatMap fixityName
         . Map.keys
         . nodeIdentifiers
         . nodeInfo
 
-    identifierName :: Identifier -> Slist OperatorDecl
-    identifierName = \case
-        Left _ -> mempty
-        Right name -> S.one $ Fixity $ toText $ occNameString $ nameOccName name
+    fixityName :: Identifier -> [Text]
+    fixityName = \case
+        Left _ -> []
+        Right name -> [toText $ occNameString $ nameOccName name]
 
-    extractOperatorName :: HieAST TypeIndex -> Slist OperatorDecl
+    extractOperatorName :: HieAST TypeIndex -> [(Text, RealSrcSpan)]
     extractOperatorName Node{..} =
-        S.concatMap (topLevelOperatorName nodeSpan)
+        concatMap (topLevelOperatorName nodeSpan)
         $ Map.keys
         $ nodeIdentifiers nodeInfo
 
-    topLevelOperatorName :: RealSrcSpan -> Identifier -> Slist OperatorDecl
+    topLevelOperatorName :: RealSrcSpan -> Identifier -> [(Text, RealSrcSpan)]
     topLevelOperatorName srcSpan = \case
-        Left _ -> mempty
+        Left _ -> []
         Right name ->
             let occName = nameOccName name
-            in memptyIfFalse
-                (isSymOcc occName)  -- check if operator
-                (S.one $ Operator (toText $ occNameString occName) srcSpan)
+            -- return empty list if identifier name is not operator name
+            in [(toText $ occNameString occName, srcSpan) | isSymOcc occName]
 
--- | Either top-level operator or fixity declaration
-data OperatorDecl
-    = Fixity !Text
-    -- | Operator name with its position to display later
-    | Operator !Text !RealSrcSpan
-
-{- | Partition a foldable of operator declarations into two maps:
-
-1. Fixity declarations (mapped to @()@).
-2. Top-level operator names (mapped to their source positions.
-
-'Map' is used to be able to use the nice @merge@ function.
--}
-partitionDecls
-    :: Foldable f
-    => f OperatorDecl
-    -> (HashMap Text (), HashMap Text RealSrcSpan)
-partitionDecls = foldl' insertDecl mempty
-  where
-    insertDecl
-        :: (HashMap Text (), HashMap Text RealSrcSpan)
-        -> OperatorDecl
-        -> (HashMap Text (), HashMap Text RealSrcSpan)
-    insertDecl (!fixities, !topOperators) = \case
-        Fixity name -> (HM.insert name () fixities, topOperators)
-        Operator name srcSpan -> (fixities, HM.insert name srcSpan topOperators)
-
-{- | Analyses the whole AST starting from the very top.
--}
-analyseAstWith
-    :: forall a
-    .  (HieAST TypeIndex -> Slist a)
-    -- ^ Function to match AST node to some arbitrary type and return a
-    -- sized list of matched elements
-    -> HieFile
-    -> Slist a
-analyseAstWith match = findNodes . hie_asts
-  where
-    findNodes :: HieASTs TypeIndex -> Slist a
-    findNodes =
-        S.concatMap (matchAstWith match)
-        . Map.elems
-        . getAsts
-
-{- | Recursively match AST nodes starting from a given AST.
--}
-matchAstWith
-    :: forall a
-    .  (HieAST TypeIndex -> Slist a)
-    -- ^ Function to match AST node to some arbitrary type and return a
-    -- sized list of matched elements
-    -> HieAST TypeIndex
-    -> Slist a
-matchAstWith match = matchAst
-  where
-    matchAst :: HieAST TypeIndex -> Slist a
-    matchAst node@Node{..} =
-        match node <> S.concatMap matchAst nodeChildren
-
--- | Like 'createMatchAst' but returns source spans of AST nodes.
-createMatch :: PatternAst -> HieFile -> (HieAST TypeIndex -> Slist RealSrcSpan)
-createMatch patAst hie = fmap nodeSpan . createMatchAst patAst hie
-
-{- | Create a non-recursive matching function for 'PatternAst' that
-returns sized list of nodes that match this pattern.
-
-* If the pattern matches 'Node', return it
-* Otherwise return empty list
--}
-createMatchAst
+-- | Returns source spans of matched AST nodes.
+createMatch
     :: PatternAst
     -> HieFile
-    -> (HieAST TypeIndex -> Slist (HieAST TypeIndex))
-createMatchAst patAst hie node =
-    memptyIfFalse (hieMatchPatternAst hie node patAst) (S.one node)
+    -> HieAST TypeIndex
+    -> Slist RealSrcSpan
+createMatch patAst hie node =
+    memptyIfFalse (hieMatchPatternAst hie node patAst) (S.one $ nodeSpan node)
+
+{- | Specialized version of 'matchAstWith' where custom predicate
+always returns 'True'.
+-}
+matchAst
+    :: Id Inspection
+    -> PatternAst
+    -> HieFile
+    -> HieAST TypeIndex  -- ^ Current node
+    -> State VisitorState ()
+matchAst = matchAstWith (const True)
+
+{- | Add observation to the state if the given node matches the given
+'PatternAst' exactly (non-recursively) and if the given custom
+predicate returns 'True'..
+-}
+matchAstWith
+    :: (HieAST TypeIndex -> Bool)  -- ^ Custom node check
+    -> Id Inspection
+    -> PatternAst
+    -> HieFile
+    -> HieAST TypeIndex  -- ^ Current node
+    -> State VisitorState ()
+matchAstWith check insId patAst hie node@Node{..} =
+    when (hieMatchPatternAst hie node patAst && check node) $
+        addObservation $ mkObservation insId hie nodeSpan
