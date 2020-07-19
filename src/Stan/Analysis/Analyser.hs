@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -297,14 +295,17 @@ analyseInfix hie curNode = do
     matchInfix curNode
     matchOperator curNode
   where
-    -- returns list of operator names defined in a single fixity declaration:
+    -- adds to the state list of operator names defined in a single
+    -- fixity declaration:
     -- infix 5 ***, +++, ???
     matchInfix :: HieAST TypeIndex -> State VisitorState ()
     matchInfix node@Node{..} = when
         (hieMatchPatternAst hie node fixity)
         (traverse_ addFixity $ concatMap nodeIds nodeChildren)
 
-    -- singleton or empty list with the top-level operator definition
+    -- add to state a singleton or empty list with the top-level
+    -- operator definition:
+    -- (+++) :: ...
     matchOperator :: HieAST TypeIndex -> State VisitorState ()
     matchOperator node@Node{..} = when
         (hieMatchPatternAst hie node typeSig)

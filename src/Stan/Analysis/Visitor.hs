@@ -50,22 +50,33 @@ initialVisitorState = VisitorState
     , visitorStateOpDecls      = mempty
     }
 
+{- | Transform 'VisitorState' to the final list of observations for
+the given 'HieFile'. 'VisitorState' stores not only ready
+'Observations' but also additional metadata collected during tree
+traversal, so this metadata is converted to 'Observations' for the
+corresponding 'Inspection's.
+-}
 finaliseState :: HieFile -> VisitorState -> Observations
 finaliseState hie VisitorState{..} =
+    -- STAN-0301: missing fixity declaration
+    -- detected by finding a difference between two sets:
+    -- 1. Top-level defined operators
+    -- 2. Fixity declarations for operators in module
     let operatorsWithoutFixity = HM.difference visitorStateOpDecls visitorStateFixities
         stan0301inss = mkObservation (inspectionId stan0301) hie <$> S.slist (toList operatorsWithoutFixity)
+    -- combine final observations
     in visitorStateObservations <> stan0301inss
 
 -- | Get sized list of all 'Observations' from the given HIE file
 -- using the created 'Visitor'.
 getFinalObservations :: HieFile -> Visitor -> Observations
 getFinalObservations hie visitor =
-    let visitAction = traverse_ (visitAst visitor) (getHieAsts $ hie_asts hie)
+    let visitAction = traverse_ (visitAst visitor) allHieAsts
         resultState = execState visitAction initialVisitorState
     in finaliseState hie resultState
   where
-    getHieAsts :: HieASTs TypeIndex -> [HieAST TypeIndex]
-    getHieAsts = Map.elems . getAsts
+    allHieAsts :: [HieAST TypeIndex]
+    allHieAsts = Map.elems $ getAsts $ hie_asts hie
 
 observationsL :: Lens' VisitorState Observations
 observationsL = lens
