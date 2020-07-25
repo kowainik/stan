@@ -435,7 +435,7 @@ Here is the high-level explanation of the available sub-commands:
 
 | Sub-command | Description | Examples |
 |-------------|-------------|----------|
-| `check` | Set up rules to control the set of inspections per scope. | `stan check --exclude --category=Infinity --scope=all check --include --id "STAN-0101" --file=src/File.hs` |
+| `check` | Set up rules to control the set of inspections per scope. | `stan check --exclude --category=Infinity --scope-all check --include --id "STAN-0101" --file=src/File.hs` |
 | `remove` | Remove some files from the analysis completely. Stan won't be run in the specified scope at all. | `stan remove --file=src/File.hs remove --directory=folder/`         |
 | `ignore` | Ignore specific observation that was found in your project   | `stan ignore --id "OBS-STAN-0001-YrzpQi-11:42"`          |
 
