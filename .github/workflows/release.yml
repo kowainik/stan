@@ -88,9 +88,6 @@ jobs:
       - name: Set binary path name
         run: echo "::set-env name=BINARY_PATH::./dist/stan${{ env.EXT }}"
 
-      - name: Strip binary
-        run: strip ${{ env.BINARY_PATH }}
-
       - name: Compress binary
         uses: svenstaro/upx-action@2.0.1
         with:
