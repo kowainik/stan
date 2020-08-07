@@ -7,3 +7,4 @@ extra-deps:
 - trial-0.0.0.0
 - trial-optparse-applicative-0.0.0.0
 - trial-tomland-0.0.0.0
+- unordered-containers-0.2.12.0
