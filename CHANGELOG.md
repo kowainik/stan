@@ -7,6 +7,11 @@ The change log is available [on GitHub][2].
 
 * [#55](https://github.com/kowainik/stan/issues/55):
   Implement single-pass HIE AST traversal.
+* [#348](https://github.com/kowainik/stan/issues/348):
+  Compress binaries for GitHub releases.
+* [#368](https://github.com/kowainik/stan/issues/368):
+  Fix inspections for `unordered-containers` functions to support the
+  latest package version.
 
 ## 0.0.1.0 — Jul 9, 2020
 
