@@ -162,15 +162,15 @@ stan0204 = mkAntiPatternInspection (Id "STAN-0204") "HashMap size"
         :| [(mkBaseFoldableMeta "length", hmPat)]
 
     sizeNameMeta :: NameMeta
-    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashMap.Base"
+    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashMap.Internal"
 
     hm :: NameMeta
-    hm = "HashMap" `unorderedNameFrom` "Data.HashMap.Base"
+    hm = "HashMap" `unorderedNameFrom` "Data.HashMap.Internal"
 
     hmPat :: PatternType
     hmPat = (hm |:: [(?), (?)]) |-> (?)
 
--- | 'Inspection' — slow 'Data.HashMap.Strict.size' @STAN-0205@.
+-- | 'Inspection' — slow 'Data.HashSet.size' @STAN-0205@.
 stan0205 :: Inspection
 stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
            (FindAst $ namesToPatternAst pats)
@@ -185,10 +185,10 @@ stan0205 = mkAntiPatternInspection (Id "STAN-0205") "HashSet size"
         :| [(mkBaseFoldableMeta "length", hsPat)]
 
     sizeNameMeta :: NameMeta
-    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashSet.Base"
+    sizeNameMeta = "size" `unorderedNameFrom` "Data.HashSet.Internal"
 
     hs :: NameMeta
-    hs = "HashSet" `unorderedNameFrom` "Data.HashSet.Base"
+    hs = "HashSet" `unorderedNameFrom` "Data.HashSet.Internal"
 
     hsPat :: PatternType
     hsPat = (hs |:: [(?)]) |-> (?)
