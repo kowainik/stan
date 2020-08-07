@@ -5,6 +5,7 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
+      prefix: "GA"
       include: "scope"
     labels:
       - "CI"
