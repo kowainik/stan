@@ -178,11 +178,8 @@ location (that should be under the PATH environment variable), like
 so:
 
 ```shell
-$ cp dist-newstyle/build/x86_64-linux/ghc-8.8.3/stan-0.0.0.0/x/stan/build/stan/stan ~/.local/bin/stan
+$ cp "$(cabal v2-exec --verbose=0 --offline sh -- -c 'command -v stan')" ~/.local/bin/stan
 ```
-
-> The path to the executable will be outputted as the last line of the
-> previous command.
 
 ### Using Stack
 
