@@ -393,7 +393,7 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
 
 -- | 'Inspection' - use 'Text' or 'ByteString'  instead of 'String' @STAN-0216@.
 stan0216 :: Inspection
-stan0216 = mkAntiPatternInspection (Id "STAN-0216") "String" 
+stan0216 = mkAntiPatternInspection (Id "STAN-0216") "String"
   (FindAst $ PatternAstName strNameMeta (?))
     & descriptionL .~ "Usage of the default 'String' Haskell type"
     & solutionL .~
