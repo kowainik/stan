@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "stan:lib"
+    - path: "./app"
+      component: "stan:exe:stan"
+    - path: "./target"
+      component: "stan:lib:target"
+    - path: "./test"
+      component: "stan:test:stan-test"

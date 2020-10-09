@@ -43,6 +43,8 @@ module Stan.Inspection.AntiPattern
     , stan0214
       -- *** Anti-pattern: Slashes in paths
     , stan0215
+      -- *** Anti-pattern: use 'String'
+    , stan0216
 
       -- * All inspections
     , antiPatternInspectionsMap
@@ -388,3 +390,15 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
     pathLit :: PatternAst
     pathLit = PatternAstConstant (ContainStr "/")
         ||| PatternAstConstant (ContainStr "\\\\")
+
+-- | 'Inspection' - use 'Text' or 'ByteString'  instead of 'String' @STAN-0216@.
+stan0216 :: Inspection
+stan0216 = mkAntiPatternInspection (Id "STAN-0216") "String" 
+  (FindAst $ PatternAstName strNameMeta (?))
+    & descriptionL .~ "Usage of the default 'String' Haskell type"
+    & solutionL .~
+        [ "Consider using instead 'Text' for readable text, or 'ByteString' otherwise"
+        ]
+  where
+    strNameMeta :: NameMeta
+    strNameMeta = "String" `baseNameFrom` "GHC.Base"

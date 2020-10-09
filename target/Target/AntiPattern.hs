@@ -92,3 +92,9 @@ stanSlashesWindows' = "xxx" </> "asd\\asd"
 
 stanSlashesNo :: FilePath
 stanSlashesNo = "xxx" </> "asd"
+
+stanStringsAreBad :: String
+stanStringsAreBad = "please never use this data type"
+
+stanFunctionReturningString :: a -> String
+stanFunctionReturningString = const "nooo"

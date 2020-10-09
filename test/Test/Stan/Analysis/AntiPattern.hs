@@ -74,6 +74,11 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
     it "STAN-0215: don't triggered when no slashes" $
         noObservation AntiPattern.stan0215 94
 
+    it "STAN-0216: finds usage of String in type signatures" $
+        checkObservation AntiPattern.stan0216 96 22 28
+    it "STAN-0216: finds usage of function return arguments" $
+        checkObservation AntiPattern.stan0216 99 37 43
+
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do
     describe "Without extensions" $ do
