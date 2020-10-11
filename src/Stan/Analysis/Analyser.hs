@@ -25,7 +25,7 @@ import Stan.Hie (eqAst)
 import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
+import Stan.NameMeta (NameMeta, baseNameFrom, hieFindIdentifier, ghcPrimNameFrom)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
                          constructorNameIdentifier, dataDecl, fixity, fun, guardBranch, lambdaCase,
@@ -65,6 +65,7 @@ createVisitor hie exts inspections = Visitor $ \node ->
         BigTuples -> analyseBigTuples inspectionId hie node
         PatternMatchOn_ -> analysePatternMatch_ inspectionId hie node
         UseCompare -> analyseCompare inspectionId hie node
+        StringUsage -> analyseStringUsage inspectionId hie node
 
 {- | Check for big tuples (size >= 4) in the following places:
 
@@ -82,6 +83,23 @@ analyseBigTuples insId = matchAstWith isBigTuple insId tuple
     isBigTuple Node{..} = case nodeChildren of
         _:_:_:_:_  -> True
         _lessThan4 -> False
+
+{- | Check for usage of the 'String' type in the following places:
+
+* Type signatures: foo :: a -> String
+* Data type fields: newtype HasString = HasString { foo :: String }
+-}
+analyseStringUsage
+    :: Id Inspection
+    -> HieFile
+    -> HieAST TypeIndex
+    -> State VisitorState ()
+analyseStringUsage insId = matchAstWith usesString insId typeSig
+  where
+    usesString :: HieAST TypeIndex -> Bool
+    usesString = isJust . hieFindIdentifier stringName
+    stringName :: NameMeta
+    stringName = "String" `baseNameFrom` "GHC.Base"
 
 {- | Find usages of multiple comparison operators and suggest using
 'compare'. Currently, handles the following cases:

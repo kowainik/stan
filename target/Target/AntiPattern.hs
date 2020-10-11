@@ -98,3 +98,5 @@ stanStringsAreBad = "please never use this data type"
 
 stanFunctionReturningString :: a -> String
 stanFunctionReturningString = const "nooo"
+
+newtype Person = Person {name :: String}

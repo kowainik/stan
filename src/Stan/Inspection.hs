@@ -116,6 +116,8 @@ data InspectionAnalysis
     | PatternMatchOn_
     -- | Replace multiple comparison operations with 'compare'
     | UseCompare
+    -- | Usage of 'String'.
+    | StringUsage
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.
