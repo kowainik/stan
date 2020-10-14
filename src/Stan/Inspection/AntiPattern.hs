@@ -87,6 +87,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0213
     , stan0214
     , stan0215
+    , stan0216
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.

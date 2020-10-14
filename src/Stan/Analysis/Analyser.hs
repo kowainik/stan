@@ -30,7 +30,7 @@ import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
                          constructorNameIdentifier, dataDecl, fixity, fun, guardBranch, lambdaCase,
                          lazyField, literalPat, opApp, patternMatchArrow, patternMatchBranch,
-                         patternMatch_, rhs, tuple, typeSig)
+                         patternMatch_, rhs, tuple, typeSig, type_)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 import qualified Data.Map.Strict as Map
@@ -94,7 +94,7 @@ analyseStringUsage
     -> HieFile
     -> HieAST TypeIndex
     -> State VisitorState ()
-analyseStringUsage insId = matchAstWith usesString insId typeSig
+analyseStringUsage insId = matchAstWith usesString insId type_
   where
     usesString :: HieAST TypeIndex -> Bool
     usesString = isJust . hieFindIdentifier stringName

@@ -31,6 +31,7 @@ module Stan.Pattern.Ast
     , rhs
     , tuple
     , typeSig
+    , type_
 
       -- * Pattern matching
     , case'
