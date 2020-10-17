@@ -402,6 +402,6 @@ stan0216 = Inspection
         [ "Consider using instead 'Text' for readable text, or 'ByteString' otherwise"
         ]
     , inspectionCategory = Category.antiPattern :| [Category.syntax]
-    , inspectionSeverity = Style
+    , inspectionSeverity = Performance
     , inspectionAnalysis = StringUsage
     }
