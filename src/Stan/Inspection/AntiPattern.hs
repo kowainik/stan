@@ -396,7 +396,7 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
 stan0216 :: Inspection
 stan0216 = Inspection
     { inspectionId = Id "STAN-0216"
-    , inspectionName = "String"
+    , inspectionName = "Usage of the 'String' type"
     , inspectionDescription = "Usage of the default 'String' Haskell type"
     , inspectionSolution =
         [ "Consider using instead 'Text' for readable text, or 'ByteString' otherwise"
