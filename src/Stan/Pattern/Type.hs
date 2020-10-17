@@ -89,7 +89,9 @@ infix 5 |::
 -- | 'PatternType' for list @[a]@ or @'String'@.
 listPattern :: PatternType
 listPattern =
-    listNameMeta |:: [ (?) ] ||| stringPattern
+    listNameMeta |:: [ (?) ]
+    |||
+    stringPattern
   where
     listNameMeta :: NameMeta
     listNameMeta = primTypeMeta "[]"
