@@ -80,6 +80,8 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0216 99 37 43
     it "STAN-0216: finds usage of String in data type fields" $
         checkObservation AntiPattern.stan0216 102 34 40
+    it "STAN-0216: should not trigger for function arguments" $
+        noObservation AntiPattern.stan0216 104
 
 strictFieldsSpec :: Analysis -> Spec
 strictFieldsSpec analysis = describe "STAN-0206: Strict data type fields" $ do

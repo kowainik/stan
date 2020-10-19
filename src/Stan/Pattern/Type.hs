@@ -33,7 +33,7 @@ module Stan.Pattern.Type
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom, stringNameMeta)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 
@@ -121,7 +121,7 @@ charPattern = primTypeMeta "Char" |:: []
 
 -- | 'PatternType' for 'String'.
 stringPattern :: PatternType
-stringPattern = "String" `baseNameFrom` "GHC.Base" |:: []
+stringPattern = stringNameMeta |:: []
 
 -- | 'PatternType' for 'Text'.
 textPattern :: PatternType

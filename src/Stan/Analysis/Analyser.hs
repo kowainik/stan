@@ -25,7 +25,7 @@ import Stan.Hie (eqAst)
 import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta, baseNameFrom, hieFindIdentifier, ghcPrimNameFrom)
+import Stan.NameMeta (NameMeta, hieFindIdentifier, ghcPrimNameFrom, stringNameMeta)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
                          constructorNameIdentifier, dataDecl, fixity, fun, guardBranch, lambdaCase,
@@ -97,9 +97,7 @@ analyseStringUsage
 analyseStringUsage insId = matchAstWith usesString insId type_
   where
     usesString :: HieAST TypeIndex -> Bool
-    usesString = isJust . hieFindIdentifier stringName
-    stringName :: NameMeta
-    stringName = "String" `baseNameFrom` "GHC.Base"
+    usesString = isJust . hieFindIdentifier stringNameMeta
 
 {- | Find usages of multiple comparison operators and suggest using
 'compare'. Currently, handles the following cases:

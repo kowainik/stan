@@ -100,3 +100,6 @@ stanFunctionReturningString :: a -> String
 stanFunctionReturningString = const "nooo"
 
 newtype Person = Person {name :: String}
+
+stanFunctionTakingString :: String -> Bool
+stanFunctionTakingString = const True

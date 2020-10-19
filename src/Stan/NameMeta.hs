@@ -28,6 +28,7 @@ module Stan.NameMeta
 
     , ghcPrimNameFrom
     , primTypeMeta
+    , stringNameMeta
     ) where
 
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
@@ -180,3 +181,7 @@ ghcPrimNameFrom funName moduleName = NameMeta
 -- | 'NameMeta' for primitive types.
 primTypeMeta :: Text -> NameMeta
 primTypeMeta = (`ghcPrimNameFrom` "GHC.Types")
+
+-- | 'NameMeta' for the 'String' type.
+stringNameMeta :: NameMeta
+stringNameMeta = "String" `baseNameFrom` "GHC.Base"

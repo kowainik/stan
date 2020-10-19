@@ -397,9 +397,10 @@ stan0216 :: Inspection
 stan0216 = Inspection
     { inspectionId = Id "STAN-0216"
     , inspectionName = "Usage of the 'String' type"
-    , inspectionDescription = "Usage of the default 'String' Haskell type"
+    , inspectionDescription = "Usage of the default 'String' Haskell type, see: https://stackoverflow.com/questions/7357775/text-or-bytestring"
     , inspectionSolution =
-        [ "Consider using instead 'Text' for readable text, or 'ByteString' otherwise"
+        [ "Consider using instead 'Text' for readable text"
+        , "Consider using instead 'ByteString' for binary data, or if you need the ASCII character set"
         ]
     , inspectionCategory = Category.antiPattern :| [Category.syntax]
     , inspectionSeverity = Performance
