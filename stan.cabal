@@ -129,7 +129,7 @@ library
                      , blaze-html ^>= 0.9.1
                      , bytestring ^>= 0.10
                      , clay ^>= 0.13
-                     , colourista ^>= 0.1.0.0
+                     , colourista >= 0.1 && < 0.3
                      , containers ^>= 0.6
                      , cryptohash-sha1 ^>= 0.11
                      , dir-traverse ^>= 0.2.2.2
