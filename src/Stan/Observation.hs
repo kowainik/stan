@@ -3,7 +3,7 @@ Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
 Maintainer: Kowainik <xrom.xkov@gmail.com>
 
-__Observation__ — a vulnerability found in the target project by @Stan@.
+__Observation__ — a suggestion found in the target project by @Stan@.
 -}
 
 module Stan.Observation
@@ -48,7 +48,7 @@ import qualified Data.Text as Text
 import qualified Slist as S
 
 
-{- | Data type to represent discovered by Stan vulnerabilities.
+{- | Data type to represent discovered by Stan suggestions.
 -}
 data Observation = Observation
     { observationId           :: !(Id Observation)
