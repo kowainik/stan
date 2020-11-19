@@ -60,7 +60,7 @@ jobs:
           tagRegexGroup: 1
 
       - name: Setup Haskell
-        uses: actions/setup-haskell@v1.1.3
+        uses: actions/setup-haskell@v1.1.4
         id: setup-haskell-cabal
         with:
           ghc-version: ${{ matrix.ghc }}
