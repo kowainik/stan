@@ -173,7 +173,7 @@ stanSummary analysis AnalysisNumbers{..} = do
     showHealthConclusions :: ProjectHealth -> Text
     showHealthConclusions = fold . \case
         Unhealthy ->
-            [ "According to the Stan analysis, the project has a lot of vulnerabilities. "
+            [ "After analyzing your code, Stan has many suggestions for you on how to improve it."
             , "But this also means that there is a room for improving code quality! "
             , "Don't give up and continue doing great work!"
             ]
@@ -186,14 +186,14 @@ stanSummary analysis AnalysisNumbers{..} = do
             , "Nice job, the overall project quality is good. And you can easily make it even better!"
             ]
         Healthy ->
-            [ "Excellent work! Stan haven't found any vulnerabilities in the code."
+            [ "Excellent work! Stan does not have any suggestions for your code."
             ]
 
     summary :: Html
     summary = case createSummary analysis of
         Nothing -> liSum $ do
-            h4 "Congratulations! Your project has zero vulnerabilities!"
-            span "Stan carefully run all configured inspection and found 0 observations and vulnerabilities to the project."
+            h4 "Congratulations! Your project has zero suggestions!"
+            span "Stan carefully ran all configured inspection and found 0 observations for the project."
         Just Summary{..} -> do
             liSum $ do
                 h4 $ toHtml ("Watch out for " <> unId summaryInspectionId)
@@ -212,7 +212,7 @@ stanSummary analysis AnalysisNumbers{..} = do
                 toHtml @Text "The project has the most problems with inspections from this category"
             liSum $ do
                 h4 $ toHtml ("Severity: " <> show @Text summarySeverity)
-                toHtml @Text "The highest severity of found vulnerabilities is "
+                toHtml @Text "The highest severity of found observations is "
                 severity (show @Text summarySeverity)
 
     liSum :: Html -> Html
@@ -221,9 +221,9 @@ stanSummary analysis AnalysisNumbers{..} = do
 stanObservations :: Analysis -> Html
 stanObservations Analysis{..} = do
     divClass "row" $ blockP $ fold
-        [ "Based on the analysis results, Stan found different vulnerabilities "
-        , "distributed among the analysed files. In Stan terminology, we call such "
-        , "vulnerability as Observation. Below you can see the more detailed "
+        [ "Based on the analysis results, Stan found several areas for improvement "
+        , "in the analysed files. In Stan terminology, we call these findings "
+        , "Observations. Below you can see the more detailed "
         , "information about each observation, and find the possible ways to fix "
         , "them for your project."
         ]

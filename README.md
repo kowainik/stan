@@ -4,7 +4,7 @@
 
 [![GitHub CI](https://github.com/kowainik/stan/workflows/CI/badge.svg)](https://github.com/kowainik/stan/actions)
 [![Hackage](https://img.shields.io/hackage/v/stan.svg)](https://hackage.haskell.org/package/stan)
-[![MPL-2.0 license](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/kowainik/stan/blob/master/LICENSE)
+[![MPL-2.0 license](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/kowainik/stan/blob/main/LICENSE)
 
 Stan is a Haskell **ST**atic **AN**alysis tool.
 
@@ -39,9 +39,10 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
 
 [[Back to the Table of Contents] ↑](#table-of-contents)
 
-Stan is a command-line tool for analysing Haskell projects and
-outputting discovered vulnerabilities in a helpful way with possible
-solutions for detected problems. Stan is searching for not only
+Stan is a command-line tool for analysing Haskell projects.
+It discovers which parts of the code can potentially be improved,
+and offers suggestions on how to do so.
+Stan is searching for not only
 performance or error-prone code pieces, but it also can help with
 establishing and applying best-practices from the whole Haskell
 ecosystem.
@@ -62,7 +63,7 @@ system or GHC.
 
 Stan design and implementation is driven by the following goals:
 
-- Catch common vulnerabilities, anti-patterns, performance issues
+- Catch common errors, anti-patterns, performance issues
 - Provide meaningful insights on the projects generally
 - Point out potential bugs and weak points in the programs flow for
   users, so they can carefully evaluate each problem with the code
@@ -111,7 +112,7 @@ Type patterns based on the
 [_final tagless_](http://okmij.org/ftp/tagless-final/course/lecture.pdf)
 approach. Stan algorithm traverses HIE AST for each HIE file in the
 project, and matches every AST node with the given pattern to find
-potential vulnerabilities in the code.
+potential improvement areas in the code.
 
 Each Stan analysis check is represented by the __inspection__ with the
 unique ID. Each inspection has a name, description, __severity__, list
@@ -119,8 +120,8 @@ of __categories__, pattern for matching relevant parts of source code
 and possible solutions to the problem.
 
 When an inspection is casted on the project, it produces zero or more
-__observations__ — vulnerabilities in the specific parts of the
-code. You can think of an _observation_ as a pair of an inspection and
+__observations__ —.
+You can think of an _observation_ as a pair of an inspection and
 a piece of source code where this inspection was triggered. Each
 observation is assigned an unique stable ID depending on the source
 location, so you can refer to them later or ignore.
@@ -315,7 +316,7 @@ After creating HIE files, you can just run Stan on the project:
 $ stan
 ```
 
-to see all found vulnerabilities in your terminal.
+to see all found suggestions in your terminal.
 
 If you want to see a more detailed information in a more structured
 way, you can generate an HTML report (to the `stan.html` file) using
