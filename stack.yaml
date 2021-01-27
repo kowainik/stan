@@ -1,4 +1,4 @@
-resolver: lts-16.9
+resolver: lts-17.0
 
 extra-deps:
 - dir-traverse-0.2.2.3
@@ -7,4 +7,3 @@ extra-deps:
 - trial-0.0.0.0
 - trial-optparse-applicative-0.0.0.0
 - trial-tomland-0.0.0.0
-- unordered-containers-0.2.12.0
