@@ -41,12 +41,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         ghc:
-          - "8.8.3"
-          - "8.10.1"
+          - "8.8.4"
+          - "8.10.3"
         cabal: ["3.2"]
-        exclude:
-          - os: windows-latest
-            ghc: 8.8.3
 
     steps:
       - name: Check out code
@@ -60,7 +57,7 @@ jobs:
           tagRegexGroup: 1
 
       - name: Setup Haskell
-        uses: actions/setup-haskell@v1.1.4
+        uses: haskell/actions/setup@v1
         id: setup-haskell-cabal
         with:
           ghc-version: ${{ matrix.ghc }}
