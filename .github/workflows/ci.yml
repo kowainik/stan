@@ -19,7 +19,7 @@ jobs:
         cabal: ["3.2"]
         ghc:
           - "8.8.4"
-          - "8.10.3"
+          - "8.10.4"
         exclude:
           - os: macOS-latest
             ghc: 8.8.4
