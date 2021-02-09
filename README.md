@@ -33,6 +33,7 @@ Stan is a Haskell **ST**atic **AN**alysis tool.
        * [Converting between TOML and CLI configurations](#converting-between-toml-and-cli-configurations)
  * [Other tools](#other-tools)
  * [Roadmap](#roadmap)
+ * [Users](#users)
  * [Links to Wiki](#links-to-wiki)
 
 ## What this tool is about
@@ -56,6 +57,12 @@ the ecosystem and commonly used libraries.
 You will find Stan helpful if you enjoy writing in Haskell, but want
 more guarantees from your code, not provided by the Haskell type
 system or GHC.
+
+For a crash course to Stan, watch the talk about Stan, presented by
+Veronika Romashkina and Dmitrii Kovanikov at the Haskell Love
+conference.
+
+[![Stan – Haskell Static Analyser](https://img.youtube.com/vi/wb5PLv6-e6I/0.jpg)](https://www.youtube.com/watch?v=wb5PLv6-e6I)
 
 ## Goals
 
@@ -613,6 +620,13 @@ Our plan for the nearest future:
 
 We have much more ideas to work on.
 See more detailed plan in the dedicated [GitHub Project page](https://github.com/kowainik/stan/projects/1).
+
+## Users
+
+Stan is known to be adopted by the following companies:
+
+* A major international bank
+* [ITProTV](https://www.itpro.tv/)
 
 ## Links to Wiki
 
