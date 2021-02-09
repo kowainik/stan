@@ -623,7 +623,7 @@ See more detailed plan in the dedicated [GitHub Project page](https://github.com
 
 ## Users
 
-Stan is known to be used in the following companies:
+Stan is known to be adopted by the following companies:
 
 * A major international bank
 * [ITProTV](https://www.itpro.tv/)
