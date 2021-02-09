@@ -62,7 +62,7 @@ For a crash course to Stan, watch the talk about Stan, presented by
 Veronika Romashkina and Dmitrii Kovanikov at the Haskell Love
 conference.
 
-* [Stan – Haskell Static Analyser](https://www.youtube.com/watch?v=wb5PLv6-e6I)
+[![Stan – Haskell Static Analyser](https://img.youtube.com/vi/wb5PLv6-e6I/0.jpg)](https://www.youtube.com/watch?v=wb5PLv6-e6I)
 
 ## Goals
 
