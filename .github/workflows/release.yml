@@ -50,14 +50,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set tag name
-        uses: olegtarasov/get-tag@v2
+        uses: olegtarasov/get-tag@v2.1
         id: tag
         with:
           tagRegex: "v(.*)"
           tagRegexGroup: 1
 
       - name: Setup Haskell
-        uses: haskell/actions/setup@v1
+        uses: haskell/actions/setup@v1.2.1
         id: setup-haskell-cabal
         with:
           ghc-version: ${{ matrix.ghc }}
@@ -80,10 +80,10 @@ jobs:
 
       - if: matrix.os == 'windows-latest'
         name: Set extension to .exe on Windows
-        run: echo "::set-env name=EXT::.exe"
+        run: echo "EXT=.exe" >> $GITHUB_ENV
 
       - name: Set binary path name
-        run: echo "::set-env name=BINARY_PATH::./dist/stan${{ env.EXT }}"
+        run: echo "BINARY_PATH=./dist/prom-docs${{ env.EXT }}" >> $GITHUB_ENV
 
       - name: Compress binary
         uses: svenstaro/upx-action@2.0.1
