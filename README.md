@@ -627,6 +627,7 @@ Stan is known to be adopted by the following companies:
 
 * A major international bank
 * [ITProTV](https://www.itpro.tv/)
+* [Soisy](https://www.soisy.it/)
 
 ## Links to Wiki
 
