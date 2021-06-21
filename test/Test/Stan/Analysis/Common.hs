@@ -8,6 +8,7 @@ module Test.Stan.Analysis.Common
     , unsafeNameMeta
     ) where
 
+import Prelude hiding (span)
 import FastString (FastString, mkFastString)
 import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan, srcSpanStartLine)
 import System.FilePath (pathSeparator, (</>))

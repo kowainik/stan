@@ -10,8 +10,7 @@ module Stan.Report.Html
     ( stanHtml
     ) where
 
-import Prelude hiding (div, head)
-import Relude.Extra.Enum (universe)
+import Prelude hiding (div, head, span)
 
 import Clay (compact, renderWith)
 import Text.Blaze.Html

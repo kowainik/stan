@@ -16,7 +16,6 @@ module Stan
 import Colourista (errorMessage, formatWith, infoMessage, italic, successMessage, warningMessage)
 import Data.Aeson.Micro (encode)
 import System.Directory (doesFileExist, getCurrentDirectory)
-import System.Environment (getArgs)
 import System.FilePath (takeFileName)
 import Trial (Trial (..), prettyTaggedTrial, prettyTrial, prettyTrialWith, trialToMaybe,
               whenResult_)
