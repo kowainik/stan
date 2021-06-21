@@ -16,6 +16,8 @@ module Stan.NameMeta
     , compareNames
     , hieMatchNameMeta
     , hieFindIdentifier
+    , namesFromAst
+    , nameFromIdentifier
 
       -- * Smart constructors
     , baseNameFrom
@@ -114,6 +116,19 @@ hieFindIdentifier nameMeta =
     . Map.assocs
     . nodeIdentifiers
     . nodeInfo
+
+-- | Return AST node identifier names as a sized list of texts
+namesFromAst :: HieAST TypeIndex -> [Text]
+namesFromAst =
+    concatMap nameFromIdentifier
+    . Map.keys
+    . nodeIdentifiers
+    . nodeInfo
+
+nameFromIdentifier :: Identifier -> [Text]
+nameFromIdentifier = \case
+    Left _ -> []
+    Right name -> [toText $ occNameString $ nameOccName name]
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 a given 'ModuleName'. module.
