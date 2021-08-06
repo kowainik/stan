@@ -13,7 +13,6 @@ module Stan.Browse
 
 import Colourista (errorMessage, infoMessage)
 import System.Directory (findExecutable)
-import System.Environment (lookupEnv)
 import System.Info (os)
 import System.Process (callCommand, showCommandForUser)
 

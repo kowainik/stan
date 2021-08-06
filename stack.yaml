@@ -4,6 +4,8 @@ extra-deps:
 - dir-traverse-0.2.2.3
 - extensions-0.0.0.1
 - microaeson-0.1.0.0
+# When changing relude version, also change it in .github/workflows/ci.yml
+- relude-1.0.0.1
 - trial-0.0.0.0
 - trial-optparse-applicative-0.0.0.0
 - trial-tomland-0.0.0.0

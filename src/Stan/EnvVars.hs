@@ -13,7 +13,6 @@ module Stan.EnvVars
     , envVarsToText
     ) where
 
-import System.Environment (lookupEnv)
 import Trial (TaggedTrial, Trial (..), fiasco, withTag)
 
 
