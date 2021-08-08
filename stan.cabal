@@ -33,15 +33,11 @@ common common-options
                        -Widentities
                        -Wincomplete-uni-patterns
                        -Wincomplete-record-updates
-  if impl(ghc >= 8.0)
-    ghc-options:       -Wredundant-constraints
-  if impl(ghc >= 8.2)
-    ghc-options:       -fhide-source-paths
-  if impl(ghc >= 8.4)
-    ghc-options:       -Wmissing-export-lists
+                       -Wredundant-constraints
+                       -fhide-source-paths
+                       -Wmissing-export-lists
                        -Wpartial-fields
-  if impl(ghc >= 8.8)
-    ghc-options:       -Wmissing-deriving-strategies
+                       -Wmissing-deriving-strategies
                        -Werror=missing-deriving-strategies
                        -fwrite-ide-info
                        -hiedir=.hie
@@ -67,12 +63,8 @@ common common-options
 common common-relude
   build-depends:       relude ^>= 1.0
   mixins:              base hiding (Prelude)
-                     , relude (Relude as Prelude
-                              , Relude.Extra.Enum
-                              , Relude.Extra.Lens
-                              , Relude.Extra.Map
-                              , Relude.Extra.Tuple
-                              )
+                     , relude (Relude as Prelude)
+                     , relude
 
 library
   import:              common-options
@@ -130,7 +122,6 @@ library
                      , bytestring ^>= 0.10
                      , clay ^>= 0.13
                      , colourista >= 0.1 && < 0.3
-                     , containers ^>= 0.6
                      , cryptohash-sha1 ^>= 0.11
                      , dir-traverse ^>= 0.2.2.2
                      , directory ^>= 1.3
@@ -144,12 +135,10 @@ library
                      , pretty-simple ^>= 4.0
                      , process ^>= 1.6.8.0
                      , slist ^>= 0.1
-                     , text ^>= 1.2
                      , tomland ^>= 1.3.0.0
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
-                     , unordered-containers ^>= 0.2
 
 executable stan
   import:              common-options
