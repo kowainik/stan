@@ -26,7 +26,7 @@ jobs:
           - os: windows-latest
             ghc: 8.8.4
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
 
     - uses: haskell/actions/setup@v1.2.6
       id: setup-haskell-cabal
@@ -73,7 +73,7 @@ jobs:
         ghc: ["8.10.3"]
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
 
     - uses: haskell/actions/setup@v1.2.6
       name: Setup Haskell Stack
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
 
     - name: Run HLint
       env:
