@@ -28,7 +28,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2.4.0
 
-    - uses: haskell/actions/setup@v1.2.6
+    - uses: haskell/actions/setup@v1.2.7
       id: setup-haskell-cabal
       name: Setup Haskell
       with:
@@ -75,7 +75,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2.4.0
 
-    - uses: haskell/actions/setup@v1.2.6
+    - uses: haskell/actions/setup@v1.2.7
       name: Setup Haskell Stack
       with:
         ghc-version: ${{ matrix.ghc }}
