@@ -3,7 +3,7 @@ module Test.Stan.Number
     , modulesNumSpec
     ) where
 
-import HieTypes (HieFile (..))
+import Stan.Hie.Compat (HieFile (..))
 import Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
 
 import Stan.Hie (countLinesOfCode)

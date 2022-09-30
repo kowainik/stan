@@ -1,3 +1,5 @@
+{-# LANGuAGE CPP #-}
+
 {- HLINT ignore "Avoid lambda using `infix`" -}
 
 {- |
@@ -105,16 +107,44 @@ listFunPattern :: PatternType
 listFunPattern = listPattern |-> (?)
 
 -- | 'PatternType' for 'Integer'.
-integerPattern :: PatternType
-integerPattern = NameMeta
+integerPattern =
+#if __GLASGOW_HASKELL__ < 900
+  integerPattern810
+#elif __GLASGOW_HASKELL__ >= 900
+  integerPattern900
+#endif
+
+-- | 'PatternType' for 'Natural'.
+naturalPattern =
+#if __GLASGOW_HASKELL__ < 900
+  naturalPattern810
+#elif __GLASGOW_HASKELL__ >= 900
+  naturalPattern900
+#endif
+
+integerPattern810 :: PatternType
+integerPattern810 = NameMeta
     { nameMetaName       = "Integer"
     , nameMetaModuleName = "GHC.Integer.Type"
     , nameMetaPackage    = "integer-wired-in"
     } |:: []
 
--- | 'PatternType' for 'Natural'.
-naturalPattern :: PatternType
-naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+integerPattern900 :: PatternType
+integerPattern900 = NameMeta
+    { nameMetaName       = "Integer"
+    , nameMetaModuleName = "GHC.Num.Integer"
+    , nameMetaPackage    = "ghc-bignum"
+    } |:: []
+
+naturalPattern810 :: PatternType
+naturalPattern810 = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+
+naturalPattern900 :: PatternType
+naturalPattern900 = NameMeta
+    { nameMetaName       = "Natural"
+    , nameMetaModuleName = "GHC.Num.Natural"
+    , nameMetaPackage    = "ghc-bignum"
+    } |:: []
 
 charPattern :: PatternType
 charPattern = primTypeMeta "Char" |:: []

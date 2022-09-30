@@ -22,7 +22,7 @@ import Stan.Core.List (nonRepeatingPairs)
 import Stan.FileInfo (isExtensionDisabled)
 import Stan.Ghc.Compat (RealSrcSpan, isSymOcc, nameOccName, occNameString)
 import Stan.Hie (eqAst)
-import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex)
+import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex, nodeInfo)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
 import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
@@ -331,10 +331,10 @@ analyseInfix hie curNode = do
         Right name -> [toText $ occNameString $ nameOccName name]
 
     extractOperatorName :: HieAST TypeIndex -> [(Text, RealSrcSpan)]
-    extractOperatorName Node{..} =
+    extractOperatorName n@Node{..} =
         concatMap (topLevelOperatorName nodeSpan)
         $ Map.keys
-        $ nodeIdentifiers nodeInfo
+        $ nodeIdentifiers (Stan.Hie.Compat.nodeInfo n)
 
     topLevelOperatorName :: RealSrcSpan -> Identifier -> [(Text, RealSrcSpan)]
     topLevelOperatorName srcSpan = \case

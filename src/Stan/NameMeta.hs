@@ -31,9 +31,9 @@ module Stan.NameMeta
     ) where
 
 import Stan.Core.ModuleName (ModuleName (..), fromGhcModule)
-import Stan.Ghc.Compat (Name, isExternalName, moduleUnitId, nameModule, nameOccName, occNameString)
+import Stan.Ghc.Compat (Name, isExternalName, moduleUnitId, nameModule, nameOccName, occNameString, showTUnitId)
 import Stan.Hie.Compat (ContextInfo (IEThing), HieAST (..), IEType (Import), Identifier,
-                        IdentifierDetails (..), NodeInfo (..), TypeIndex)
+                        IdentifierDetails (..), NodeInfo (..), TypeIndex, nodeInfo)
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -60,7 +60,7 @@ compareNames :: NameMeta -> Name -> Bool
 compareNames NameMeta{..} name =
     let occName = toText $ occNameString $ nameOccName name
         moduleName = fromGhcModule $ nameModule name
-        package = show @Text $ moduleUnitId $ nameModule name
+        package = showTUnitId $ moduleUnitId $ nameModule name
     in
         isExternalName name
         && occName    == nameMetaName

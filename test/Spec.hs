@@ -1,6 +1,6 @@
 module Main (main) where
 
-import HieTypes (HieFile (..))
+import Stan.Hie.Compat (HieFile (..))
 import System.FilePath ((</>))
 import Test.Hspec (hspec)
 

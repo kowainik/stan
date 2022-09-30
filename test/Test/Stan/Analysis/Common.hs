@@ -9,8 +9,7 @@ module Test.Stan.Analysis.Common
     ) where
 
 import Prelude hiding (span)
-import FastString (FastString, mkFastString)
-import SrcLoc (RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan, srcSpanStartLine)
+import Stan.Ghc.Compat (FastString, mkFastString, RealSrcSpan, mkRealSrcLoc, mkRealSrcSpan, srcSpanStartLine)
 import System.FilePath (pathSeparator, (</>))
 import Test.Hspec (Expectation, shouldBe)
 

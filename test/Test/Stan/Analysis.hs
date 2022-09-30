@@ -2,7 +2,7 @@ module Test.Stan.Analysis
     ( analysisSpec
     ) where
 
-import HieTypes (HieFile (..))
+import Stan.Hie.Compat (HieFile (..))
 import System.FilePath ((</>))
 import Test.Hspec (Spec, describe, it, runIO, shouldBe)
 

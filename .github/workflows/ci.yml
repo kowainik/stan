@@ -15,12 +15,24 @@ jobs:
     name: ${{ matrix.os }} / ghc ${{ matrix.ghc }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # Don't fail fast because we test a lot of versions and it's
+      # good to know which ones work and which ones don't
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        cabal: ["3.2"]
+        cabal: ["3.8"]
         ghc:
           - "8.8.4"
           - "8.10.4"
+          - "9.0.1"
+          - "9.0.2"
+          - "9.2.1"
+          - "9.4.1"
+          - "9.4.2"
+          - "9.4.4"
+          - "9.4.5"
+          - "9.4.6"
+          - "9.4.7"
         exclude:
           - os: macOS-latest
             ghc: 8.8.4

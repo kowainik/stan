@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -277,7 +279,11 @@ stan0020 = mkPartialInspectionPattern (Id "STAN-0020") exts pat ""
     & analysisL .~ FindAst (namesToPatternAst $ (exts, pat) :| [(ne, pat)])
   where
     pat = listPattern |-> nonEmptyPattern
+#if __GLASGOW_HASKELL__ < 904
     exts = "fromList" `baseNameFrom` "GHC.Exts"
+#else
+    exts = "fromList" `baseNameFrom` "GHC.IsList"
+#endif
     ne = "fromList" `baseNameFrom` "Data.List.NonEmpty"
 
 -- | 'Inspection' — partial 'GHC.Num.fromInteger' @STAN-0021@.

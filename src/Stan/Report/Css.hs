@@ -15,11 +15,20 @@ module Stan.Report.Css
 
 import Prelude hiding (div, rem, (&), (**))
 
-import Clay hiding (brown, cols, grid)
+import Clay hiding (brown, cols, grid, border, borderRight, borderTop, borderLeft, borderBottom)
+import qualified Clay
 
 import qualified Clay.Media as M
 import qualified Data.List.NonEmpty as NE
 
+
+border, borderLeft, borderBottom, borderRight, borderTop
+  :: Stroke -> Size LengthUnit -> Color -> Css
+border x y = Clay.border y x
+borderLeft x y = Clay.borderLeft y x
+borderBottom x y = Clay.borderBottom y x
+borderRight x y = Clay.borderRight y x
+borderTop x y = Clay.borderTop y x
 
 stanCss :: Css
 stanCss = do
