@@ -22,8 +22,9 @@ import System.FilePath (takeExtension)
 
 import Stan.Core.List (checkWith)
 import Stan.Ghc.Compat (RealSrcSpan, srcSpanEndCol, srcSpanStartCol, srcSpanStartLine)
-import Stan.Hie.Compat (HieAST (..), HieFile (..), HieFileResult (hie_file_result), NameCache,
-                        NodeInfo (..), initNameCache, mkSplitUniqSupply, readHieFile)
+import Stan.Hie.Compat (HieAST (..), HieFile (..), HieFileResult (hie_file_result),
+                        NodeInfo (..), readHieFileWithNameCache, nodeInfo,
+                        toNodeAnnotation)
 import Stan.Hie.Debug ()
 import Stan.Pattern.Ast (literalAnns)
 
@@ -42,7 +43,7 @@ readHieFiles hieDir = do
         infoMessage "Use the '--hiedir' CLI option to specify path to the directory with HIE files"
         exitFailure
 
-    nameCache <- createNameCache
+    readHieFile <- readHieFileWithNameCache
     hieContent <- getDirRecursive hieDir
     let isHieFile f = (&&) (takeExtension f == ".hie") <$> doesFileExist f
     hiePaths <- filterM isHieFile hieContent
@@ -51,13 +52,8 @@ readHieFiles hieDir = do
         "The directory with HIE files doesn't contain any HIE files: " <> toText hieDir
 
     forM hiePaths $ \hiePath -> do
-        (hieFileResult, _newCache) <- readHieFile nameCache hiePath
+        hieFileResult <- readHieFile hiePath
         pure $ hie_file_result hieFileResult
-
-createNameCache :: IO NameCache
-createNameCache = do
-    uniqSupply <- mkSplitUniqSupply 'z'
-    pure $ initNameCache uniqSupply []
 
 -- | Get the number of lines of code in the file by analising 'HieFile'.
 countLinesOfCode :: HieFile -> Int
@@ -91,12 +87,15 @@ eqAst :: forall a . Eq a => HieFile -> HieAST a -> HieAST a -> Bool
 eqAst HieFile{..} = eqNodes
   where
     eqNodes :: HieAST a -> HieAST a -> Bool
-    eqNodes (Node info1 span1 children1) (Node info2 span2 children2) =
+    eqNodes n1@(Node _ span1 children1) n2@(Node _ span2 children2) =
         eqInfo info1 info2 && checkWith eqNodes children1 children2
       where
+        info1 = nodeInfo n1
+        info2 = nodeInfo n2
+
         eqInfo :: NodeInfo a -> NodeInfo a -> Bool
         eqInfo (NodeInfo anns1 types1 ids1) (NodeInfo anns2 types2 ids2) =
             anns1 == anns2 && types1 == types2 && ids1 == ids2 &&
-            if Set.member literalAnns anns1
+            if Set.member literalAnns (Set.map toNodeAnnotation anns1)
             then slice span1 hie_hs_src == slice span2 hie_hs_src
             else True

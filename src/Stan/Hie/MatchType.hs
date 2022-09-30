@@ -34,7 +34,7 @@ import Data.Array (Array)
 
 import Stan.Core.List (checkWith)
 import Stan.Ghc.Compat (IfaceTyCon (..), IfaceTyConInfo (..), PromotionFlag (NotPromoted))
-import Stan.Hie.Compat (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex)
+import Stan.Hie.Compat (HieArgs (..), HieType (..), HieTypeFlat, TypeIndex, hFunTy2)
 import Stan.NameMeta (compareNames)
 import Stan.Pattern.Type (PatternType (..))
 
@@ -75,7 +75,8 @@ hieMatchPatternType arr pat i = curFlat `satisfyPattern` pat
         ifaceTyConIsPromoted ifaceTyConInfo == NotPromoted
         && compareNames nameMeta ifaceTyConName
         && checkWith (\(_, ix) a -> match a ix) hieArgs args
-    satisfyPattern (HFunTy i1 i2) (PatternTypeFun p1 p2) =
+    satisfyPattern t (PatternTypeFun p1 p2)
+      | Just (i1, i2) <- hFunTy2 t =
            match p1 i1
         && match p2 i2
     satisfyPattern (HQualTy _ ix) p = match p ix

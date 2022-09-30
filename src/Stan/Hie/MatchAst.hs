@@ -19,10 +19,11 @@ module Stan.Hie.MatchAst
 import Data.Char (toLower)
 
 import Stan.Core.List (checkWith)
-import Stan.Ghc.Compat (FastString, nameOccName, occNameString)
+import Stan.Ghc.Compat (nameOccName, occNameString)
 import Stan.Hie (slice)
 import Stan.Hie.Compat (ContextInfo (..), DeclType, HieAST (..), HieFile (..), Identifier,
-                        IdentifierDetails (..), NodeInfo (..), TypeIndex)
+                        IdentifierDetails (..), NodeInfo (..), TypeIndex, nodeInfo,
+                        eqDeclType, NodeAnnotation, toNodeAnnotation)
 import Stan.Hie.MatchType (hieMatchPatternType)
 import Stan.NameMeta (NameMeta, hieMatchNameMeta)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), literalAnns)
@@ -53,7 +54,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
            hieMatchPatternAst hie node p1
         && hieMatchPatternAst hie node p2
     PatternAstConstant lit ->
-           Set.member literalAnns (nodeAnnotations nodeInfo)
+           Set.member literalAnns (Set.map toNodeAnnotation (nodeAnnotations nodeInfo))
         && ( let span = slice nodeSpan hie_hs_src in case lit of
                 ExactNum n   -> (span >>= readMaybe . decodeUtf8) == Just n
                 ExactStr s   -> span == Just s
@@ -79,8 +80,11 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstIdentifierDetailsDecl declType -> any (any (isDecl declType) . identInfo) $
         Map.elems $ nodeIdentifiers nodeInfo
   where
-    matchAnnotations :: Set (FastString, FastString) -> NodeInfo TypeIndex -> Bool
-    matchAnnotations tags NodeInfo{..} = tags `Set.isSubsetOf` nodeAnnotations
+    matchAnnotations :: Set NodeAnnotation -> NodeInfo TypeIndex -> Bool
+    matchAnnotations tags NodeInfo{..} =
+      tags `Set.isSubsetOf` Set.map toNodeAnnotation nodeAnnotations
+
+    nodeInfo = Stan.Hie.Compat.nodeInfo node
 
     matchNameAndType
         :: NameMeta
@@ -94,5 +98,5 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
             t : _ -> hieMatchPatternType hie_types patType t
 
     isDecl :: DeclType -> ContextInfo -> Bool
-    isDecl myDeclType (Decl curDeclType _) = myDeclType == curDeclType
+    isDecl myDeclType (Decl curDeclType _) = myDeclType `eqDeclType` curDeclType
     isDecl _declType _otherContext         = False

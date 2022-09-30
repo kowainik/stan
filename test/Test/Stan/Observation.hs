@@ -2,7 +2,7 @@ module Test.Stan.Observation
     ( observationSpec
     ) where
 
-import SrcLoc (mkRealSrcLoc, mkRealSrcSpan)
+import Stan.Ghc.Compat (mkRealSrcLoc, mkRealSrcSpan)
 import Test.Hspec (Spec, describe, it, shouldBe)
 
 import Stan.Core.Id (Id (..))

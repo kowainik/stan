@@ -45,8 +45,7 @@ module Stan.Pattern.Ast
     , literalAnns
     ) where
 
-import Stan.Ghc.Compat (FastString)
-import Stan.Hie.Compat (DeclType (..))
+import Stan.Hie.Compat (DeclType, NodeAnnotation, mkNodeAnnotation, conDec)
 import Stan.NameMeta (NameMeta (..))
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType)
@@ -67,11 +66,11 @@ data PatternAst
     | PatternAstVarName !String
     -- | AST node with tags for current node and any children.
     | PatternAstNode
-        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        !(Set NodeAnnotation)  -- ^ Set of context info (pairs of tags)
     -- | AST node with tags for current node and children
     -- patterns. This pattern should match the node exactly.
     | PatternAstNodeExact
-        !(Set (FastString, FastString))  -- ^ Set of context info (pairs of tags)
+        !(Set NodeAnnotation)  -- ^ Set of context info (pairs of tags)
         ![PatternAst]  -- ^ Node children
     -- | AST wildcard, matches anything.
     | PatternAstAnything
@@ -124,46 +123,46 @@ anyNamesToPatternAst = namesToPatternAst . fmap (, (?))
 
 -- | @app f x@ is a pattern for function application @f x@.
 app :: PatternAst -> PatternAst -> PatternAst
-app f x = PatternAstNodeExact (one ("HsApp", "HsExpr")) [f, x]
+app f x = PatternAstNodeExact (one (mkNodeAnnotation "HsApp" "HsExpr")) [f, x]
 
 -- | @opApp x op y@ is a pattern for operator application @x `op` y@.
 opApp :: PatternAst -> PatternAst -> PatternAst -> PatternAst
-opApp x op y = PatternAstNodeExact (one ("OpApp", "HsExpr")) [x, op, y]
+opApp x op y = PatternAstNodeExact (one (mkNodeAnnotation "OpApp" "HsExpr")) [x, op, y]
 
 -- | @range a b@ is a pattern for @[a .. b]@
 range :: PatternAst -> PatternAst -> PatternAst
-range from to = PatternAstNodeExact (one ("ArithSeq", "HsExpr")) [from, to]
+range from to = PatternAstNodeExact (one (mkNodeAnnotation "ArithSeq" "HsExpr")) [from, to]
 
 -- | 'lambdaCase' is a pattern for @\case@ expression (not considering branches).
 lambdaCase :: PatternAst
-lambdaCase = PatternAstNode (one ("HsLamCase", "HsExpr"))
+lambdaCase = PatternAstNode (one (mkNodeAnnotation "HsLamCase" "HsExpr"))
 
 -- | 'case'' is a pattern for @case EXP of@ expression (not considering branches).
 case' :: PatternAst
-case' = PatternAstNode (one ("HsCase", "HsExpr"))
+case' = PatternAstNode (one (mkNodeAnnotation "HsCase" "HsExpr"))
 
 -- | Pattern to represent one pattern matching branch.
 patternMatchBranch :: PatternAst
-patternMatchBranch = PatternAstNode (one ("Match", "Match"))
+patternMatchBranch = PatternAstNode (one (mkNodeAnnotation "Match" "Match"))
 
 {- | Pattern for @_@ in pattern matching.
 
 __Note:__ presents on GHC >=8.10 only.
 -}
 wildPat :: PatternAst
-wildPat = PatternAstNode (one ("WildPat", "Pat"))
+wildPat = PatternAstNode (one (mkNodeAnnotation "WildPat" "Pat"))
 
 {- | Pattern for literals in pattern matching.
 
 __Note:__ presents on GHC >=8.10 only.
 -}
 literalPat :: PatternAst
-literalPat = PatternAstNode (one ("NPat", "Pat"))
-    ||| PatternAstNode (one ("LitPat", "Pat"))
+literalPat = PatternAstNode (one (mkNodeAnnotation "NPat" "Pat"))
+    ||| PatternAstNode (one (mkNodeAnnotation "LitPat" "Pat"))
 
 -- | Pattern to represent one pattern matching branch on @_@.
 patternMatch_ :: PatternAst -> PatternAst
-patternMatch_ val = PatternAstNodeExact (one ("Match", "Match"))
+patternMatch_ val = PatternAstNodeExact (one (mkNodeAnnotation "Match" "Match"))
 #if __GLASGOW_HASKELL__ >= 810
     $ wildPat :
 #endif
@@ -171,7 +170,7 @@ patternMatch_ val = PatternAstNodeExact (one ("Match", "Match"))
 
 -- | Pattern to represent right side of the pattern matching, e.g. @-> "foo"@.
 patternMatchArrow :: PatternAst -> PatternAst
-patternMatchArrow x = PatternAstNodeExact (one ("GRHS", "GRHS")) [x]
+patternMatchArrow x = PatternAstNodeExact (one (mkNodeAnnotation "GRHS" "GRHS")) [x]
 
 {- | Pattern for the top-level fixity declaration:
 
@@ -180,7 +179,7 @@ infixr 7 ***, +++, ???
 @
 -}
 fixity :: PatternAst
-fixity = PatternAstNode $ one ("FixitySig", "FixitySig")
+fixity = PatternAstNode $ one (mkNodeAnnotation "FixitySig" "FixitySig")
 
 {- | Pattern for the function type signature declaration:
 
@@ -189,7 +188,14 @@ foo :: Some -> Type
 @
 -}
 typeSig :: PatternAst
-typeSig = PatternAstNode $ one ("TypeSig", "Sig")
+typeSig = PatternAstNode $ one (mkNodeAnnotation "TypeSig" "Sig")
+
+absBinds =
+#if __GLASGOW_HASKELL__ < 904
+  mkNodeAnnotation "AbsBinds" "HsBindLR"
+#else
+  mkNodeAnnotation "XHsBindsLR" "HsBindLR"
+#endif
 
 {- | Pattern for the function definition:
 
@@ -199,26 +205,26 @@ foo x y = ...
 -}
 fun :: PatternAst
 fun = PatternAstNode $ Set.fromList
-    [ ("AbsBinds", "HsBindLR")
-    , ("FunBind",  "HsBindLR")
-    , ("Match",    "Match")
+    [ absBinds
+    , mkNodeAnnotation "FunBind"  "HsBindLR"
+    , mkNodeAnnotation "Match"    "Match"
     ]
 
 {- | @data@ or @newtype@ declaration.
 -}
 dataDecl :: PatternAst
-dataDecl = PatternAstNode $ one ("DataDecl", "TyClDecl")
+dataDecl = PatternAstNode $ one (mkNodeAnnotation "DataDecl" "TyClDecl")
 
 {- | Constructor of a plain data type or newtype. Children of node
 that matches this pattern are constructor fields.
 -}
 constructor :: PatternAst
-constructor = PatternAstNode $ one ("ConDeclH98", "ConDecl")
+constructor = PatternAstNode $ one (mkNodeAnnotation "ConDeclH98" "ConDecl")
 
 {- | Constructor name Identifier info
 -}
 constructorNameIdentifier :: PatternAst
-constructorNameIdentifier = PatternAstIdentifierDetailsDecl ConDec
+constructorNameIdentifier = PatternAstIdentifierDetailsDecl conDec
 
 {- | Lazy data type field. Comes in two shapes:
 
@@ -240,17 +246,17 @@ cases:
 -}
 type_ :: PatternAst
 type_ =
-    PatternAstNode (one ("HsTyVar", "HsType"))  -- simple type: Int, Bool
+    PatternAstNode (one (mkNodeAnnotation "HsTyVar" "HsType"))  -- simple type: Int, Bool
     |||
-    PatternAstNode (one ("HsAppTy", "HsType"))  -- composite: Maybe Int
+    PatternAstNode (one (mkNodeAnnotation "HsAppTy" "HsType"))  -- composite: Maybe Int
     |||
-    PatternAstNode (one ("HsParTy", "HsType"))  -- type in ()
+    PatternAstNode (one (mkNodeAnnotation "HsParTy" "HsType"))  -- type in ()
     |||
-    PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple types: (Int, Bool)
+    PatternAstNode (one (mkNodeAnnotation "HsTupleTy" "HsType"))  -- tuple types: (Int, Bool)
     |||
-    PatternAstNode (one ("HsListTy", "HsType"))  -- list types: [Int]
+    PatternAstNode (one (mkNodeAnnotation "HsListTy" "HsType"))  -- list types: [Int]
     |||
-    PatternAstNode (one ("HsFunTy", "HsType"))  -- function types: Int -> Bool
+    PatternAstNode (one (mkNodeAnnotation "HsFunTy" "HsType"))  -- function types: Int -> Bool
 
 {- | Pattern for the field without the explicit bang pattern:
 
@@ -260,11 +266,11 @@ someField :: Int
 -}
 lazyRecordField :: PatternAst
 lazyRecordField = PatternAstNodeExact
-    (one ("ConDeclField", "ConDeclField"))
+    (one (mkNodeAnnotation "ConDeclField" "ConDeclField"))
     [ PatternAstNode
         (fromList
-            [ ("AbsBinds", "HsBindLR")
-            , ("FunBind", "HsBindLR")
+            [ absBinds
+            , mkNodeAnnotation "FunBind" "HsBindLR"
             ]
         )
     , type_
@@ -277,9 +283,9 @@ lazyRecordField = PatternAstNodeExact
 -}
 tuple :: PatternAst
 tuple =
-    PatternAstNode (one ("HsTupleTy", "HsType"))  -- tuple type
+    PatternAstNode (one (mkNodeAnnotation "HsTupleTy" "HsType"))  -- tuple type
     |||
-    PatternAstNode (one ("ExplicitTuple", "HsExpr"))  -- tuple literal
+    PatternAstNode (one (mkNodeAnnotation "ExplicitTuple" "HsExpr"))  -- tuple literal
 
 {- | Pattern for a single @guard@ branch:
 
@@ -288,7 +294,7 @@ tuple =
 @
 -}
 guardBranch :: PatternAst
-guardBranch = PatternAstNode $ one ("BodyStmt", "StmtLR")
+guardBranch = PatternAstNode $ one (mkNodeAnnotation "BodyStmt" "StmtLR")
 
 {- | Pattern for the right-hand-side. Usually an equality sign.
 
@@ -297,8 +303,8 @@ guardBranch = PatternAstNode $ one ("BodyStmt", "StmtLR")
 @
 -}
 rhs :: PatternAst
-rhs = PatternAstNode $ one ("GRHS", "GRHS")
+rhs = PatternAstNode $ one (mkNodeAnnotation "GRHS" "GRHS")
 
 -- | Annotations for constants: 0, "foo", etc.
-literalAnns :: (FastString, FastString)
-literalAnns = ("HsOverLit", "HsExpr")
+literalAnns :: NodeAnnotation
+literalAnns = mkNodeAnnotation "HsOverLit" "HsExpr"
