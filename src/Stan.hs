@@ -38,6 +38,7 @@ import Stan.Inspection (Inspection (..), inspectionsMd, prettyShowInspection,
 import Stan.Inspection.All (getInspectionById, inspections, lookupInspectionById)
 import Stan.Observation (Observation (..), prettyShowIgnoredObservations)
 import Stan.Report (generateReport)
+import Stan.SARIF (toSARIF)
 import Stan.Severity (Severity (Error))
 import Stan.Toml (configCodec, getTomlConfig, usedTomlFiles)
 
@@ -55,6 +56,7 @@ run = runStanCli >>= \case
 runStan :: StanArgs -> IO ()
 runStan StanArgs{..} = do
     let notJson = not stanArgsJsonOut
+               && not stanArgsSARIF
     -- ENV vars
     env@EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
@@ -89,7 +91,10 @@ runStan StanArgs{..} = do
             then successMessage "All clean! Stan did not find any observations at the moment."
             else warningMessage "Stan found the following observations for the project:\n"
             putTextLn $ prettyShowAnalysis analysis stanArgsOutputSettings
-        else putLBSLn $ encode analysis
+        else
+            if stanArgsSARIF
+            then putLBSLn $ toSARIF analysis
+            else putLBSLn $ encode analysis
 
         -- report generation
         whenJust stanArgsReport $ \ReportArgs{..} -> do

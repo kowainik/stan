@@ -61,6 +61,7 @@ data StanArgs = StanArgs
     , stanArgsConfigFile           :: !(Maybe FilePath)  -- ^ Path to a custom configurations file.
     , stanArgsConfig               :: !PartialConfig
     , stanArgsJsonOut              :: !Bool  -- ^ Output the machine-readable output in JSON format instead.
+    , stanArgsSARIF                :: !Bool -- ^ Output the results as a SARIF file.
     }
 
 newtype ReportArgs = ReportArgs
@@ -122,6 +123,7 @@ stanP = do
     stanArgsUseDefaultConfigFile <- useDefaultConfigFileP
     stanArgsOutputSettings <- outputSettingsP
     stanArgsJsonOut <- jsonOutputP
+    stanArgsSARIF <- sarifOutputP
     pure $ Stan StanArgs{..}
 
 -- | @stan inspection@ command parser.
@@ -208,6 +210,12 @@ jsonOutputP :: Parser Bool
 jsonOutputP = switch $ mconcat
     [ long "json-output"
     , help "Output the machine-readable output in JSON format instead"
+    ]
+
+sarifOutputP :: Parser Bool
+sarifOutputP = switch $ mconcat
+    [ long "sarif"
+    , help "Output the results as a SARIF file"
     ]
 
 reportP :: Parser (Maybe ReportArgs)

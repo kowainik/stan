@@ -1,6 +1,8 @@
 resolver: lts-18.18
 
 extra-deps:
+- git: https://github.com/mbg/sarif.git
+  commit: 08d1a9878de944b8de0a67dc4cf0f0634b23fd08
 - colourista-0.1.0.1
 - dir-traverse-0.2.2.3
 - dlist-0.8.0.8
