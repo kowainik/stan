@@ -35,6 +35,10 @@ jobs:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
 
+    - name: Configure
+      run: |
+        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
+
     - name: Freeze
       run: |
         cabal freeze
@@ -47,7 +51,6 @@ jobs:
 
     - name: Build
       run: |
-        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
         cabal build all
 
     - name: Test
