@@ -28,12 +28,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: haskell/actions/setup@v2.0.1
+    - uses: haskell/actions/setup@v2.4.6
       id: setup-haskell-cabal
       name: Setup Haskell
       with:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
+
+    # Tom says: I'm not sure whether it's correct to configure before
+    # freezing because it might defeat the point of caching. However,
+    # configuring *after* freezing seemed to mean that the cache got
+    # stuck in some bad state where it couldn't find a build plan.  We
+    # should revisit this decision later.
+    - name: Configure
+      run: |
+        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
 
     - name: Freeze
       run: |
@@ -47,7 +56,6 @@ jobs:
 
     - name: Build
       run: |
-        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
         cabal build all
 
     - name: Test
@@ -108,7 +116,7 @@ jobs:
 
     - name: Run HLint
       env:
-         HLINT_VERSION: "3.2.7"
+         HLINT_VERSION: "3.6.1"
       run: |
         curl https://raw.githubusercontent.com/kowainik/relude/v1.0.0.1/.hlint.yaml -o .hlint-relude.yaml
 

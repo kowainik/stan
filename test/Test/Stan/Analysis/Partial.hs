@@ -45,8 +45,6 @@ analysisPartialSpec analysis = describe "Partial functions" $ do
         end = start + funLen
 
     checkObservationFor :: Inspection -> Int -> Int -> Int -> Expectation
-    checkObservationFor ins line start end = observationAssert
+    checkObservationFor= observationAssert
         ["Partial"]
         analysis
-        ins
-        line start end
