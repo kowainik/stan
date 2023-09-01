@@ -1,3 +1,5 @@
+{- HLINT ignore "Use zipWithM_" -}
+
 {-# LANGUAGE PostfixOperators #-}
 
 {- |
