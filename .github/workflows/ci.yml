@@ -111,7 +111,7 @@ jobs:
 
     - name: Run HLint
       env:
-         HLINT_VERSION: "3.2.7"
+         HLINT_VERSION: "3.6.1"
       run: |
         curl https://raw.githubusercontent.com/kowainik/relude/v1.0.0.1/.hlint.yaml -o .hlint-relude.yaml
 
