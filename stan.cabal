@@ -90,21 +90,11 @@ library
                          Stan.Core.ModuleName
                          Stan.Example
                          Stan.Ghc.Compat
-                         Stan.Ghc.Compat810
-                         Stan.Ghc.Compat900
-                         Stan.Ghc.Compat902
                          Stan.EnvVars
                          Stan.FileInfo
                          Stan.Hie
                            Stan.Hie.Compat
-                           Stan.Hie.Compat810
-                           Stan.Hie.Compat900
-                           Stan.Hie.Compat902
-                           Stan.Hie.Compat904
                            Stan.Hie.Debug
-                           Stan.Hie.Debug810
-                           Stan.Hie.Debug900
-                           Stan.Hie.Debug902
                            Stan.Hie.MatchAst
                            Stan.Hie.MatchType
                          Stan.Info
@@ -128,6 +118,16 @@ library
 
   autogen-modules:     Paths_stan
   other-modules:       Paths_stan
+                       Stan.Ghc.Compat810
+                       Stan.Ghc.Compat900
+                       Stan.Ghc.Compat902
+                       Stan.Hie.Compat810
+                       Stan.Hie.Compat900
+                       Stan.Hie.Compat902
+                       Stan.Hie.Compat904
+                       Stan.Hie.Debug810
+                       Stan.Hie.Debug900
+                       Stan.Hie.Debug902
 
   build-depends:       array ^>= 0.5
                      , base64 ^>= 0.4.1
