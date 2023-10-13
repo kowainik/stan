@@ -19,7 +19,7 @@ extra-doc-files:     README.md
                      CHANGELOG.md
 extra-source-files:  test/.stan-example.toml
 tested-with:         GHC == 8.8.4
-                     GHC == 8.10.4
+                     GHC == 8.10.7
 
 source-repository head
   type:                git
