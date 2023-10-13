@@ -1,3 +1,18 @@
+# Note [environment variables]
+#
+# It seems absurd, but the syntax for creating environment variables
+# differs between Windows and Linux/MacOS.  See
+#
+# https://docs.github.com/en/actions/learn-github-actions/variables
+#
+# In Linux/MacOS we have to use
+#
+# run: echo "VARNAME=content" >> "$GITHUB_ENV"
+#
+# whereas in Windows we have to use
+#
+# run: echo "VARNAME=content" >> $env:GITHUB_ENV
+
 name: Stan Release
 
 on:
@@ -84,12 +99,15 @@ jobs:
           mkdir dist
           cabal install exe:stan --install-method=copy --overwrite-policy=always --installdir=dist
 
+      # See Note [environment variables]
       - if: matrix.os == 'windows-latest'
-        name: Set extension to .exe on Windows
-        run: echo "::set-env name=EXT::.exe"
+        name: Set binary path name on Windows
+        run: echo "BINARY_PATH=./dist/stan.exe" >> $env:GITHUB_ENV
 
-      - name: Set binary path name
-        run: echo "::set-env name=BINARY_PATH::./dist/stan${{ env.EXT }}"
+      # See Note [environment variables]
+      - if: matrix.os != 'windows-latest'
+        name: Set binary path name not on Windows
+        run: echo "BINARY_PATH=./dist/stan" >> "$GITHUB_ENV"
 
       - name: Compress binary
         uses: svenstaro/upx-action@2.3.0
@@ -100,11 +118,19 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: release_url
+          path: release_url
 
-      - name: Get Release File Name & Upload URL
-        id: get_release_info
+      # See Note [environment variables]
+      - if: matrix.os == 'windows-latest'
+        name: Get Release File Name & Upload URL on Widows
         run: |
-          echo "::set-output name=upload_url::$(cat release_url/release_url.txt)"
+          echo "upload_url=$(cat release_url/release_url.txt)" >> $env:GITHUB_ENV
+
+      # See Note [environment variables]
+      - if: matrix.os != 'windows-latest'
+        name: Get Release File Name & Upload URL not on Widows
+        run: |
+          echo "upload_url=$(cat release_url/release_url.txt)" >> $GITHUB_ENV
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -112,7 +138,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          upload_url: ${{ env.upload_url }}
           asset_path: ${{ env.BINARY_PATH }}
           asset_name: stan-${{ steps.tag.outputs.tag }}-${{ runner.os }}-ghc-${{ matrix.ghc }}${{ env.EXT }}
           asset_content_type: application/octet-stream
