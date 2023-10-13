@@ -42,8 +42,11 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         ghc:
           - "8.8.4"
-          - "8.10.3"
-        cabal: ["3.2"]
+          - "8.10.7"
+          - "9.0.2"
+          - "9.2.3"
+          - "9.4.7"
+        cabal: ["3.8"]
 
     steps:
       - name: Check out code
