@@ -38,6 +38,9 @@ jobs:
     name: ${{ matrix.os }}/GHC ${{ matrix.ghc }}/${{ github.ref }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # Don't fail fast because we test a lot of versions and it's
+      # good to know which ones work and which ones don't
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         ghc:
