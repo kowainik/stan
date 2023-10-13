@@ -3,8 +3,9 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
-## Unreleased
+## 0.1.0.0
 
+* Add support for GHCs 9.0, 9.2 and 9.4
 * [#55](https://github.com/kowainik/stan/issues/55):
   Implement single-pass HIE AST traversal.
 * [#348](https://github.com/kowainik/stan/issues/348):
