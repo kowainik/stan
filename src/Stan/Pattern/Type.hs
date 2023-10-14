@@ -35,7 +35,8 @@ module Stan.Pattern.Type
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom)
+import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom,
+                      ghcInternalNameFrom)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 
@@ -94,7 +95,7 @@ listPattern :: PatternType
 listPattern =
     listNameMeta |:: [ (?) ]
     |||
-    "String" `baseNameFrom` "GHC.Base" |:: []
+    "String" `ghcInternalNameFrom` "GHC.Internal.Base" |:: []
   where
     listNameMeta :: NameMeta
 #if __GLASGOW_HASKELL__ < 906
@@ -105,7 +106,7 @@ listPattern =
 
 -- | 'PatternType' for 'NonEmpty'.
 nonEmptyPattern :: PatternType
-nonEmptyPattern = "NonEmpty" `baseNameFrom` "GHC.Base" |:: [ (?) ]
+nonEmptyPattern = "NonEmpty" `ghcInternalNameFrom` "GHC.Internal.Base" |:: [ (?) ]
 
 -- | 'PatternType' for @[a] -> _@ or @String -> _@.
 listFunPattern :: PatternType
@@ -152,7 +153,7 @@ charPattern = primTypeMeta "Char" |:: []
 
 -- | 'PatternType' for 'String'.
 stringPattern :: PatternType
-stringPattern = "String" `baseNameFrom` "GHC.Base" |:: []
+stringPattern = "String" `ghcInternalNameFrom` "GHC.Internal.Base" |:: []
 
 -- | 'PatternType' for 'Text'.
 textPattern :: PatternType
@@ -168,11 +169,11 @@ foldableTypesPatterns = maybePattern :| [eitherPattern, pairPattern]
 
 -- | 'PatternType' for 'Maybe'
 maybePattern :: PatternType
-maybePattern = "Maybe" `baseNameFrom` "GHC.Maybe" |:: [ (?) ]
+maybePattern = "Maybe" `ghcInternalNameFrom` "GHC.Internal.Maybe" |:: [ (?) ]
 
 -- | 'PatternType' for 'Either'
 eitherPattern :: PatternType
-eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
+eitherPattern = "Either" `ghcInternalNameFrom` "GHC.Internal.Data.Either" |:: [ (?), (?) ]
 
 -- | 'PatternType' for pair @(,)@.
 pairPattern :: PatternType
@@ -184,8 +185,10 @@ pairPattern = "Tuple2" `ghcPrimNameFrom` ghcTuple |:: [ (?), (?) ]
   where
 #if __GLASGOW_HASKELL__ < 906
     ghcTuple = "GHC.Tuple"
-#elif __GLASGOW_HASKELL__ >= 906
+#elif __GLASGOW_HASKELL__ < 910
     ghcTuple = "GHC.Tuple.Prim"
+#else
+    ghcTuple = "GHC.Tuple"
 #endif
 
 {- | Type patterns for the 'Foldable' typeclass methods. Represented
@@ -220,4 +223,4 @@ foldableMethodsPatterns =
     ofType = (,)
 
     method :: Text -> NameMeta
-    method name = name `baseNameFrom` "Data.Foldable"
+    method name = name `ghcInternalNameFrom` "GHC.Internal.Data.Foldable"

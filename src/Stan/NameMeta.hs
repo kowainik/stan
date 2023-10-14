@@ -19,6 +19,7 @@ module Stan.NameMeta
 
       -- * Smart constructors
     , baseNameFrom
+    , ghcInternalNameFrom
     , mkBaseListMeta
     , mkBaseOldListMeta
     , mkBaseFoldableMeta
@@ -126,23 +127,30 @@ baseNameFrom funName moduleName = NameMeta
     , nameMetaPackage    = "base"
     }
 
+ghcInternalNameFrom :: Text -> ModuleName -> NameMeta
+ghcInternalNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
+    , nameMetaPackage    = "ghc-internal"
+    }
+
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "GHC.List" module.
 -}
 mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta = (`baseNameFrom` "GHC.List")
+mkBaseListMeta = (`ghcInternalNameFrom` "GHC.Internal.List")
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.OldList" module.
 -}
 mkBaseOldListMeta :: Text -> NameMeta
-mkBaseOldListMeta = (`baseNameFrom` "Data.OldList")
+mkBaseOldListMeta = (`ghcInternalNameFrom` "GHC.Internal.Data.OldList")
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.Foldable" module.
 -}
 mkBaseFoldableMeta :: Text -> NameMeta
-mkBaseFoldableMeta = (`baseNameFrom` "Data.Foldable")
+mkBaseFoldableMeta = (`ghcInternalNameFrom` "GHC.Internal.Data.Foldable")
 
 {- | Create 'NameMeta' for a function from the @unordered-containers@ package
 and a given 'ModuleName' module.

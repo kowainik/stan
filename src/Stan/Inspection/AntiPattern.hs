@@ -55,7 +55,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      primTypeMeta, textNameFrom, unorderedNameFrom)
+                      primTypeMeta, textNameFrom, unorderedNameFrom, ghcInternalNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
@@ -327,7 +327,7 @@ filepathOperator = PatternAstName operatorPosix fun
     This is odd and needs more investigation.
     -}
     filePathType :: PatternType
-    filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
+    filePathType = "FilePath" `ghcInternalNameFrom` "GHC.Internal.IO" |:: []
         ||| stringPattern
         ||| primTypeMeta "[]" |:: [ charPattern ]
 
@@ -345,11 +345,11 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
   where
     pat :: PatternAst
     pat = anyNamesToPatternAst
-        $ "undefined" `baseNameFrom` "GHC.Err" :|
-        [ "unsafeCoerce" `baseNameFrom` "Unsafe.Coerce"
-        , "unsafePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
-        , "unsafeInterleaveIO" `baseNameFrom` "GHC.IO.Unsafe"
-        , "unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
+        $ "undefined" `ghcInternalNameFrom` "GHC.Internal.Err" :|
+        [ "unsafeCoerce" `ghcInternalNameFrom` "GHC.Internal.Unsafe.Coerce"
+        , "unsafePerformIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeInterleaveIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeDupablePerformIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
         , "unsafeFixIO" `baseNameFrom` "System.IO.Unsafe"
         ]
 

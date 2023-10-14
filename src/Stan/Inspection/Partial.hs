@@ -69,7 +69,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, analysisL,
                         categoryL, descriptionL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
-                      mkBaseOldListMeta)
+                      mkBaseOldListMeta, ghcInternalNameFrom)
 import Stan.Pattern.Ast (PatternAst (PatternAstName), namesToPatternAst)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
@@ -156,7 +156,7 @@ mkPartialInspectionEnum insId funName pat solution =
     & solutionL .~ solution
   where
     enumMeta :: NameMeta
-    enumMeta = funName `baseNameFrom` "GHC.Enum"
+    enumMeta = funName `ghcInternalNameFrom` "GHC.Internal.Enum"
 
 -- | 'Inspection' — partial 'GHC.List.head' @STAN-0001@.
 stan0001 :: Inspection
@@ -197,7 +197,7 @@ stan0008 = mkPartialInspection (Id "STAN-0008") fromJustNameMeta "'Maybe'"
         ]
   where
     fromJustNameMeta :: NameMeta
-    fromJustNameMeta = "fromJust" `baseNameFrom` "Data.Maybe"
+    fromJustNameMeta = "fromJust" `ghcInternalNameFrom` "GHC.Internal.Data.Maybe"
 
 -- | 'Inspection' — partial 'Text.Read.read' @STAN-0009@.
 stan0009 :: Inspection
@@ -208,7 +208,7 @@ stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
         ]
   where
     readNameMeta :: NameMeta
-    readNameMeta = "read" `baseNameFrom` "Text.Read"
+    readNameMeta = "read" `ghcInternalNameFrom` "GHC.Internal.Text.Read"
 
 -- | 'Inspection' — partial 'GHC.Enum.succ' @STAN-0010@.
 stan0010 :: Inspection
@@ -281,8 +281,10 @@ stan0020 = mkPartialInspectionPattern (Id "STAN-0020") exts pat ""
     pat = listPattern |-> nonEmptyPattern
 #if __GLASGOW_HASKELL__ < 904
     exts = "fromList" `baseNameFrom` "GHC.Exts"
-#else
+#elif __GLASGOW_HASKELL__ < 910
     exts = "fromList" `baseNameFrom` "GHC.IsList"
+#else
+    exts = "fromList" `ghcInternalNameFrom` "GHC.Internal.IsList"
 #endif
     ne = "fromList" `baseNameFrom` "Data.List.NonEmpty"
 
@@ -290,6 +292,6 @@ stan0020 = mkPartialInspectionPattern (Id "STAN-0020") exts pat ""
 stan0021 :: Inspection
 stan0021 = mkPartialInspectionPattern
     (Id "STAN-0021")
-    ("fromInteger" `baseNameFrom` "GHC.Num")
+    ("fromInteger" `ghcInternalNameFrom` "GHC.Internal.Num")
     (integerPattern |-> naturalPattern)
     ""

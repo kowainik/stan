@@ -135,7 +135,7 @@ range from to = PatternAstNodeExact (one (mkNodeAnnotation "ArithSeq" "HsExpr"))
 
 -- | 'lambdaCase' is a pattern for @\case@ expression (not considering branches).
 lambdaCase :: PatternAst
-lambdaCase = PatternAstNode (one (mkNodeAnnotation "HsLamCase" "HsExpr"))
+lambdaCase = PatternAstNode (one (mkNodeAnnotation "HsLam" "HsExpr"))
 
 -- | 'case'' is a pattern for @case EXP of@ expression (not considering branches).
 case' :: PatternAst
