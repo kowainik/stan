@@ -200,8 +200,8 @@ test-suite stan-test
                      , containers
                      , filepath ^>= 1.4
                      , ghc
-                     , hedgehog >= 1.0 && < 1.2
-                     , hspec >= 2.7 && < 2.11
+                     , hedgehog >= 1.0 && < 1.4
+                     , hspec >= 2.7 && < 2.12
                      , hspec-hedgehog >= 0.0.1.2
                      , optparse-applicative
                      , text
