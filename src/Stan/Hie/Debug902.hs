@@ -21,14 +21,14 @@ package to dependencies and use the @pPrint@ function from the
 -}
 
 module Stan.Hie.Debug902
-#if __GLASGOW_HASKELL__ == 902 || __GLASGOW_HASKELL__ == 904
+#if __GLASGOW_HASKELL__ == 902 || __GLASGOW_HASKELL__ == 904 || __GLASGOW_HASKELL__ == 906
     ( debugHieFile
     ) where
 
 import Text.Pretty.Simple (pPrint)
 
 import Stan.Core.ModuleName (fromGhcModule)
-import Stan.Ghc.Compat (ArgFlag (..), AvailInfo (..), FieldLabel (..), IfaceTyCon (..),
+import Stan.Ghc.Compat (AvailInfo (..), FieldLabel (..), IfaceTyCon (..),
                         IfaceTyConInfo (..), IfaceTyConSort (..), IfaceTyLit (..), Module,
                         Name, PromotionFlag (..), TupleSort (..), isExternalName,
                         moduleStableString, moduleUnitId, nameModule, nameOccName,
@@ -76,7 +76,6 @@ deriving stock instance Show IfaceTyConSort
 deriving stock instance Show IfaceTyLit
 deriving stock instance Show PromotionFlag
 deriving stock instance Show TupleSort
-deriving stock instance Show ArgFlag
 deriving stock instance Show AvailInfo
 deriving stock instance Show FieldLabel
 deriving stock instance Show NodeAnnotation
