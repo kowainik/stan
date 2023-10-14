@@ -16,6 +16,7 @@ module Stan.Hie
     ) where
 
 import Colourista (errorMessage, infoMessage, warningMessage)
+import Prelude hiding (span)
 import System.Directory (doesDirectoryExist, doesFileExist)
 import System.Directory.Recursive (getDirRecursive)
 import System.FilePath (takeExtension)

@@ -71,5 +71,5 @@ import qualified Data.Text as T
 showTUnitId :: UnitId -> Text
 showTUnitId = T.pack . unitIdString
 #else
-  where
+  () where
 #endif

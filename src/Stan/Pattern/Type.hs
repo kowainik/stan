@@ -107,6 +107,7 @@ listFunPattern :: PatternType
 listFunPattern = listPattern |-> (?)
 
 -- | 'PatternType' for 'Integer'.
+integerPattern :: PatternType
 integerPattern =
 #if __GLASGOW_HASKELL__ < 900
   integerPattern810
@@ -115,6 +116,7 @@ integerPattern =
 #endif
 
 -- | 'PatternType' for 'Natural'.
+naturalPattern :: PatternType
 naturalPattern =
 #if __GLASGOW_HASKELL__ < 900
   naturalPattern810

@@ -190,6 +190,7 @@ foo :: Some -> Type
 typeSig :: PatternAst
 typeSig = PatternAstNode $ one (mkNodeAnnotation "TypeSig" "Sig")
 
+absBinds :: NodeAnnotation
 absBinds =
 #if __GLASGOW_HASKELL__ < 904
   mkNodeAnnotation "AbsBinds" "HsBindLR"

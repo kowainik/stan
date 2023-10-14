@@ -17,7 +17,7 @@ module Stan.Hie.MatchAst
     ) where
 
 import Data.Char (toLower)
-
+import Prelude hiding (span)
 import Stan.Core.List (checkWith)
 import Stan.Ghc.Compat (nameOccName, occNameString)
 import Stan.Hie (slice)
@@ -54,7 +54,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
            hieMatchPatternAst hie node p1
         && hieMatchPatternAst hie node p2
     PatternAstConstant lit ->
-           Set.member literalAnns (Set.map toNodeAnnotation (nodeAnnotations nodeInfo))
+           Set.member literalAnns (Set.map toNodeAnnotation (nodeAnnotations nodeInfo'))
         && ( let span = slice nodeSpan hie_hs_src in case lit of
                 ExactNum n   -> (span >>= readMaybe . decodeUtf8) == Just n
                 ExactStr s   -> span == Just s
@@ -65,26 +65,26 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
     PatternAstName nameMeta patType ->
         any (matchNameAndType nameMeta patType)
         $ Map.assocs
-        $ nodeIdentifiers nodeInfo
+        $ nodeIdentifiers nodeInfo'
     PatternAstNode tags ->
-        matchAnnotations tags nodeInfo
+        matchAnnotations tags nodeInfo'
     PatternAstNodeExact tags patChildren ->
-           matchAnnotations tags nodeInfo
+           matchAnnotations tags nodeInfo'
         && checkWith (hieMatchPatternAst hie) nodeChildren patChildren
     PatternAstVarName varName -> isJust $ find
         (\case
             Right x -> varName `Str.isInfixOf` map toLower (occNameString $ nameOccName x)
             Left _ -> False
         )
-        $ Map.keys $ nodeIdentifiers nodeInfo
+        $ Map.keys $ nodeIdentifiers nodeInfo'
     PatternAstIdentifierDetailsDecl declType -> any (any (isDecl declType) . identInfo) $
-        Map.elems $ nodeIdentifiers nodeInfo
+        Map.elems $ nodeIdentifiers nodeInfo'
   where
     matchAnnotations :: Set NodeAnnotation -> NodeInfo TypeIndex -> Bool
     matchAnnotations tags NodeInfo{..} =
       tags `Set.isSubsetOf` Set.map toNodeAnnotation nodeAnnotations
 
-    nodeInfo = Stan.Hie.Compat.nodeInfo node
+    nodeInfo' = Stan.Hie.Compat.nodeInfo node
 
     matchNameAndType
         :: NameMeta
@@ -93,7 +93,7 @@ hieMatchPatternAst hie@HieFile{..} node@Node{..} = \case
         -> Bool
     matchNameAndType nameMeta patType ids =
         hieMatchNameMeta nameMeta ids
-        && case nodeType nodeInfo of
+        && case nodeType nodeInfo' of
             []    -> False
             t : _ -> hieMatchPatternType hie_types patType t
 
