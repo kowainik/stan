@@ -106,47 +106,41 @@ nonEmptyPattern = "NonEmpty" `baseNameFrom` "GHC.Base" |:: [ (?) ]
 listFunPattern :: PatternType
 listFunPattern = listPattern |-> (?)
 
+-- The source for integerPattern and naturalPattern varies depending on the GHC
+-- version
+#if __GLASGOW_HASKELL__ < 900
+
 -- | 'PatternType' for 'Integer'.
 integerPattern :: PatternType
-integerPattern =
-#if __GLASGOW_HASKELL__ < 900
-  integerPattern810
-#elif __GLASGOW_HASKELL__ >= 900
-  integerPattern900
-#endif
-
--- | 'PatternType' for 'Natural'.
-naturalPattern :: PatternType
-naturalPattern =
-#if __GLASGOW_HASKELL__ < 900
-  naturalPattern810
-#elif __GLASGOW_HASKELL__ >= 900
-  naturalPattern900
-#endif
-
-integerPattern810 :: PatternType
-integerPattern810 = NameMeta
+integerPattern = NameMeta
     { nameMetaName       = "Integer"
     , nameMetaModuleName = "GHC.Integer.Type"
     , nameMetaPackage    = "integer-wired-in"
     } |:: []
 
-integerPattern900 :: PatternType
-integerPattern900 = NameMeta
+-- | 'PatternType' for 'Natural'.
+naturalPattern :: PatternType
+naturalPattern = "Natural" `baseNameFrom` "GHC.Natural" |:: []
+
+#elif __GLASGOW_HASKELL__ >= 900
+
+-- | 'PatternType' for 'Integer'.
+integerPattern :: PatternType
+integerPattern = NameMeta
     { nameMetaName       = "Integer"
     , nameMetaModuleName = "GHC.Num.Integer"
     , nameMetaPackage    = "ghc-bignum"
     } |:: []
 
-naturalPattern810 :: PatternType
-naturalPattern810 = "Natural" `baseNameFrom` "GHC.Natural" |:: []
-
-naturalPattern900 :: PatternType
-naturalPattern900 = NameMeta
+-- | 'PatternType' for 'Natural'.
+naturalPattern :: PatternType
+naturalPattern = NameMeta
     { nameMetaName       = "Natural"
     , nameMetaModuleName = "GHC.Num.Natural"
     , nameMetaPackage    = "ghc-bignum"
     } |:: []
+
+#endif
 
 charPattern :: PatternType
 charPattern = primTypeMeta "Char" |:: []
