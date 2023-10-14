@@ -34,6 +34,7 @@ jobs:
           - "9.4.5"
           - "9.4.6"
           - "9.4.7"
+          - "9.6.3"
         exclude:
           - os: macOS-latest
             ghc: 8.8.4

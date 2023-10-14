@@ -3,8 +3,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Stan.Ghc.Compat902
-#if __GLASGOW_HASKELL__ == 902 || __GLASGOW_HASKELL__ == 904
+module Stan.Ghc.Compat906
+#if __GLASGOW_HASKELL__ == 906
     ( -- * Modules
       Module
     , ModuleName
@@ -33,12 +33,13 @@ module Stan.Ghc.Compat902
     , mkRealSrcSpan
 
       -- * Other common types (for debugging and not only)
-    , ArgFlag (..)
     , AvailInfo (..)
     , FastString
     , mkFastString
     , FieldLbl
     , FieldLabel (..)
+    , FieldLabelString (..)
+    , ForAllTyFlag (..)
     , IfaceTyCon (..)
     , IfaceTyConInfo (..)
     , IfaceTyConSort (..)
@@ -56,24 +57,25 @@ import GHC.Iface.Type (IfaceTyCon (..), IfaceTyConInfo (..), IfaceTyConSort (..)
 import GHC.Unit.Types (Module, moduleName)
 import GHC.Unit.Module (moduleStableString)
 import GHC.Unit (moduleUnit, toUnitId, UnitId, unitIdString)
-import GHC.Unit.Module.Name (ModuleName, moduleNameString)
+import Language.Haskell.Syntax.Module.Name (ModuleName, moduleNameString)
+import Language.Haskell.Syntax.Basic (FieldLabelString(..))
 import GHC.Types.Name (Name, isExternalName, nameModule, nameOccName, nameStableString)
 import GHC.Types.Name.Occurrence (isSymOcc, occNameString)
 import GHC.Types.SrcLoc (RealSrcSpan, srcSpanEndCol, srcSpanEndLine, srcSpanFile, srcSpanStartCol,
                          srcSpanStartLine, mkRealSrcSpan, mkRealSrcLoc)
-import GHC.Types.Var (ArgFlag (..), Specificity (..))
-
-import qualified Data.Text as T
+import GHC.Types.Var (ForAllTyFlag (..), Specificity (..))
 
 moduleUnitId :: Module -> UnitId
 moduleUnitId = toUnitId . moduleUnit
 
 showTUnitId :: UnitId -> Text
-showTUnitId = T.pack . unitIdString
+showTUnitId = toText . unitIdString
 
 type FieldLbl = FieldLabel
 
-deriving stock instance Show Specificity => Show ArgFlag
+deriving stock instance Show Specificity => Show ForAllTyFlag
+
+deriving stock instance Show FieldLabelString
 
 #else
   () where

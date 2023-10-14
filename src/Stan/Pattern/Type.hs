@@ -47,7 +47,8 @@ data PatternType
     +---------------------+---------------------------------------------------------------------+
     | @a@                 | @PatternName (NameMeta ... \"a\") []@                               |
     +---------------------+---------------------------------------------------------------------+
-    | @[a]@               | @PatternName (NameMeta ... \"[]\") [aPattern]@                      |
+    | @[a]@               | @PatternName (NameMeta ... \"List\") [aPattern]@ (after GHC 9.6)    |
+    |                     | @PatternName (NameMeta ... \"[]\") [aPattern]@   (before GHC 9.6)   |
     +---------------------+---------------------------------------------------------------------+
     | @Either Int String@ | @PatternName (NameMeta ... \"Either\") [intPattern, stringPattern]@ |
     +---------------------+---------------------------------------------------------------------+
@@ -96,7 +97,11 @@ listPattern =
     "String" `baseNameFrom` "GHC.Base" |:: []
   where
     listNameMeta :: NameMeta
+#if __GLASGOW_HASKELL__ < 906
     listNameMeta = primTypeMeta "[]"
+#elif __GLASGOW_HASKELL__ >= 906
+    listNameMeta = primTypeMeta "List"
+#endif
 
 -- | 'PatternType' for 'NonEmpty'.
 nonEmptyPattern :: PatternType
@@ -173,7 +178,11 @@ eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
 pairPattern :: PatternType
 pairPattern = "(,)" `ghcPrimNameFrom` ghcTuple |:: [ (?), (?) ]
   where
+#if __GLASGOW_HASKELL__ < 906
     ghcTuple = "GHC.Tuple"
+#elif __GLASGOW_HASKELL__ >= 906
+    ghcTuple = "GHC.Tuple.Prim"
+#endif
 
 {- | Type patterns for the 'Foldable' typeclass methods. Represented
 as a non-empty list of pairs:
