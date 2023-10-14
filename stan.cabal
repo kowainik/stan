@@ -17,6 +17,7 @@ build-type:          Simple
 stability:           experimental
 extra-doc-files:     README.md
                      CHANGELOG.md
+                     stack.yaml
 extra-source-files:  test/.stan-example.toml
 tested-with:         GHC == 8.8.4
                      GHC == 8.10.7
