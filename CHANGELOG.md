@@ -3,6 +3,13 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.0.1
+
+* Add support for GHC 9.6 (will only work with `Cabal` library version
+  3.10 -- if this causes problems for you please comment on the
+  corresponding [`extensions`
+  ticket](https://github.com/kowainik/extensions/issues/89))
+
 ## 0.1.0.0
 
 * Add support for GHCs 9.0, 9.2 and 9.4
