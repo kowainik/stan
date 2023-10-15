@@ -87,40 +87,37 @@ jobs:
       run: |
         cabal run stan
 
+  # As at 2023-10-15, the GitHub-hosted runner for ubuntu-latest comes with
+  # Stack 2.13.1 and GHC 9.6.3.
   stack:
     name: stack / ghc ${{ matrix.ghc }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        stack: ["2.5"]
-        ghc: ["8.10.7"]
+        ghc: ["9.4.7"] # The version specified in the stack.yaml file
+        cache-bust: ["2023-10-15"]
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Clone project
+      uses: actions/checkout@v4
 
-    - uses: haskell/actions/setup@v2.4.7
-      name: Setup Haskell Stack
-      with:
-        ghc-version: ${{ matrix.ghc }}
-        stack-version: ${{ matrix.stack }}
-
-    - uses: actions/cache@v3.3.2
-      name: Cache ~/.stack
+    - name: Cache the Stack root
+      uses: actions/cache@v3
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack
+        key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}-${{ matrix.cache-bust }}
 
-    - name: Build
+    - name: Build everything
       run: |
-        stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+        stack build --test --bench --no-run-tests --no-run-benchmarks
 
-    - name: Test
+    - name: Run test-suites
       run: |
-        stack test --system-ghc
+        stack test
 
-    - name: Dogfooding
+    - name: Apply built stan to stan
       run: |
-        stack run stan --system-ghc
+        stack exec -- stan --cabal-file-path stan.cabal
 
   hlint:
     name: hlint
