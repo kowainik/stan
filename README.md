@@ -193,36 +193,38 @@ $ cp "$(cabal v2-exec --verbose=0 --offline sh -- -c 'command -v stan')" ~/.loca
 
 [[Back to the Table of Contents] ↑](#table-of-contents)
 
-Below are the steps to install Stan using the Stack build tool.
+Below are the steps to install Stan from its repository using the Stack tool.
 
 > You need to have [Stack ⩾ 2.1.3](http://haskellstack.org)
 
-First, you need to clone the repository.
+First, you need to clone the repository and change to the `stan` directory:
 
 ```shell
 $ git clone https://github.com/kowainik/stan.git
 $ cd stan
 ```
 
-Then, you need to build it using Stack:
+Then, using Stack, you need to build the package and copy the executable to the
+desired location (typically one on your PATH). If Stack's `--local-bin-path`
+option is omitted, Stack will copy the built executable to a
+[default location](https://docs.haskellstack.org/en/stable/yaml_configuration/#local-bin-path):
 
 ```shell
-$ stack build
+$ stack --local-bin-path=<path_to_desired_location> install
 ```
 
-Finally, you can copy the resulting executable under the desired
-location (that should be under the PATH environment variable), like
-so:
-
-```shell
-$ cp "$(stack path --local-install-root)/bin/stan" ~/.local/bin/stan
-```
+Stack's build, including the version of GHC used, will be configured by a
+`stack.yaml` file provided by the repository or the package from Hackage. If you
+wish to build Stan with a different version of GHC than that assumed, you will
+need to edit the configuration accordingly.
 
 ### Hackage
 
 [[Back to the Table of Contents] ↑](#table-of-contents)
 
-Stan is available on Hackage. You can install the tool from there as well:
+Stan is available on Hackage.
+
+Using the Cabal build tool, you can install the tool from there as well:
 
 ```shell
 $ cabal v2-install stan --install-method=copy --overwrite-policy=always
@@ -237,6 +239,23 @@ $ cabal v2-install stan \
     --install-method=copy \
     --overwrite-policy=always \
     --program-suffix=-8.10.1
+```
+
+Using the Stack tool, you can also install a version of Stan from Hackage:
+
+First, you need to unpack the package locally and change to the package's
+directory. The following example assumes `stan-0.1.0.1`:
+
+```shell
+$ stack unpack stan-0.1.0.1 # Specify 'stan' for the most recent version
+$ cd stan-0.1.0.1 # The directory is named after the package version
+```
+
+Then, using Stack, you need to build the package and copy the executable to the
+desired location (as above, for the repository example):
+
+```shell
+$ stack --local-bin-path=<path_to_desired_location> install
 ```
 
 ### Homebrew
