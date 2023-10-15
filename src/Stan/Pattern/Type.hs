@@ -171,7 +171,9 @@ eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
 
 -- | 'PatternType' for pair @(,)@.
 pairPattern :: PatternType
-pairPattern = "(,)" `ghcPrimNameFrom` "GHC.Tuple" |:: [ (?), (?) ]
+pairPattern = "(,)" `ghcPrimNameFrom` ghcTuple |:: [ (?), (?) ]
+  where
+    ghcTuple = "GHC.Tuple"
 
 {- | Type patterns for the 'Foldable' typeclass methods. Represented
 as a non-empty list of pairs:
