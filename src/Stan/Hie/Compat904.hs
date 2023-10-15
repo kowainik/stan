@@ -63,7 +63,7 @@ mkNodeAnnotation :: FastString
 mkNodeAnnotation f1 f2 =
   Stan.Hie.Compat904.NodeAnnotation (GHC.Iface.Ext.Types.NodeAnnotation f1 f2)
 
-data NodeAnnotation = NodeAnnotation GHC.Iface.Ext.Types.NodeAnnotation
+newtype NodeAnnotation = NodeAnnotation GHC.Iface.Ext.Types.NodeAnnotation
   deriving stock (Eq, Ord)
 
 instance Show Stan.Hie.Compat904.NodeAnnotation where
