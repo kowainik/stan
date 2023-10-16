@@ -219,6 +219,7 @@ stanSummary analysis AnalysisNumbers{..} = do
 
 stanObservations :: Analysis -> Html
 stanObservations Analysis{..} = do
+    let toRender = filter (not . null . fileInfoObservations) $ Map.elems analysisFileMap
     divClass "row" $ blockP $ fold
         [ "Based on the analysis results, Stan found several areas for improvement "
         , "in the analysed files. In Stan terminology, we call these findings "
@@ -226,12 +227,16 @@ stanObservations Analysis{..} = do
         , "information about each observation, and find the possible ways to fix "
         , "them for your project."
         ]
-    traverse_ stanPerFile $
-        filter (not . null . fileInfoObservations) $ Map.elems analysisFileMap
+    ul $ traverse_ tocPerFile toRender
+    traverse_ stanPerFile toRender
+
+tocPerFile :: FileInfo -> Html
+tocPerFile FileInfo{fileInfoModuleName = ModuleName mName} =
+    li $ span $ a ! A.class_ "ins-link" ! A.href (fromText $ "#" <> mName) $ toHtml mName
 
 stanPerFile :: FileInfo -> Html
 stanPerFile FileInfo{..} = divIdClass "file" "row" $ do
-    h3 ! A.class_ "grey-bg" $ toHtml $ "📄 " <> fileInfoPath
+    h3 ! A.class_ "grey-bg" ! A.id (fromText $ unModuleName fileInfoModuleName) $ toHtml $ "📄 " <> fileInfoPath
     ul $ do
         li $ tableWithShadow "col-6" $ do
             tableRow "Module" $ code $ toHtml $ unModuleName fileInfoModuleName
