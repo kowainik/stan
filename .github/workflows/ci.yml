@@ -35,6 +35,8 @@ jobs:
           - "9.4.6"
           - "9.4.7"
           - "9.6.3"
+          - "9.8.1"
+
         exclude:
           - os: macOS-latest
             ghc: 8.8.4
@@ -50,14 +52,21 @@ jobs:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
 
+    - name: Set envvar EXTRA_FLAGS
+      shell: bash
+      if: ${{ matrix.ghc == '9.8.1' }}
+      run: |
+        echo "EXTRA_FLAGS=--allow-newer" >> "$GITHUB_ENV"
+
     # Tom says: I'm not sure whether it's correct to configure before
     # freezing because it might defeat the point of caching. However,
     # configuring *after* freezing seemed to mean that the cache got
     # stuck in some bad state where it couldn't find a build plan.  We
     # should revisit this decision later.
     - name: Configure
+      shell: bash
       run: |
-        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct
+        cabal configure --enable-tests --enable-benchmarks --test-show-details=direct $EXTRA_FLAGS
 
     - name: Freeze
       run: |

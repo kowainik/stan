@@ -176,7 +176,11 @@ eitherPattern = "Either" `baseNameFrom` "Data.Either" |:: [ (?), (?) ]
 
 -- | 'PatternType' for pair @(,)@.
 pairPattern :: PatternType
+#if __GLASGOW_HASKELL__ < 908
 pairPattern = "(,)" `ghcPrimNameFrom` ghcTuple |:: [ (?), (?) ]
+#elif __GLASGOW_HASKELL__ >= 908
+pairPattern = "Tuple2" `ghcPrimNameFrom` ghcTuple |:: [ (?), (?) ]
+#endif
   where
 #if __GLASGOW_HASKELL__ < 906
     ghcTuple = "GHC.Tuple"
