@@ -108,6 +108,8 @@ data InspectionAnalysis
     = FindAst !PatternAst
     -- | Find all operators without matching @infix[r|l]@
     | Infix
+    -- | Find suitable functions without specialize pragma
+    | SpecializePragma
     -- | Check if the data type has lazy fields
     | LazyField
     -- | Usage of tuples with size >= 4

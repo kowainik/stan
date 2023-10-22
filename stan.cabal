@@ -104,6 +104,7 @@ library
                            Stan.Inspection.AntiPattern
                            Stan.Inspection.Infinite
                            Stan.Inspection.Partial
+                           Stan.Inspection.Performance
                            Stan.Inspection.Style
                          Stan.NameMeta
                          Stan.Observation
@@ -177,6 +178,7 @@ library target
                          Target.AntiPattern.Stan0214
                        Target.Infinite
                        Target.Partial
+                       Target.Performance
                        Target.Style
 
 test-suite stan-test
@@ -190,6 +192,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Common
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
+                         Test.Stan.Analysis.Performance
                          Test.Stan.Analysis.Style
                        Test.Stan.Cli
                        Test.Stan.Config
