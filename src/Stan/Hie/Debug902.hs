@@ -21,7 +21,7 @@ package to dependencies and use the @pPrint@ function from the
 -}
 
 module Stan.Hie.Debug902
-#if __GLASGOW_HASKELL__ == 902 || __GLASGOW_HASKELL__ == 904 || __GLASGOW_HASKELL__ == 906 || __GLASGOW_HASKELL__ == 908
+#if __GLASGOW_HASKELL__ == 902 || __GLASGOW_HASKELL__ == 904 || __GLASGOW_HASKELL__ == 906
     ( debugHieFile
     ) where
 
