@@ -51,6 +51,7 @@ jobs:
       with:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal }}
+        cabal-update: true
 
     - name: Set envvar EXTRA_FLAGS
       shell: bash
