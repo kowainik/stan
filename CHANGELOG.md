@@ -3,6 +3,21 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.0.2
+
+* Add prospective support for GHC 9.8
+
+  * will only work with `Cabal` library version 3.10 -- if this causes
+    problems for you please comment on the corresponding [`extensions`
+    ticket](https://github.com/kowainik/extensions/issues/89)
+
+  * thanks to @0rphee
+
+  * we don't provide a binary release for 9.8.1 because `stan`'s
+    dependencies have not yet caught up with 9.8.1.  If you want to
+    use `stan` with 9.8.1 you can install it from Hackage with `cabal
+    install stan --allow-newer`.
+
 ## 0.1.0.1
 
 * Add support for GHC 9.6 (will only work with `Cabal` library version
