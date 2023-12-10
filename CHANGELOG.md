@@ -3,6 +3,11 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.1.0
+
+* Fix [bug #541](https://github.com/kowainik/stan/issues/541)
+  "`nodeInfo`"
+
 ## 0.1.0.2
 
 * Add prospective support for GHC 9.8
