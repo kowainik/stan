@@ -138,6 +138,7 @@ library
                      , bytestring >= 0.10 && < 0.13
                      , clay ^>= 0.14
                      , colourista >= 0.1 && < 0.3
+                     , containers >= 0.5 && < 0.7
                      , cryptohash-sha1 ^>= 0.11
                      , dir-traverse ^>= 0.2.2.2
                      , directory ^>= 1.3

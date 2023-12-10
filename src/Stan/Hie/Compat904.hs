@@ -33,29 +33,36 @@ import GHC.Iface.Ext.Binary (HieFileResult (hie_file_result), readHieFile)
 import GHC.Iface.Ext.Types
                  (ContextInfo (..), DeclType (..), HieAST (..), HieASTs (..), HieArgs (..),
                  HieFile (..), HieType (..), HieTypeFlat, IEType (..), Identifier,
-                 IdentifierDetails (..), NodeInfo (..), TypeIndex, NodeOrigin(SourceInfo, GeneratedInfo),
+                 IdentifierDetails (..), NodeInfo (..), TypeIndex,
                  getSourcedNodeInfo, NodeAnnotation(..))
+import GHC.Iface.Ext.Utils (emptyNodeInfo)
 import GHC.Types.Name.Cache (initNameCache)
 import GHC.Data.FastString (FastString)
 import GHC.Utils.Outputable (ppr, showSDocUnsafe)
 
 import qualified Data.Map.Strict as Map
+import qualified Data.Set as S
 
 import Text.Show (show)
 
--- It's not clear if this is completely correct, or whether
---
--- 1. we should merge in the GeneratedInfo, and/or
--- 2. return a NodeInfo with empty fields when the SourceInfo is empty
---
--- It works though.
+-- This is a direct copy of GHC.Iface.Ext.Utils.emptyNodeInfo except
+-- we're using our own redefined combineNodeInfo.
 nodeInfo :: Ord a => HieAST a -> NodeInfo a
-nodeInfo h = case (lookup' SourceInfo, lookup' GeneratedInfo) of
-  (Nothing, Nothing) -> error "nodeInfo"
-  (Just n1, Nothing) -> n1
-  (Nothing, Just{}) -> error "nodeInfo"
-  (Just n1, Just{}) -> n1
-  where lookup' k = Map.lookup k (getSourcedNodeInfo (sourcedNodeInfo h))
+nodeInfo = foldl' combineNodeInfo emptyNodeInfo . getSourcedNodeInfo . sourcedNodeInfo
+
+-- This is a direct copy of GHC.Iface.Ext.Utils.combineNodeInfo except
+-- we use compare rather than nonDetCmpType.
+combineNodeInfo :: Ord a => NodeInfo a -> NodeInfo a -> NodeInfo a
+(NodeInfo as ai ad) `combineNodeInfo` (NodeInfo bs bi bd) =
+  NodeInfo (S.union as bs) (mergeSorted ai bi) (Map.unionWith (<>) ad bd)
+  where
+    mergeSorted :: Ord b => [b] -> [b] -> [b]
+    mergeSorted lc@(c:cs) ld@(d:ds) = case compare c d of
+                                        LT -> c : mergeSorted cs ld
+                                        EQ -> c : mergeSorted cs ds
+                                        GT -> d : mergeSorted lc ds
+    mergeSorted cs [] = cs
+    mergeSorted [] ds = ds
 
 mkNodeAnnotation :: FastString
                  -> FastString
@@ -101,3 +108,4 @@ eqDeclType (DeclType d1) d2 = d1 == d2
 #else
   () where
 #endif
+
