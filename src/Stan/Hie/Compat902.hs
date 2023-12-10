@@ -51,7 +51,7 @@ import Text.Show (show)
 -- 2. return a NodeInfo with empty fields when the SourceInfo is empty
 --
 -- It works though.
-nodeInfo :: HieAST a -> NodeInfo a
+nodeInfo :: Ord a => HieAST a -> NodeInfo a
 nodeInfo h = case (lookup' SourceInfo, lookup' GeneratedInfo) of
   (Nothing, Nothing) -> error "nodeInfo"
   (Just n1, Nothing) -> n1

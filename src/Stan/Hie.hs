@@ -84,7 +84,7 @@ This function needs to take the original 'HieFile' because constants
 are not stored in 'HieAST' and to compare constants we need to compare
 parts of source code.
 -}
-eqAst :: forall a . Eq a => HieFile -> HieAST a -> HieAST a -> Bool
+eqAst :: forall a . Ord a => HieFile -> HieAST a -> HieAST a -> Bool
 eqAst HieFile{..} = eqNodes
   where
     eqNodes :: HieAST a -> HieAST a -> Bool
