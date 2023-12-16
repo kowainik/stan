@@ -88,15 +88,15 @@ jobs:
       run: |
         cabal run stan
 
-  # As at 2023-10-15, the GitHub-hosted runner for ubuntu-latest comes with
-  # Stack 2.13.1 and GHC 9.6.3.
+  # As at 2023-12-16, the GitHub-hosted runner for ubuntu-latest comes with
+  # Stack 2.13.1 and GHC 9.8.1.
   stack:
     name: stack / ghc ${{ matrix.ghc }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: ["9.4.7"] # The version specified in the stack.yaml file
-        cache-bust: ["2023-10-15"]
+        ghc: ["9.6.3"] # The version specified in the stack.yaml file
+        cache-bust: ["2023-12-16"]
 
     steps:
     - name: Clone project
