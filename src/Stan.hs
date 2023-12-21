@@ -8,6 +8,9 @@ Main running module.
 
 module Stan
     ( run
+    , runStan
+    , getAnalysis
+    , getStanConfig
 
       -- ** Internal
     , createCabalExtensionsMap
@@ -26,7 +29,7 @@ import Stan.Browse (openBrowser)
 import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
 import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), ReportArgs (..), StanArgs (..),
                  StanCommand (..), TomlToCliArgs (..), runStanCli)
-import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig)
+import Stan.Config (ConfigP (..), applyConfig, configToCliCommand, defaultConfig, finaliseConfig, Config)
 import Stan.Config.Pretty (prettyConfigCli)
 import Stan.Core.Id (Id (..))
 import Stan.EnvVars (EnvVars (..), envVarsToText, getEnvVars)
@@ -52,9 +55,8 @@ run = runStanCli >>= \case
     StanCliToToml cliToTomlArgs -> runCliToToml cliToTomlArgs
     StanInspectionsToMd -> putTextLn $ inspectionsMd inspections
 
-runStan :: StanArgs -> IO ()
-runStan StanArgs{..} = do
-    let notJson = not stanArgsJsonOut
+getStanConfig :: StanArgs -> Bool -> IO (Trial Text Config, Bool, EnvVars)
+getStanConfig StanArgs{..} notJson = do
     -- ENV vars
     env@EnvVars{..} <- getEnvVars
     let defConfTrial = envVarsUseDefaultConfigFile <> stanArgsUseDefaultConfigFile
@@ -68,14 +70,26 @@ runStan StanArgs{..} = do
     when notJson $ do
         infoMessage "The following Configurations are used:\n"
         putTextLn $ indent $ prettyTrialWith (toString . prettyConfigCli) configTrial
+    pure (configTrial, useDefConfig, env)
+
+getAnalysis :: StanArgs -> Bool -> Config -> [HieFile] -> IO Analysis
+getAnalysis StanArgs{..} notJson config hieFiles = do
+    -- create cabal default extensions map
+    cabalExtensionsMap <- createCabalExtensionsMap notJson stanArgsCabalFilePath hieFiles
+    -- get checks for each file
+    let checksMap = applyConfig (map hie_hs_file hieFiles) config
+
+    let analysis = runAnalysis cabalExtensionsMap checksMap (configIgnored config) hieFiles
+    -- show what observations are ignored
+    pure analysis
+
+runStan :: StanArgs -> IO ()
+runStan stanArgs@StanArgs{..} = do
+    let notJson = not stanArgsJsonOut
+    (configTrial, useDefConfig, env) <- getStanConfig stanArgs notJson
     whenResult_ configTrial $ \warnings config -> do
         hieFiles <- readHieFiles stanArgsHiedir
-        -- create cabal default extensions map
-        cabalExtensionsMap <- createCabalExtensionsMap notJson stanArgsCabalFilePath hieFiles
-        -- get checks for each file
-        let checksMap = applyConfig (map hie_hs_file hieFiles) config
-
-        let analysis = runAnalysis cabalExtensionsMap checksMap (configIgnored config) hieFiles
+        analysis <- getAnalysis stanArgs notJson config hieFiles
         -- show what observations are ignored
         when notJson $ putText $ indent $ prettyShowIgnoredObservations
             (configIgnored config)
@@ -119,8 +133,8 @@ runStan StanArgs{..} = do
     getObservationSeverity :: Observation -> Severity
     getObservationSeverity = inspectionSeverity . getInspectionById . observationInspectionId
 
-    indent :: Text -> Text
-    indent = unlines . map ("    " <>) . lines
+indent :: Text -> Text
+indent = unlines . map ("    " <>) . lines
 
 runInspection :: InspectionArgs -> IO ()
 runInspection InspectionArgs{..} = case inspectionArgsId of
