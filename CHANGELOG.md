@@ -3,6 +3,10 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.2.0
+
+* Added `runStan`, `getAnalysis`, `getStanConfig`
+
 ## 0.1.1.0
 
 * Fix [bug #541](https://github.com/kowainik/stan/issues/541)
