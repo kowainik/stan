@@ -297,7 +297,8 @@ grid = do
     w :: NonEmpty Rational
     w = 4.33 :| [12.66, 21, 29.33, 37.66, 46, 54.33, 62.66, 71, 79.33, 87.66, 96]
 
-    mediaQuery :: Double -> Css -> Css
+    -- clay-0.14: mediaQuery :: Double -> Css -> Css
+    -- clay-0.15: mediaQuery :: Number -> Css -> Css
     mediaQuery x = query M.screen [M.minWidth (em x)]
 
 marginAuto :: Css
