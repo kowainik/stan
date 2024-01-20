@@ -19,6 +19,7 @@ extra-doc-files:     README.md
                      CHANGELOG.md
 extra-source-files:  test/.stan-example.toml
                      stack-ghc-9.4.8.yaml
+                     stack-ghc-9.6.3.yaml
                      stack.yaml
 tested-with:         GHC == 8.8.4
                      GHC == 8.10.7
