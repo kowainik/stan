@@ -3,6 +3,12 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.2.1
+
+* Support `clay-0.15` series.
+
+* Support `base64-1.0` series.
+
 ## 0.1.2.0
 
 * Added `runStan`, `getAnalysis`, `getStanConfig`
