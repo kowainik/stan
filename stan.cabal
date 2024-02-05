@@ -135,7 +135,7 @@ library
                        Stan.Hie.Debug908
 
   build-depends:       array ^>= 0.5
-                     , base64 ^>= 0.4.1
+                     , base64 >= 0.4.1 && < 2.1
                      , blaze-html ^>= 0.9.1
                      , bytestring >= 0.10 && < 0.13
                      , clay >= 0.14 && < 0.16

@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -40,6 +42,9 @@ import Stan.Report.Settings (OutputSettings (..), Verbosity (..), isHidden)
 import Stan.Severity (prettyShowSeverity, severityColour)
 
 import qualified Crypto.Hash.SHA1 as SHA1
+#if MIN_VERSION_base64(1,0,0)
+import qualified Data.Base64.Types
+#endif
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.HashSet as HS
@@ -269,6 +274,14 @@ mkObservationId insId moduleName srcSpan = Id $ Text.intercalate "-"
     , show (srcSpanStartLine srcSpan) <> ":" <> show (srcSpanStartCol srcSpan)
     ]
 
+#if MIN_VERSION_base64(1,0,0)
+extractBase64 :: Data.Base64.Types.Base64 k a -> a
+extractBase64 = Data.Base64.Types.extractBase64
+#else
+extractBase64 :: a -> a
+extractBase64 = id
+#endif
+
 {- | Hash module name to a short string of length @6@. Hashing
 algorithm is the following:
 
@@ -279,6 +292,7 @@ algorithm is the following:
 hashModuleName :: ModuleName -> Text
 hashModuleName =
     Text.take 6
+    . extractBase64
     . Base64.encodeBase64
     . SHA1.hash
     . encodeUtf8
