@@ -204,7 +204,7 @@ test-suite stan-test
 
   build-depends:       stan
                      , containers
-                     , filepath ^>= 1.4
+                     , filepath
                      , ghc
                      , hedgehog >= 1.0 && < 1.5
                      , hspec >= 2.7 && < 2.12
