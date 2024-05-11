@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Stan.Ghc.Compat906
-#if __GLASGOW_HASKELL__ == 906 || __GLASGOW_HASKELL__ == 908
+#if __GLASGOW_HASKELL__ == 906 || __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910
     ( -- * Modules
       Module
     , ModuleName

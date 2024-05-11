@@ -30,7 +30,7 @@ source-repository head
   location:            https://github.com/kowainik/stan.git
 
 common common-options
-  build-depends:       base >= 4.13 && < 4.20 && (< 4.16.3.0 || >= 4.17)
+  build-depends:       base >= 4.13 && < 4.21 && (< 4.16.3.0 || >= 4.17)
                        -- ^^ .hie files don't contain enough type
                        -- information on ghc-9.2.[4-8] (base >=
                        -- 4.16.3.0 && < 4.17)
