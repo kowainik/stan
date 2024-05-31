@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 {- | Sum types pattern matching on @_@ -}
 
