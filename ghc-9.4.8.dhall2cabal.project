@@ -1,0 +1,19 @@
+import: https://stackage.org/lts-21.25/cabal.config
+
+-- We have 1 package.
+packages:
+    .
+
+-- Version equality constraints.
+constraints:
+    clay ==0.15.0
+  , dir-traverse ==0.2.3.0
+  , extensions ==0.1.0.0
+  , tomland ==1.3.3.2
+  , trial ==0.0.0.0
+  , trial-optparse-applicative ==0.0.0.0
+  , trial-tomland ==0.0.0.0
+  , validation-selective ==0.2.0.0
+program-options
+  ghc-options: -fhide-source-paths
+

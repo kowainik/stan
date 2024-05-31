@@ -1,0 +1,22 @@
+user-message: "WARNING: This stack project is generated."
+
+resolver: nightly-2024-05-31
+
+# We have 1 package.
+packages:
+  - ./.
+
+extra-deps:
+  # Package versions for published packages either not on Stackage or
+  # not matching the version on Stackage for the resolver we use.
+  # These package-version extra dependencies are equivalent to cabal constraints.
+  - trial-0.0.0.0
+  - trial-optparse-applicative-0.0.0.0
+  - trial-tomland-0.0.0.0
+  - dir-traverse-0.2.3.0
+  - tomland-1.3.3.2
+  - extensions-0.1.0.1
+  - ansi-wl-pprint-0.6.9
+  - ansi-terminal-1.0.2
+  - ansi-terminal-types-0.11.5
+  - optparse-applicative-0.17.1.0@rev:1

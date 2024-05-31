@@ -1,0 +1,21 @@
+import: ./project-stackage/nightly-2024-05-31.config
+
+-- We have 1 package.
+packages:
+    .
+
+-- Version equality constraints.
+constraints:
+    trial ==0.0.0.0
+  , trial-optparse-applicative ==0.0.0.0
+  , trial-tomland ==0.0.0.0
+  , dir-traverse ==0.2.3.0
+  , tomland ==1.3.3.2
+  , extensions ==0.1.0.1
+  , ansi-wl-pprint ==0.6.9
+  , ansi-terminal ==1.0.2
+  , ansi-terminal-types ==0.11.5
+  , optparse-applicative ==0.17.1.0
+program-options
+  ghc-options: -fhide-source-paths
+
