@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-missing-export-lists #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 {-# LANGUAGE ExistentialQuantification #-}
 module Target.AntiPattern.Stan0206 where
 

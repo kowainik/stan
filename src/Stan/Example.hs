@@ -1,5 +1,5 @@
 {- HLINT ignore "Unused LANGUAGE pragma" -}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 {-# LANGUAGE NoUndecidableInstances #-}
 {-# LANGUAGE PatternSynonyms        #-}
