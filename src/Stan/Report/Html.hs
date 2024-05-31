@@ -376,9 +376,9 @@ stanSeverityExplained = do
         traverse_ toSeverityRow (universe @Severity)
   where
     toSeverityRow :: Severity -> Html
-    toSeverityRow s = tr $ do
-        td (severity $ show s)
-        td (toHtml $ severityDescription s)
+    toSeverityRow sv = tr $ do
+        td (severity $ show sv)
+        td (toHtml $ severityDescription sv)
 
 stanFooter :: Html
 stanFooter = footer $ do
