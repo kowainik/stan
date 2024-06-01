@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -55,7 +57,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      primTypeMeta, textNameFrom, unorderedNameFrom)
+                      primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
@@ -327,7 +329,13 @@ filepathOperator = PatternAstName operatorPosix fun
     This is odd and needs more investigation.
     -}
     filePathType :: PatternType
-    filePathType = "FilePath" `baseNameFrom` "GHC.IO" |:: []
+    filePathType =
+#if __GLASGOW_HASKELL__ < 910
+        "FilePath" `_nameFrom` "GHC.IO"
+#else
+        "FilePath" `_nameFrom` "GHC.Internal.IO"
+#endif
+        |:: []
         ||| stringPattern
         ||| primTypeMeta "[]" |:: [ charPattern ]
 
@@ -345,13 +353,22 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
   where
     pat :: PatternAst
     pat = anyNamesToPatternAst
-        $ "undefined" `baseNameFrom` "GHC.Err" :|
-        [ "unsafeCoerce" `baseNameFrom` "Unsafe.Coerce"
-        , "unsafePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
-        , "unsafeInterleaveIO" `baseNameFrom` "GHC.IO.Unsafe"
-        , "unsafeDupablePerformIO" `baseNameFrom` "GHC.IO.Unsafe"
+#if __GLASGOW_HASKELL__ < 910
+        $ "undefined" `_nameFrom` "GHC.Err" :|
+        [ "unsafeCoerce" `_nameFrom` "Unsafe.Coerce"
+        , "unsafePerformIO" `_nameFrom` "GHC.IO.Unsafe"
+        , "unsafeInterleaveIO" `_nameFrom` "GHC.IO.Unsafe"
+        , "unsafeDupablePerformIO" `_nameFrom` "GHC.IO.Unsafe"
+#else
+        $ "undefined" `_nameFrom` "GHC.Internal.Err" :|
+        [ "unsafeCoerce" `_nameFrom` "GHC.Internal.Unsafe.Coerce"
+        , "unsafePerformIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeInterleaveIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeDupablePerformIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+#endif
         , "unsafeFixIO" `baseNameFrom` "System.IO.Unsafe"
         ]
+
 
 -- | 'Inspection' — Pattent matching on @_@ for sum types — @STAN-0213@.
 stan0213 :: Inspection
