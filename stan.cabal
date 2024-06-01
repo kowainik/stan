@@ -22,8 +22,10 @@ extra-source-files:  test/.stan-example.toml
                      stack-ghc-9.6.3.yaml
                      stack-ghc-9.6.4.yaml
                      stack.yaml
-tested-with:         GHC == 8.8.4
-                     GHC == 8.10.7
+tested-with:         GHC == 9.4.8
+                     GHC == 9.6.5
+                     GHC == 9.8.2
+                     GHC == 9.10.1
 
 source-repository head
   type:                git
