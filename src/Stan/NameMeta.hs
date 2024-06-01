@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -19,6 +21,8 @@ module Stan.NameMeta
 
       -- * Smart constructors
     , baseNameFrom
+    , ghcInternalNameFrom
+    , _nameFrom
     , mkBaseListMeta
     , mkBaseOldListMeta
     , mkBaseFoldableMeta
@@ -126,23 +130,53 @@ baseNameFrom funName moduleName = NameMeta
     , nameMetaPackage    = "base"
     }
 
+infix 8 `ghcInternalNameFrom`
+ghcInternalNameFrom :: Text -> ModuleName -> NameMeta
+ghcInternalNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
+    , nameMetaPackage    = "ghc-internal"
+    }
+
+_nameFrom :: Text -> ModuleName -> NameMeta
+#if __GLASGOW_HASKELL__ < 910
+_nameFrom = baseNameFrom
+#else
+_nameFrom = ghcInternalNameFrom
+#endif
+
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "GHC.List" module.
 -}
 mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta = (`baseNameFrom` "GHC.List")
+mkBaseListMeta =
+#if __GLASGOW_HASKELL__ < 910
+    (`_nameFrom` "GHC.List")
+#else
+    (`_nameFrom` "GHC.Internal.List")
+#endif
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.OldList" module.
 -}
 mkBaseOldListMeta :: Text -> NameMeta
-mkBaseOldListMeta = (`baseNameFrom` "Data.OldList")
+mkBaseOldListMeta =
+#if __GLASGOW_HASKELL__ < 910
+    (`_nameFrom` "Data.OldList")
+#else
+    (`_nameFrom` "GHC.Internal.Data.OldList")
+#endif
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.Foldable" module.
 -}
 mkBaseFoldableMeta :: Text -> NameMeta
-mkBaseFoldableMeta = (`baseNameFrom` "Data.Foldable")
+mkBaseFoldableMeta =
+#if __GLASGOW_HASKELL__ < 910
+    (`_nameFrom` "Data.Foldable")
+#else
+    (`_nameFrom` "GHC.Internal.Data.Foldable")
+#endif
 
 {- | Create 'NameMeta' for a function from the @unordered-containers@ package
 and a given 'ModuleName' module.
