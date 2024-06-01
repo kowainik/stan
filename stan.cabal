@@ -18,10 +18,6 @@ stability:           experimental
 extra-doc-files:     README.md
                      CHANGELOG.md
 extra-source-files:  test/.stan-example.toml
-                     stack-ghc-9.4.8.yaml
-                     stack-ghc-9.6.3.yaml
-                     stack-ghc-9.6.4.yaml
-                     stack.yaml
 tested-with:         GHC == 9.4.8
                      GHC == 9.6.5
                      GHC == 9.8.2
