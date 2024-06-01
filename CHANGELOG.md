@@ -3,6 +3,12 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.1.3.0
+
+* Add prospective support for GHC 9.10
+
+  * thanks to @philderbeast
+
 ## 0.1.2.1
 
 * Support `clay-0.15` series.
