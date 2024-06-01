@@ -1,4 +1,4 @@
-{-# LANGuAGE CPP #-}
+{-# LANGUAGE CPP #-}
 
 {- HLINT ignore "Avoid lambda using `infix`" -}
 
