@@ -1,4 +1,4 @@
-{-# LANGuAGE CPP #-}
+{-# LANGUAGE CPP #-}
 
 {- HLINT ignore "Avoid lambda using `infix`" -}
 
@@ -35,10 +35,15 @@ module Stan.Pattern.Type
     , foldableMethodsPatterns
     ) where
 
-import Stan.NameMeta (NameMeta (..), baseNameFrom, ghcPrimNameFrom, primTypeMeta, textNameFrom,
-                      ghcInternalNameFrom)
+import Stan.Core.ModuleName (ModuleName (..))
+import Stan.NameMeta
+  ( NameMeta (..), baseNameFrom
+#if __GLASGOW_HASKELL__ >= 910
+  , ghcInternalNameFrom
+#endif
+  , ghcPrimNameFrom, primTypeMeta, textNameFrom
+  )
 import Stan.Pattern.Edsl (PatternBool (..))
-
 
 {- | Query pattern used to search types in HIE AST.
 -}
@@ -95,7 +100,12 @@ listPattern :: PatternType
 listPattern =
     listNameMeta |:: [ (?) ]
     |||
-    "String" `ghcInternalNameFrom` "GHC.Internal.Base" |:: []
+#if __GLASGOW_HASKELL__ >= 910
+    "String" `_nameFrom` "GHC.Internal.Base"
+#else
+    "String" `_nameFrom` "GHC.Base"
+#endif
+    |:: []
   where
     listNameMeta :: NameMeta
 #if __GLASGOW_HASKELL__ < 906
@@ -106,7 +116,13 @@ listPattern =
 
 -- | 'PatternType' for 'NonEmpty'.
 nonEmptyPattern :: PatternType
-nonEmptyPattern = "NonEmpty" `ghcInternalNameFrom` "GHC.Internal.Base" |:: [ (?) ]
+nonEmptyPattern =
+#if __GLASGOW_HASKELL__ >= 910
+  "NonEmpty" `_nameFrom` "GHC.Internal.Base"
+#else
+  "NonEmpty" `_nameFrom` "GHC.Base"
+#endif
+  |:: [ (?) ]
 
 -- | 'PatternType' for @[a] -> _@ or @String -> _@.
 listFunPattern :: PatternType
@@ -153,7 +169,13 @@ charPattern = primTypeMeta "Char" |:: []
 
 -- | 'PatternType' for 'String'.
 stringPattern :: PatternType
-stringPattern = "String" `ghcInternalNameFrom` "GHC.Internal.Base" |:: []
+stringPattern =
+#if __GLASGOW_HASKELL__ >= 910
+  "String" `_nameFrom` "GHC.Internal.Base"
+#else
+  "String" `_nameFrom` "GHC.Base"
+#endif
+  |:: []
 
 -- | 'PatternType' for 'Text'.
 textPattern :: PatternType
@@ -169,11 +191,23 @@ foldableTypesPatterns = maybePattern :| [eitherPattern, pairPattern]
 
 -- | 'PatternType' for 'Maybe'
 maybePattern :: PatternType
-maybePattern = "Maybe" `ghcInternalNameFrom` "GHC.Internal.Maybe" |:: [ (?) ]
+maybePattern =
+#if __GLASGOW_HASKELL__ >= 910
+  "Maybe" `_nameFrom` "GHC.Internal.Maybe"
+#else
+  "Maybe" `_nameFrom` "GHC.Maybe"
+#endif
+  |:: [ (?) ]
 
 -- | 'PatternType' for 'Either'
 eitherPattern :: PatternType
-eitherPattern = "Either" `ghcInternalNameFrom` "GHC.Internal.Data.Either" |:: [ (?), (?) ]
+eitherPattern =
+#if __GLASGOW_HASKELL__ >= 910
+  "Either" `_nameFrom` "GHC.Internal.Data.Either"
+#else
+  "Either" `_nameFrom` "Data.Either"
+#endif
+  |:: [ (?), (?) ]
 
 -- | 'PatternType' for pair @(,)@.
 pairPattern :: PatternType
@@ -223,4 +257,16 @@ foldableMethodsPatterns =
     ofType = (,)
 
     method :: Text -> NameMeta
-    method name = name `ghcInternalNameFrom` "GHC.Internal.Data.Foldable"
+    method name =
+#if __GLASGOW_HASKELL__ >= 910
+      name `_nameFrom` "GHC.Internal.Data.Foldable"
+#else
+      name `_nameFrom` "Data.Foldable"
+#endif
+
+_nameFrom :: Text -> ModuleName -> NameMeta
+#if __GLASGOW_HASKELL__ >= 910
+_nameFrom = ghcInternalNameFrom
+#else
+_nameFrom = baseNameFrom
+#endif

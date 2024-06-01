@@ -66,10 +66,15 @@ import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
+import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, analysisL,
                         categoryL, descriptionL, solutionL)
-import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta,
-                      mkBaseOldListMeta, ghcInternalNameFrom)
+import Stan.NameMeta
+  ( NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseListMeta, mkBaseOldListMeta
+#if __GLASGOW_HASKELL__ >= 910
+  , ghcInternalNameFrom
+#endif
+  )
 import Stan.Pattern.Ast (PatternAst (PatternAstName), namesToPatternAst)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
@@ -156,7 +161,12 @@ mkPartialInspectionEnum insId funName pat solution =
     & solutionL .~ solution
   where
     enumMeta :: NameMeta
-    enumMeta = funName `ghcInternalNameFrom` "GHC.Internal.Enum"
+    enumMeta =
+#if __GLASGOW_HASKELL__ >= 910
+      funName `_nameFrom` "GHC.Internal.Enum"
+#else
+      funName `_nameFrom` "GHC.Enum"
+#endif
 
 -- | 'Inspection' — partial 'GHC.List.head' @STAN-0001@.
 stan0001 :: Inspection
@@ -197,7 +207,12 @@ stan0008 = mkPartialInspection (Id "STAN-0008") fromJustNameMeta "'Maybe'"
         ]
   where
     fromJustNameMeta :: NameMeta
-    fromJustNameMeta = "fromJust" `ghcInternalNameFrom` "GHC.Internal.Data.Maybe"
+    fromJustNameMeta =
+#if __GLASGOW_HASKELL__ >= 910
+      "fromJust" `_nameFrom` "GHC.Internal.Data.Maybe"
+#else
+      "fromJust" `_nameFrom` "Data.Maybe"
+#endif
 
 -- | 'Inspection' — partial 'Text.Read.read' @STAN-0009@.
 stan0009 :: Inspection
@@ -208,7 +223,12 @@ stan0009 = mkPartialInspection (Id "STAN-0009") readNameMeta ""
         ]
   where
     readNameMeta :: NameMeta
-    readNameMeta = "read" `ghcInternalNameFrom` "GHC.Internal.Text.Read"
+    readNameMeta =
+#if __GLASGOW_HASKELL__ >= 910
+      "read" `_nameFrom` "GHC.Internal.Text.Read"
+#else
+      "read" `_nameFrom` "Text.Read"
+#endif
 
 -- | 'Inspection' — partial 'GHC.Enum.succ' @STAN-0010@.
 stan0010 :: Inspection
@@ -292,6 +312,17 @@ stan0020 = mkPartialInspectionPattern (Id "STAN-0020") exts pat ""
 stan0021 :: Inspection
 stan0021 = mkPartialInspectionPattern
     (Id "STAN-0021")
-    ("fromInteger" `ghcInternalNameFrom` "GHC.Internal.Num")
+#if __GLASGOW_HASKELL__ >= 910
+    ("fromInteger" `_nameFrom` "GHC.Internal.Num")
+#else
+    ("fromInteger" `_nameFrom` "GHC.Num")
+#endif
     (integerPattern |-> naturalPattern)
     ""
+
+_nameFrom :: Text -> ModuleName -> NameMeta
+#if __GLASGOW_HASKELL__ >= 910
+_nameFrom = ghcInternalNameFrom
+#else
+_nameFrom = baseNameFrom
+#endif

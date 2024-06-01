@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -52,10 +54,16 @@ import Relude.Extra.Lens ((%~), (.~))
 import Relude.Extra.Tuple (fmapToFst)
 
 import Stan.Core.Id (Id (..))
+import Stan.Core.ModuleName (ModuleName (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      primTypeMeta, textNameFrom, unorderedNameFrom, ghcInternalNameFrom)
+import Stan.NameMeta
+  ( NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta
+  , primTypeMeta, textNameFrom, unorderedNameFrom
+#if __GLASGOW_HASKELL__ >= 910
+  , ghcInternalNameFrom
+#endif
+  )
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
@@ -327,7 +335,13 @@ filepathOperator = PatternAstName operatorPosix fun
     This is odd and needs more investigation.
     -}
     filePathType :: PatternType
-    filePathType = "FilePath" `ghcInternalNameFrom` "GHC.Internal.IO" |:: []
+    filePathType =
+#if __GLASGOW_HASKELL__ >= 910
+        "FilePath" `_nameFrom` "GHC.Internal.IO"
+#else
+        "FilePath" `_nameFrom` "GHC.IO"
+#endif
+        |:: []
         ||| stringPattern
         ||| primTypeMeta "[]" |:: [ charPattern ]
 
@@ -345,13 +359,22 @@ stan0212 = mkAntiPatternInspection (Id "STAN-0212") "unsafe functions" (FindAst 
   where
     pat :: PatternAst
     pat = anyNamesToPatternAst
-        $ "undefined" `ghcInternalNameFrom` "GHC.Internal.Err" :|
-        [ "unsafeCoerce" `ghcInternalNameFrom` "GHC.Internal.Unsafe.Coerce"
-        , "unsafePerformIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
-        , "unsafeInterleaveIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
-        , "unsafeDupablePerformIO" `ghcInternalNameFrom` "GHC.Internal.IO.Unsafe"
+#if __GLASGOW_HASKELL__ >= 910
+        $ "undefined" `_nameFrom` "GHC.Internal.Err" :|
+        [ "unsafeCoerce" `_nameFrom` "GHC.Internal.Unsafe.Coerce"
+        , "unsafePerformIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeInterleaveIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+        , "unsafeDupablePerformIO" `_nameFrom` "GHC.Internal.IO.Unsafe"
+#else
+        $ "undefined" `_nameFrom` "GHC.Err" :|
+        [ "unsafeCoerce" `_nameFrom` "Unsafe.Coerce"
+        , "unsafePerformIO" `_nameFrom` "GHC.IO.Unsafe"
+        , "unsafeInterleaveIO" `_nameFrom` "GHC.IO.Unsafe"
+        , "unsafeDupablePerformIO" `_nameFrom` "GHC.IO.Unsafe"
+#endif
         , "unsafeFixIO" `baseNameFrom` "System.IO.Unsafe"
         ]
+
 
 -- | 'Inspection' — Pattent matching on @_@ for sum types — @STAN-0213@.
 stan0213 :: Inspection
@@ -388,3 +411,10 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
     pathLit :: PatternAst
     pathLit = PatternAstConstant (ContainStr "/")
         ||| PatternAstConstant (ContainStr "\\\\")
+
+_nameFrom :: Text -> ModuleName -> NameMeta
+#if __GLASGOW_HASKELL__ >= 910
+_nameFrom = ghcInternalNameFrom
+#else
+_nameFrom = baseNameFrom
+#endif

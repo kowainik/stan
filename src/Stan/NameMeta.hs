@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {- |
 Copyright: (c) 2020 Kowainik
 SPDX-License-Identifier: MPL-2.0
@@ -19,7 +21,9 @@ module Stan.NameMeta
 
       -- * Smart constructors
     , baseNameFrom
+#if __GLASGOW_HASKELL__ >= 910
     , ghcInternalNameFrom
+#endif
     , mkBaseListMeta
     , mkBaseOldListMeta
     , mkBaseFoldableMeta
@@ -127,30 +131,55 @@ baseNameFrom funName moduleName = NameMeta
     , nameMetaPackage    = "base"
     }
 
+#if __GLASGOW_HASKELL__ >= 910
+infix 8 `ghcInternalNameFrom`
 ghcInternalNameFrom :: Text -> ModuleName -> NameMeta
 ghcInternalNameFrom funName moduleName = NameMeta
     { nameMetaName       = funName
     , nameMetaModuleName = moduleName
     , nameMetaPackage    = "ghc-internal"
     }
+#endif
+
+_nameFrom :: Text -> ModuleName -> NameMeta
+#if __GLASGOW_HASKELL__ >= 910
+_nameFrom = ghcInternalNameFrom
+#else
+_nameFrom = baseNameFrom
+#endif
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "GHC.List" module.
 -}
 mkBaseListMeta :: Text -> NameMeta
-mkBaseListMeta = (`ghcInternalNameFrom` "GHC.Internal.List")
+mkBaseListMeta =
+#if __GLASGOW_HASKELL__ >= 910
+    (`_nameFrom` "GHC.Internal.List")
+#else
+    (`_nameFrom` "GHC.List")
+#endif
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.OldList" module.
 -}
 mkBaseOldListMeta :: Text -> NameMeta
-mkBaseOldListMeta = (`ghcInternalNameFrom` "GHC.Internal.Data.OldList")
+mkBaseOldListMeta =
+#if __GLASGOW_HASKELL__ >= 910
+    (`_nameFrom` "GHC.Internal.Data.OldList")
+#else
+    (`_nameFrom` "Data.OldList")
+#endif
 
 {- | Create 'NameMeta' for a function from the @base@ package and
 the "Data.Foldable" module.
 -}
 mkBaseFoldableMeta :: Text -> NameMeta
-mkBaseFoldableMeta = (`ghcInternalNameFrom` "GHC.Internal.Data.Foldable")
+mkBaseFoldableMeta =
+#if __GLASGOW_HASKELL__ >= 910
+    (`_nameFrom` "GHC.Internal.Data.Foldable")
+#else
+    (`_nameFrom` "Data.Foldable")
+#endif
 
 {- | Create 'NameMeta' for a function from the @unordered-containers@ package
 and a given 'ModuleName' module.
