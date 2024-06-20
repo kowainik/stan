@@ -111,7 +111,7 @@ jobs:
         run: echo "BINARY_PATH=./dist/stan" >> "$GITHUB_ENV"
 
       - name: Compress binary
-        uses: svenstaro/upx-action@2.3.0
+        uses: svenstaro/upx-action@2.4.1
         with:
           file: ${{ env.BINARY_PATH }}
 
