@@ -46,6 +46,8 @@ module Stan.Inspection.AntiPattern
       -- *** Anti-pattern: Slashes in paths
     , stan0215
 
+    -- *** Anti-pattern: no variable named foo
+    , dummyFooStan01
       -- * All inspections
     , antiPatternInspectionsMap
     ) where
@@ -87,6 +89,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0213
     , stan0214
     , stan0215
+    , dummyFooStan01
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -405,3 +408,12 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
     pathLit :: PatternAst
     pathLit = PatternAstConstant (ContainStr "/")
         ||| PatternAstConstant (ContainStr "\\\\")
+
+dummyFooStan01 :: Inspection
+dummyFooStan01 = mkAntiPatternInspection (Id "PLU-STAN-01") "no variable named foo"
+           (FindAst $ PatternAstVarName "foo")
+    & descriptionL .~ "Usage of 'foo' as variable name"
+    & solutionL .~
+        [ "change foo to something more descriptive"
+        ]
+    & severityL .~ Performance
