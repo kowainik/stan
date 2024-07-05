@@ -46,9 +46,10 @@ module Stan.Inspection.AntiPattern
       -- *** Anti-pattern: Slashes in paths
     , stan0215
 
-    -- *** Anti-pattern: no variable named foo
-    , dummyFooStan01
-      -- * All inspections
+    -- *** PlutusTx
+    , plustan01
+    , plustan02
+    -- * All inspections
     , antiPatternInspectionsMap
     ) where
 
@@ -59,7 +60,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom)
+                      primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom, plutusTxNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
@@ -89,7 +90,9 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0213
     , stan0214
     , stan0215
-    , dummyFooStan01
+    --, dummyFooStan01
+    , plustan01
+    , plustan02
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -409,11 +412,26 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
     pathLit = PatternAstConstant (ContainStr "/")
         ||| PatternAstConstant (ContainStr "\\\\")
 
-dummyFooStan01 :: Inspection
-dummyFooStan01 = mkAntiPatternInspection (Id "PLU-STAN-01") "no variable named foo"
-           (FindAst $ PatternAstVarName "foo")
-    & descriptionL .~ "Usage of 'foo' as variable name"
+plustan01 :: Inspection
+plustan01 = mkAntiPatternInspection (Id "PLU-STAN-01") "AssocMap unsafeFromList"
+    (FindAst $ PatternAstName unsafeFromListNameMeta (?))
+    & descriptionL .~ "Usage of 'unsafeFromList' can lead to runtime errors"
     & solutionL .~
-        [ "change foo to something more descriptive"
+        [ "{Extra dependency} Switch to ?????"
         ]
     & severityL .~ Performance
+  where
+    unsafeFromListNameMeta :: NameMeta
+    unsafeFromListNameMeta = "unsafeFromList" `plutusTxNameFrom` "PlutusTx.AssocMap"
+
+plustan02 :: Inspection
+plustan02 = mkAntiPatternInspection (Id "PLU-STAN-02") "PlutusTx.UnsafeFromData unsafeFromBuiltinData"
+    (FindAst $ PatternAstName unsafeFromListNameMeta (?))
+    & descriptionL .~ "Usage of 'unsafeFromBuiltinData' can lead to unexpected behavior"
+    & solutionL .~
+        [ "{Extra dependency} Switch to ?????"
+        ]
+    & severityL .~ Performance
+  where
+    unsafeFromListNameMeta :: NameMeta
+    unsafeFromListNameMeta = "unsafeFromBuiltinData" `plutusTxNameFrom` "PlutusTx.IsData.Class"
