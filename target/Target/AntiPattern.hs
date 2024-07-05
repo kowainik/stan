@@ -92,8 +92,3 @@ stanSlashesWindows' = "xxx" </> "asd\\asd"
 
 stanSlashesNo :: FilePath
 stanSlashesNo = "xxx" </> "asd"
-
-fooVariable :: Int
-fooVariable = foo
- where
-  foo = 2

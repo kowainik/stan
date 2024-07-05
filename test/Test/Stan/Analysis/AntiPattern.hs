@@ -31,8 +31,6 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0205 34 19 26
     it "STAN-0205: finds usage of 'length' for 'HashSet'" $
         checkObservation AntiPattern.stan0205 37 21 27
-    it "PLU-STAN-01: no variable named foo" $
-        checkObservation AntiPattern.dummyFooStan01 99 3 6
     strictFieldsSpec analysis
 
 

@@ -189,6 +189,8 @@ library target
                      , scientific
                      , text
                      , unordered-containers
+                     , plutus-tx ^>=1.29
+
   exposed-modules:     Target.AntiPattern
                          Target.AntiPattern.Stan0206
                          Target.AntiPattern.Stan0206Extensions
@@ -198,6 +200,7 @@ library target
                        Target.Infinite
                        Target.Partial
                        Target.Style
+                       Target.PlutusTx
 
 test-suite stan-test
   import:              common-options
@@ -211,6 +214,7 @@ test-suite stan-test
                          Test.Stan.Analysis.Infinite
                          Test.Stan.Analysis.Partial
                          Test.Stan.Analysis.Style
+                         Test.Stan.Analysis.PlutusTx
                        Test.Stan.Cli
                        Test.Stan.Config
                        Test.Stan.Gen
