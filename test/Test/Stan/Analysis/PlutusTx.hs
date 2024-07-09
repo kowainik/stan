@@ -23,4 +23,7 @@ analysisPlutusTxSpec analysis = describe "Plutus-Tx" $ do
     it "PLU-STAN-02: PlutusTx.UnsafeFromData unsafeFromBuiltinData" $
         checkObservation AntiPattern.plustan02 37 3 27
 
+    it "PLU-STAN-03: No usage of Optional types in on-chain code" $
+        checkObservation AntiPattern.plustan03 41 3 18
+
 

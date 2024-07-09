@@ -10,7 +10,7 @@ import qualified Data.List as List
 import qualified Data.Text as Text
 
 import qualified PlutusTx as Tx
-import qualified PlutusTx.Builtins as B
+import qualified PlutusTx.Maybe as Maybe
 import qualified PlutusTx.Prelude as Tx
 import qualified PlutusTx.AssocMap as AssocMap
 import PlutusTx (UnsafeFromData(unsafeFromBuiltinData))
@@ -35,3 +35,7 @@ assocMap = AssocMap.unsafeFromList mempty
 unsafeFromBuiltinData :: Integer
 unsafeFromBuiltinData =
   Tx.unsafeFromBuiltinData (error "we don't care")
+
+fromMaybe01 :: Integer
+fromMaybe01 =
+  Maybe.fromMaybe 2 (Just 1)
