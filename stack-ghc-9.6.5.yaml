@@ -1,4 +1,4 @@
-resolver: lts-22.28 # GHC 9.6.6
+resolver: lts-22.27 # GHC 9.6.5
 
 extra-deps:
 - ansi-wl-pprint-0.6.9@sha256:fb737bc96e2aef34ad595d54ced7a73f648c521ebcb00fe0679aff45ccd49212,2448
