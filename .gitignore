@@ -38,6 +38,7 @@ tags
 
 # IntellijIDEA
 .idea/
+.vim/
 .ideaHaskellLib/
 *.iml
 

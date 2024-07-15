@@ -46,7 +46,11 @@ module Stan.Inspection.AntiPattern
       -- *** Anti-pattern: Slashes in paths
     , stan0215
 
-      -- * All inspections
+    -- *** PlutusTx
+    , plustan01
+    , plustan02
+    , plustan03
+    -- * All inspections
     , antiPatternInspectionsMap
     ) where
 
@@ -57,7 +61,7 @@ import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
 import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
-                      primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom)
+                      primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom, plutusTxNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
@@ -87,6 +91,10 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0213
     , stan0214
     , stan0215
+    --, dummyFooStan01
+    , plustan01
+    , plustan02
+    , plustan03
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -405,3 +413,42 @@ stan0215 = mkAntiPatternInspection (Id "STAN-0215") "Slashes in paths" (FindAst 
     pathLit :: PatternAst
     pathLit = PatternAstConstant (ContainStr "/")
         ||| PatternAstConstant (ContainStr "\\\\")
+
+plustan01 :: Inspection
+plustan01 = mkAntiPatternInspection (Id "PLU-STAN-01") "AssocMap unsafeFromList"
+    (FindAst $ PatternAstName unsafeFromListNameMeta (?))
+    & descriptionL .~ "Usage of 'unsafeFromList' can lead to runtime errors"
+    & solutionL .~
+        [ "{Extra dependency} Switch to ?????"
+        ]
+    & severityL .~ Performance
+  where
+    unsafeFromListNameMeta :: NameMeta
+    unsafeFromListNameMeta = "unsafeFromList" `plutusTxNameFrom` "PlutusTx.AssocMap"
+
+plustan02 :: Inspection
+plustan02 = mkAntiPatternInspection (Id "PLU-STAN-02") "PlutusTx.UnsafeFromData unsafeFromBuiltinData"
+    (FindAst $ PatternAstName unsafeFromBuiltinDataNameMeta (?))
+    & descriptionL .~ "Usage of 'unsafeFromBuiltinData' can lead to unexpected behavior"
+    & solutionL .~
+        [ "{Extra dependency} Switch to ?????"
+        ]
+    & severityL .~ Performance
+  where
+    unsafeFromBuiltinDataNameMeta :: NameMeta
+    unsafeFromBuiltinDataNameMeta  = "unsafeFromBuiltinData" `plutusTxNameFrom` "PlutusTx.IsData.Class"
+
+-- | 'Inspection' — No usage of Optional types in on-chain code.
+-- No use of fromMaybe.
+plustan03 :: Inspection
+plustan03 = mkAntiPatternInspection (Id "PLU-STAN-03") "No usage of Optional types in on-chain code"
+    (FindAst $ PatternAstName useOfFromMaybe (?))
+    & descriptionL .~ "No usage of Optional types in on-chain code. No use of Maybe or Either for on-chain code."
+    & solutionL .~
+        [ "Use fast-fail variants such as `tryFind` instead of `find`",
+          "or variants that hanfle the other-case through a continuation function"
+        ]
+    & severityL .~ Warning
+  where
+    useOfFromMaybe :: NameMeta
+    useOfFromMaybe = "fromMaybe" `plutusTxNameFrom` "PlutusTx.Maybe"

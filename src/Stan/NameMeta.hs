@@ -28,6 +28,7 @@ module Stan.NameMeta
     , mkBaseFoldableMeta
 
     , unorderedNameFrom
+    , plutusTxNameFrom
     , textNameFrom
 
     , ghcPrimNameFrom
@@ -187,6 +188,17 @@ unorderedNameFrom funName moduleName = NameMeta
     { nameMetaName       = funName
     , nameMetaModuleName = moduleName
     , nameMetaPackage    = "unordered-containers"
+    }
+
+{- | Create 'NameMeta' for a function from the @plutus-tx@ package
+and a given 'ModuleName' module.
+-}
+infix 8 `plutusTxNameFrom`
+plutusTxNameFrom :: Text -> ModuleName -> NameMeta
+plutusTxNameFrom funName moduleName = NameMeta
+    { nameMetaName       = funName
+    , nameMetaModuleName = moduleName
+    , nameMetaPackage    = "plutus-tx"
     }
 
 {- | Create 'NameMeta' for a function from the @text@ package

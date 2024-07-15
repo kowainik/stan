@@ -31,8 +31,8 @@ analysisAntiPatternSpec analysis = describe "Anti-patterns" $ do
         checkObservation AntiPattern.stan0205 34 19 26
     it "STAN-0205: finds usage of 'length' for 'HashSet'" $
         checkObservation AntiPattern.stan0205 37 21 27
-
     strictFieldsSpec analysis
+
 
     it "STAN-0207: 'length' for (,)" $
         checkObservation AntiPattern.stan0207 40 19 25
