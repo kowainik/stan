@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 {- |
 Copyright: (c) 2020 Kowainik
@@ -50,6 +51,7 @@ module Stan.Inspection.AntiPattern
     , plustan01
     , plustan02
     , plustan03
+    , plustan04
     -- * All inspections
     , antiPatternInspectionsMap
     ) where
@@ -60,7 +62,7 @@ import Relude.Extra.Tuple (fmapToFst)
 import Stan.Core.Id (Id (..))
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap, categoryL,
                         descriptionL, severityL, solutionL)
-import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
+import Stan.NameMeta (ghcPrimNameFrom, NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
                       primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom, plutusTxNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
                          namesToPatternAst, opApp, range)
@@ -68,6 +70,8 @@ import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType, charPattern, foldableMethodsPatterns, foldableTypesPatterns,
                           listPattern, stringPattern, textPattern, (|->), (|::))
 import Stan.Severity (Severity (..))
+
+import Stan.Core.ModuleName
 
 import qualified Data.List.NonEmpty as NE
 import qualified Stan.Category as Category
@@ -95,6 +99,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , plustan01
     , plustan02
     , plustan03
+    , plustan04
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -452,3 +457,40 @@ plustan03 = mkAntiPatternInspection (Id "PLU-STAN-03") "No usage of Optional typ
   where
     useOfFromMaybe :: NameMeta
     useOfFromMaybe = "fromMaybe" `plutusTxNameFrom` "PlutusTx.Maybe"
+
+plustan04 :: Inspection
+plustan04 = mkAntiPatternInspection (Id "PLU-STAN-04") "Usage of eq instance of ScriptHash/PublicKeyHash/Credential"
+    (FindAst pat)
+    & descriptionL .~ "Usage of eq instance of script-hash / pubkeyhash / payment credential "
+    & solutionL .~
+        [ "Potential staking value theft might want to prefer eq comparison of address" ]
+    & severityL .~ Warning
+  where
+
+    opNames :: [NameMeta]
+    opNames = map opName ["<", "<=", "==", ">", ">="]
+
+    pat = foldl' (\acc x -> acc ||| PatternAstName x fun)
+               (PatternAstNeg PatternAstAnything) opNames
+
+    fun :: PatternType
+    fun = (publicKeyHashPattern ||| scriptHashPattern ||| credentialPattern)
+          |-> (?) |-> (?)
+
+    opName :: Text -> NameMeta
+    opName = (`ghcPrimNameFrom` "GHC.Classes")
+
+    publicKeyHashPattern :: PatternType
+    publicKeyHashPattern = ledgerApiTypePattern "PubKeyHash" "Crypto"
+
+    scriptHashPattern :: PatternType
+    scriptHashPattern = ledgerApiTypePattern "ScriptHash" "Scripts"
+
+    credentialPattern :: PatternType
+    credentialPattern = ledgerApiTypePattern "Credential" "Credential"
+
+    ledgerApiTypePattern name moduleSuffix = NameMeta
+        { nameMetaName       = name
+        , nameMetaModuleName = ModuleName $ "PlutusLedgerApi.V1." <> moduleSuffix
+        , nameMetaPackage    = "plutus-ledger-api"
+        } |:: []

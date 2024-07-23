@@ -16,7 +16,7 @@ import qualified PlutusTx.AssocMap as AssocMap
 import PlutusTx (UnsafeFromData(unsafeFromBuiltinData))
 
 -- Place for future imports
---
+import PlutusLedgerApi.V1 (PubKeyHash(..),Credential(..),ScriptHash(..))
 --
 --
 --
@@ -36,6 +36,31 @@ unsafeFromBuiltinData :: Integer
 unsafeFromBuiltinData =
   Tx.unsafeFromBuiltinData (error "we don't care")
 
-fromMaybe01 :: Integer
-fromMaybe01 =
-  Maybe.fromMaybe 2 (Just 1)
+usageOfPTxMaybe :: Integer
+usageOfPTxMaybe = let
+  x = Maybe.fromMaybe 0 (Maybe.Just 1)
+  in x
+
+pubKeyHashEq :: Bool
+pubKeyHashEq = pubKeyHash == pubKeyHash
+  where
+    pubKeyHash :: PubKeyHash
+    pubKeyHash = error "we don't care"
+
+scriptHashEq :: Bool
+scriptHashEq = scriptHash == scriptHash
+  where
+    scriptHash :: ScriptHash
+    scriptHash = error "we don't care"
+
+credentialHashEq :: Bool
+credentialHashEq = credentialHash == credentialHash
+  where
+    credentialHash :: Credential
+    credentialHash = error "we don't care"
+
+credentialHashLe :: Bool
+credentialHashLe = credentialHash < credentialHash
+  where
+    credentialHash :: Credential
+    credentialHash = error "we don't care"

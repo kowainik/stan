@@ -190,6 +190,7 @@ library target
                      , text
                      , unordered-containers
                      , plutus-tx ^>=1.29
+                     , plutus-ledger-api ^>=1.29
 
   exposed-modules:     Target.AntiPattern
                          Target.AntiPattern.Stan0206
@@ -234,6 +235,9 @@ test-suite stan-test
                      , tomland
                      , trial
                      , unordered-containers
+                     -- This should be removed after the reserach is done
+                     , pretty-show
+                     , pretty-simple
 
   ghc-options:         -threaded
                        -rtsopts
