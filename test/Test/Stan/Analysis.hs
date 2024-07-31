@@ -18,6 +18,9 @@ import Test.Stan.Analysis.Partial (analysisPartialSpec)
 import Test.Stan.Analysis.Style (analysisStyleSpec)
 
 import qualified Data.Set as Set
+--import qualified GHC.Prelude as Prel
+--import GHC.IO (unsafePerformIO)
+--import Text.Pretty.Simple (pPrint)
 
 
 analysisSpec :: [HieFile] -> Spec
@@ -26,6 +29,7 @@ analysisSpec hieFiles = describe "Static Analysis" $ do
     let checksMap = mkDefaultChecks (map hie_hs_file hieFiles)
 
     -- tests without ignorance
+    --(Just myFile) = find ((== "target/Target/PlutusTx.hs") . hie_hs_file) hieFiles
     let analysis = runAnalysis extensionsMap checksMap [] hieFiles
     analysisPartialSpec analysis
     analysisInfiniteSpec analysis
