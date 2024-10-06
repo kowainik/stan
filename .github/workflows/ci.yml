@@ -28,12 +28,11 @@ jobs:
           - "9.0.2"
           # 9.2 series from .4 onwards don't seem to work
           - "9.2.3"
-          - "9.4.1"
-          - "9.4.2"
-          - "9.4.4"
-          - "9.4.5"
-          - "9.4.6"
+          # 9.4 series from don't work with Cabal-syntax-3.14.0.0
+          #
+          # See https://github.com/haskell/cabal/issues/10397
           - "9.4.7"
+          - "9.4.8"
           - "9.6.3"
           - "9.8.1"
           - "9.10.1"
