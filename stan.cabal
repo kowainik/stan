@@ -161,6 +161,10 @@ library
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
+                     , haskell-src-exts
+                     -- This should be removed after the research is done
+                     , pretty-show
+                     , pretty-simple
 
 executable stan
   import:              common-options
@@ -221,7 +225,7 @@ test-suite stan-test
                      , tomland
                      , trial
                      , unordered-containers
-                     -- This should be removed after the reserach is done
+                     -- This should be removed after the research is done
                      , pretty-show
                      , pretty-simple
 
