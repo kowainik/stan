@@ -11,6 +11,7 @@ module Stan
     , runStan
     , getAnalysis
     , getStanConfig
+    , removeOffchain
 
       -- ** Internal
     , createCabalExtensionsMap
@@ -24,7 +25,7 @@ import Trial (Trial (..), prettyTaggedTrial, prettyTrial, prettyTrialWith, trial
               whenResult_)
 
 import Stan.Analysis (Analysis (..), runAnalysis)
-import Stan.Analysis.Pretty (prettyShowAnalysis)
+import Stan.Analysis.Pretty (prettyShowAnalysis, isPlinthObservation)
 import Stan.Browse (openBrowser)
 import Stan.Cabal (createCabalExtensionsMap, usedCabalFiles)
 import Stan.Cli (CliToTomlArgs (..), InspectionArgs (..), ReportArgs (..), StanArgs (..),
@@ -47,7 +48,6 @@ import Stan.Toml (configCodec, getTomlConfig, usedTomlFiles)
 import qualified Toml
 import qualified Slist as Slist
 import qualified Data.Set as Set
-import qualified Data.Text as T
 import Language.Haskell.Exts
 import Stan.FileInfo (FileInfo(..))
 
@@ -88,11 +88,6 @@ getAnalysis StanArgs{..} notJson config hieFiles = do
     -- show what observations are ignored
     pure analysis
 
-isPlutusObservations :: Observation -> Bool
-isPlutusObservations Observation{..} =
-  -- observationInspectionId includes PLU-STAN
-  "PLU-STAN" `T.isInfixOf` unId observationInspectionId
-
 isOnchainObservations :: Set FilePath -> Observation -> Bool
 isOnchainObservations files obs = Set.member (observationFile obs) files
 
@@ -114,13 +109,14 @@ onchainFiles hieFiles = do
   fromList <$> filterM isFileOnchainContract files
 
 onchainCondition :: Set FilePath -> Observation -> Bool
-onchainCondition contracts obs = not (isPlutusObservations obs) || isOnchainObservations contracts obs
+onchainCondition contracts obs = not (isPlinthObservation obs) || isOnchainObservations contracts obs
 
 filterForOnchain :: Set FilePath -> FileInfo -> FileInfo
 filterForOnchain contracts info@FileInfo{..}= info {
   fileInfoObservations = Slist.filter (onchainCondition contracts) fileInfoObservations }
 
-removeOffchain :: [HieFile] ->Analysis -> IO Analysis
+-- TODO: remove IO and everything will be fine
+removeOffchain :: [HieFile] -> Analysis -> IO Analysis
 removeOffchain hieFiles analysis = do
   contracts <- onchainFiles hieFiles
   pure analysis {

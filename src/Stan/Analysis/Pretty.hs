@@ -15,6 +15,7 @@ module Stan.Analysis.Pretty
     , analysisToNumbers
     , prettyHealth
     , toProjectHealth
+    , isPlinthObservation
     ) where
 
 import Colourista.Short (b, i)
@@ -32,6 +33,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Slist as S
+import Stan.Core.Id (Id(unId))
 
 
 {- | Shows analysed output of Stan work.
@@ -51,15 +53,21 @@ prettyShowAnalysis an rs@OutputSettings{..} = case outputSettingsVerbosity of
         $ analysisFileMap an
 
 data AnalysisNumbers = AnalysisNumbers
-    { anModules    :: !Int
-    , anLoc        :: !Int
-    , anExts       :: !Int
-    , anSafeExts   :: !Int
-    , anIns        :: !Int
-    , anFoundObs   :: !Int
-    , anIgnoredObs :: !Int
-    , anHealth     :: !Double
+    { anModules     :: !Int
+    , anLoc         :: !Int
+    , anExts        :: !Int
+    , anSafeExts    :: !Int
+    , anIns         :: !Int
+    , anFoundObs    :: !Int
+    , anIgnoredObs  :: !Int
+    , anFoundPlinth :: !Int
+    , anHealth      :: !Double
     }
+
+isPlinthObservation :: Observation -> Bool
+isPlinthObservation Observation{..} =
+  -- observationInspectionId includes PLU-STAN
+  "PLU-STAN" `Text.isInfixOf` unId observationInspectionId
 
 analysisToNumbers :: Analysis -> AnalysisNumbers
 analysisToNumbers Analysis{..} = AnalysisNumbers
@@ -70,6 +78,7 @@ analysisToNumbers Analysis{..} = AnalysisNumbers
     , anIns        = HS.size analysisInspections
     , anFoundObs   = length analysisObservations
     , anIgnoredObs = length analysisIgnoredObservations
+    , anFoundPlinth = length (S.filter isPlinthObservation analysisObservations)
     , anHealth     = calculatedHealth
     }
   where
@@ -130,6 +139,8 @@ summary AnalysisNumbers{..} = unlines
     , alignText "Total checked inspections" <> alignNum anIns
     , mid
     , alignText "Total found observations" <> alignNum anFoundObs
+    , mid
+    , alignText "Total Plinth observations" <> alignNum anFoundPlinth
     , mid
     , alignText "Total ignored observations" <> alignNum anIgnoredObs
     , mid
