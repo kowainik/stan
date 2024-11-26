@@ -13,6 +13,8 @@ module Stan.Analysis.Visitor
     , addObservations
     , addFixity
     , addOpDecl
+    , addSpecializePragma
+    , addFunToSpecialize
 
     , Visitor (..)
     , visitAst
@@ -22,7 +24,8 @@ import Relude.Extra.Lens (Lens', lens, over)
 
 import Stan.Ghc.Compat (RealSrcSpan)
 import Stan.Hie.Compat (HieAST (..), HieASTs (..), HieFile (..), TypeIndex)
-import Stan.Inspection (inspectionId)
+import Stan.Inspection (Inspection, inspectionId)
+import Stan.Inspection.Performance (stan0401)
 import Stan.Inspection.Style (stan0301)
 import Stan.Observation (Observation, Observations, mkObservation)
 
@@ -35,19 +38,25 @@ import qualified Slist as S
 single HIE AST traversal.
 -}
 data VisitorState = VisitorState
-    { visitorStateObservations :: !Observations
+    { visitorStateObservations      :: !Observations
 
       -- Operators for STAN-0301
-    , visitorStateFixities     :: !(HashMap Text ())
-    , visitorStateOpDecls      :: !(HashMap Text RealSrcSpan)
+    , visitorStateFixities          :: !(HashMap Text ())
+    , visitorStateOpDecls           :: !(HashMap Text RealSrcSpan)
+
+      -- Operators for STAN-0401
+    , visitorStateSpecializePragmas :: !(HashMap Text ())
+    , visitorStateFunsToSpecialize  :: !(HashMap Text RealSrcSpan)
     }
 
 -- | Initial empty state.
 initialVisitorState :: VisitorState
 initialVisitorState = VisitorState
-    { visitorStateObservations = mempty
-    , visitorStateFixities     = mempty
-    , visitorStateOpDecls      = mempty
+    { visitorStateObservations      = mempty
+    , visitorStateFixities          = mempty
+    , visitorStateOpDecls           = mempty
+    , visitorStateSpecializePragmas = mempty
+    , visitorStateFunsToSpecialize  = mempty
     }
 
 {- | Transform 'VisitorState' to the final list of observations for
@@ -62,10 +71,16 @@ finaliseState hie VisitorState{..} =
     -- detected by finding a difference between two sets:
     -- 1. Top-level defined operators
     -- 2. Fixity declarations for operators in module
-    let operatorsWithoutFixity = HM.difference visitorStateOpDecls visitorStateFixities
-        stan0301inss = mkObservation (inspectionId stan0301) hie <$> S.slist (toList operatorsWithoutFixity)
+    let stan0301inss = evalInspections stan0301 visitorStateOpDecls visitorStateFixities
+        stan0401inss = evalInspections stan0401 visitorStateFunsToSpecialize visitorStateSpecializePragmas
     -- combine final observations
-    in visitorStateObservations <> stan0301inss
+    in visitorStateObservations
+    <> stan0301inss
+    <> stan0401inss
+  where
+    evalInspections :: Inspection -> HashMap Text RealSrcSpan -> HashMap Text () -> Observations
+    evalInspections ins mapOfAll mapExclude = mkObservation (inspectionId ins) hie <$>
+        S.slist (toList $ HM.difference mapOfAll mapExclude)
 
 -- | Get sized list of all 'Observations' from the given HIE file
 -- using the created 'Visitor'.
@@ -93,6 +108,16 @@ opDeclsL = lens
     visitorStateOpDecls
     (\vstate new -> vstate { visitorStateOpDecls = new })
 
+specializePragmasL :: Lens' VisitorState (HashMap Text ())
+specializePragmasL = lens
+    visitorStateSpecializePragmas
+    (\vstate new -> vstate { visitorStateSpecializePragmas = new })
+
+funsToSpecializeL :: Lens' VisitorState (HashMap Text RealSrcSpan)
+funsToSpecializeL = lens
+    visitorStateFunsToSpecialize
+    (\vstate new -> vstate { visitorStateFunsToSpecialize = new })
+
 -- | Add single 'Observation' to the existing 'VisitorState'.
 addObservation :: Observation -> State VisitorState ()
 addObservation obs = modify' $ over observationsL (S.one obs <>)
@@ -110,6 +135,14 @@ addFixity fixity = modify' $ over fixitiesL (HM.insert fixity ())
 -- | Add single operator top-level defintion with its position.
 addOpDecl :: Text -> RealSrcSpan -> State VisitorState ()
 addOpDecl opDecl srcSpan = modify' $ over opDeclsL (HM.insert opDecl srcSpan)
+
+-- | Add single specialize pragma declaration declaration.
+addSpecializePragma :: Text -> State VisitorState ()
+addSpecializePragma pragma = modify' $ over specializePragmasL (HM.insert pragma ())
+
+-- | Add single function that could be specialized top-level defintion with its position.
+addFunToSpecialize :: Text -> RealSrcSpan -> State VisitorState ()
+addFunToSpecialize fun srcSpan = modify' $ over funsToSpecializeL (HM.insert fun srcSpan)
 
 -- | Object that implements the /Visitor pattern/.
 newtype Visitor = Visitor
