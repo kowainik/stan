@@ -56,7 +56,14 @@ module Stan.Inspection.Partial
     , stan0020
       -- *** Partial instance for 'Natural' method 'GHC.Num.fromInteger'
     , stan0021
-
+      -- *** Partial instance for 'Scientific' method 'GHC.Real.fromRational'
+    , stan0022
+      -- *** Partial 'Scientific' function 'GHC.Real.realToFrac'
+    , stan0023
+      -- *** Partial instance for 'Scientific' method 'GHC.Real.recip'
+    , stan0024
+      -- *** Partial instance for 'Scientific' method 'GHC.Real.(/)'
+    , stan0025
       -- * List of all partial 'Inspection's
     , partialInspectionsMap
     ) where
@@ -73,7 +80,7 @@ import Stan.NameMeta (NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseLis
 import Stan.Pattern.Ast (PatternAst (PatternAstName), namesToPatternAst)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType (..), integerPattern, listFunPattern, listPattern,
-                          naturalPattern, nonEmptyPattern, (|->))
+                          naturalPattern, nonEmptyPattern, rationalPattern, scientificPattern, (|->))
 import Stan.Severity (Severity (..))
 
 import qualified Stan.Category as Category
@@ -103,6 +110,10 @@ partialInspectionsMap = fromList $ fmapToFst inspectionId
     , stan0019
     , stan0020
     , stan0021
+    , stan0022
+    , stan0023
+    , stan0024
+    , stan0025
     ]
 
 -- | Smart constructor to create generic partial 'Inspection' with a given 'Pattern'.
@@ -314,3 +325,65 @@ stan0021 = mkPartialInspectionPattern
 #endif
     (integerPattern |-> naturalPattern)
     ""
+
+-- | 'Inspection' — partial 'GHC.Real.fromRational' @STAN-0022@.
+stan0022 :: Inspection
+stan0022 = mkPartialInspectionPattern
+    (Id "STAN-0022")
+#if __GLASGOW_HASKELL__ < 910
+    ("fromRational" `_nameFrom` "GHC.Real")
+#else
+    ("fromRational" `_nameFrom` "GHC.Internal.Real")
+#endif
+    (rationalPattern |-> scientificPattern)
+    "Scientific"
+    & solutionL .~
+        [ "Use a function like 'Data.Scientific.fromRationalRepetend' that handles repeating decimals"
+        , "Convert to a fractional type like 'Double'"
+        ]
+
+-- | 'Inspection' — partial 'GHC.Real.realToFrac' @STAN-0023@.
+stan0023 :: Inspection
+stan0023 = mkPartialInspectionPattern
+    (Id "STAN-0023")
+#if __GLASGOW_HASKELL__ < 910
+    ("realToFrac" `_nameFrom` "GHC.Real")
+#else
+    ("realToFrac" `_nameFrom` "GHC.Internal.Real")
+#endif
+    ((?) |-> scientificPattern)
+    "Scientific"
+    & solutionL .~
+        [ "Use 'Data.Scientific.fromFloatDigits'"
+        , "use a function that handles repeating decimals, e.g. 'Data.Scientific.fromRationalRepetend . toRational'"
+        ]
+
+-- | 'Inspection' - partial 'GHC.Real.recip' @STAN-0024@
+stan0024 :: Inspection
+stan0024 = mkPartialInspectionPattern
+    (Id "STAN-0024")
+#if __GLASGOW_HASKELL__ < 910
+    ("recip" `_nameFrom` "GHC.Real")
+#else
+    ("recip" `_nameFrom` "GHC.Internal.Real")
+#endif
+    (scientificPattern |-> scientificPattern)
+    "Scientific"
+    & solutionL .~
+        [ "Convert to a fractional type like 'Double'"
+        ]
+
+-- | 'Inspection' - partial 'GHC.Real.(/)' @STAN-0025@
+stan0025 :: Inspection
+stan0025 = mkPartialInspectionPattern
+    (Id "STAN-0025")
+#if __GLASGOW_HASKELL__ < 910
+    ("/" `_nameFrom` "GHC.Real")
+#else
+    ("/" `_nameFrom` "GHC.Internal.Real")
+#endif
+    (scientificPattern |-> scientificPattern |-> scientificPattern)
+    "Scientific"
+    & solutionL .~
+        [ "Convert to a fractional type like 'Double'"
+        ]

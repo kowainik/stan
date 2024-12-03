@@ -8,6 +8,7 @@ import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (fromJust)
 import GHC.Exts (fromList)
 import Numeric.Natural (Natural)
+import Data.Scientific (Scientific)
 
 import qualified Data.List.NonEmpty as NE
 
@@ -74,6 +75,18 @@ stanFromList = fromList
 
 stanFromInteger :: Integer -> Natural
 stanFromInteger = fromInteger
+
+stanFromRational :: Rational -> Scientific
+stanFromRational = fromRational
+
+stanRealToFrac :: Real a => a -> Scientific
+stanRealToFrac = realToFrac
+
+stanRecip :: Scientific -> Scientific
+stanRecip = recip
+
+stanDivide :: Scientific -> Scientific -> Scientific
+stanDivide a b = a / b
 
 -- Other tests
 

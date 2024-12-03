@@ -24,6 +24,8 @@ module Stan.Pattern.Type
     , listFunPattern
     , integerPattern
     , naturalPattern
+    , rationalPattern
+    , scientificPattern
 
       -- ** Textual types
     , charPattern
@@ -157,6 +159,24 @@ naturalPattern = NameMeta
     } |:: []
 
 #endif
+
+rationalPattern :: PatternType
+rationalPattern =
+  "Rational" `_nameFrom` moduleName |:: []
+  where
+    moduleName =
+#if __GLASGOW_HASKELL__ >= 910
+      "GHC.Internal.Real"
+#else
+      "GHC.Real"
+#endif
+
+scientificPattern :: PatternType
+scientificPattern = NameMeta
+    { nameMetaName = "Scientific"
+    , nameMetaModuleName = "Data.Scientific"
+    , nameMetaPackage = "scientific"
+    } |:: []
 
 charPattern :: PatternType
 charPattern = primTypeMeta "Char" |:: []
