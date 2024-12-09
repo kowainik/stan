@@ -33,8 +33,8 @@ jobs:
           # See https://github.com/haskell/cabal/issues/10397
           - "9.4.7"
           - "9.4.8"
-          - "9.6.3"
-          - "9.8.1"
+          - "9.6.6"
+          - "9.8.2"
           - "9.10.1"
 
         exclude:
@@ -98,15 +98,15 @@ jobs:
       run: |
         cabal run stan
 
-  # As at 2024-07-10, the GitHub-hosted runner for ubuntu-latest comes with
-  # Stack 2.15.7 and GHC 9.10.1.
+  # As at 2024-12-09, the GitHub-hosted runner for ubuntu-latest comes with
+  # Stack 3.1.1 and GHC 9.10.1.
   stack:
     name: stack / ghc ${{ matrix.ghc }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: ["9.6.6"] # The version specified in the stack.yaml file
-        cache-bust: ["2024-07-10"]
+        ghc: ["9.8.4"] # The version specified in the stack.yaml file
+        cache-bust: ["2024-12-09"]
 
     steps:
     - name: Clone project

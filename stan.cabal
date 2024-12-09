@@ -22,6 +22,7 @@ extra-source-files:  test/.stan-example.toml
                      stack-ghc-9.6.3.yaml
                      stack-ghc-9.6.4.yaml
                      stack-ghc-9.6.5.yaml
+                     stack-ghc-9.6.6.yaml
                      stack.yaml
 tested-with:         GHC == 8.8.4
                      GHC == 8.10.7
