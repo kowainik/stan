@@ -1,4 +1,4 @@
-resolver: lts-21.25 # GHC 9.4.8
+snapshot: lts-21.25 # GHC 9.4.8
 
 extra-deps:
 - clay-0.15.0@sha256:33a5b5d30186b03a32b66e9391e7ee9a213084643b583444038ba8f96223da78,2269
