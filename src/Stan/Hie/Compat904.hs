@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
 module Stan.Hie.Compat904
-#if __GLASGOW_HASKELL__ == 904 || __GLASGOW_HASKELL__ == 906 || __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__== 910
+#if __GLASGOW_HASKELL__ == 904 || __GLASGOW_HASKELL__ == 906 || __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__== 910 || __GLASGOW_HASKELL__== 912
     ( -- * Main HIE types
       ContextInfo (..)
     , HieArgs (..)
@@ -108,4 +108,3 @@ eqDeclType (DeclType d1) d2 = d1 == d2
 #else
   () where
 #endif
-
