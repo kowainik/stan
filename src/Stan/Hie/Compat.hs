@@ -16,4 +16,6 @@ import Stan.Hie.Compat904 as Compat
 import Stan.Hie.Compat904 as Compat
 #elif __GLASGOW_HASKELL__ == 910
 import Stan.Hie.Compat904 as Compat
+#elif __GLASGOW_HASKELL__ == 912
+import Stan.Hie.Compat904 as Compat
 #endif
