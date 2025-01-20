@@ -3,6 +3,20 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.2.0.0
+
+* Add the following inspections:
+
+    * Partial instance for 'Scientific' method 'GHC.Real.fromRational' (`stan0022`)
+    * Partial 'Scientific' function 'GHC.Real.realToFrac' (`stan0023`)
+    * Partial instance for 'Scientific' method 'GHC.Real.recip' (`stan0024`)
+    * Partial instance for 'Scientific' method 'GHC.Real.(/)' (`stan0025`)
+
+  Since these change the behaviour of `stan` by default this is a
+  major release.
+
+* Support GHC 9.12 (thanks to @ncaq)
+
 ## 0.1.3.0
 
 * Add prospective support for GHC 9.10
