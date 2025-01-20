@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                stan
-version:             0.1.3.0
+version:             0.2.0.0
 synopsis:            Haskell STatic ANalyser
 description:
     Stan is a Haskell __ST__atic __AN__alysis CLI tool.
