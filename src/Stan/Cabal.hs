@@ -120,6 +120,7 @@ getSubdirsRecursive fp = do
            d /= "dist"
         && d /= "dist-newstyle"
         && d /= ".stack-work"
+        && d /= ".git"
 
     mkRel :: FilePath -> FilePath
     mkRel = (fp </>)
