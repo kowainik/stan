@@ -98,9 +98,8 @@ findCabalFileDir dir = do
     dirContent <- listDirectory dir
     let cabalFiles = filter isCabal dirContent
     pure $ case cabalFiles of
-        []          -> Nothing -- throwError $ NoCabalFile dirPath
-        [cabalFile] -> Just $ dir </> cabalFile
-        x:_xs       -> Just x -- throwError $ MultipleCabalFiles (x :| xs)
+        []            -> Nothing
+        cabalFile : _ -> Just $ dir </> cabalFile
   where
     isCabal :: FilePath -> Bool
     isCabal p = takeExtension p == ".cabal"
