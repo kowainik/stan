@@ -6,6 +6,8 @@ Maintainer: Kowainik <xrom.xkov@gmail.com>
 Functions to work with cabal files and cabal extension maps.
 -}
 
+{-# LANGUAGE QuasiQuotes #-}
+
 module Stan.Cabal
     ( createCabalExtensionsMap
     , usedCabalFiles
@@ -27,6 +29,8 @@ import System.IO.Unsafe (unsafeInterleaveIO)
 import Stan.Hie.Compat (HieFile (..))
 
 import qualified Data.Map.Strict as Map
+import qualified System.OsPath as OsPath
+import qualified System.Directory.OsPath as OsPath
 
 
 {- | Gets the list of @.cabal@ file paths that were used in the project.
@@ -106,24 +110,30 @@ findCabalFileDir dir = do
 
 getSubdirsRecursive :: FilePath -> IO [FilePath]
 getSubdirsRecursive fp = do
-    all' <- filter nonGenDir <$> listDirectory fp
-    dirs <- filterM doesDirectoryExist (mkRel <$> all')
+    f <- OsPath.encodeFS fp
+    res <- getSubdirsRecursiveOs f
+    traverse OsPath.decodeFS res
+
+getSubdirsRecursiveOs :: OsPath.OsPath -> IO [OsPath.OsPath]
+getSubdirsRecursiveOs fp = do
+    all' <- filter nonGenDir <$> OsPath.listDirectory fp
+    dirs <- filterM OsPath.doesDirectoryExist (mkRel <$> all')
     case dirs of
         [] -> pure []
         ds -> do
             -- unsafeInterleaveIO is required here for performance reasons
-            next <- unsafeInterleaveIO $ foldMapA getSubdirsRecursive ds
+            next <- unsafeInterleaveIO $ foldMapA getSubdirsRecursiveOs ds
             pure $ dirs ++ next
   where
-    nonGenDir :: FilePath -> Bool
+    nonGenDir :: OsPath.OsPath -> Bool
     nonGenDir d =
-           d /= "dist"
-        && d /= "dist-newstyle"
-        && d /= ".stack-work"
-        && d /= ".git"
+           d /= [OsPath.osp|dist|]
+        && d /= [OsPath.osp|dist-newstyle|]
+        && d /= [OsPath.osp|.stack-work|]
+        && d /= [OsPath.osp|.git|]
 
-    mkRel :: FilePath -> FilePath
-    mkRel = (fp </>)
+    mkRel :: OsPath.OsPath -> OsPath.OsPath
+    mkRel = (fp OsPath.</>)
 
 mergeParsedExtensions
     :: Either ExtensionsError ParsedExtensions
