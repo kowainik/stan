@@ -21,16 +21,17 @@ import Colourista (errorMessage, infoMessage, warningMessage)
 import Control.Exception (catch)
 import Extensions (CabalException, ExtensionsError (..), ExtensionsResult, ParsedExtensions (..),
                    mergeAnyExtensions, parseCabalFileExtensions)
-import System.Directory (doesDirectoryExist, doesFileExist, getCurrentDirectory, listDirectory,
-                         makeRelativeToCurrentDirectory)
-import System.FilePath (takeExtension, (</>))
-import System.IO.Unsafe (unsafeInterleaveIO)
+import System.Directory (doesFileExist, makeRelativeToCurrentDirectory)
 
 import Stan.Hie.Compat (HieFile (..))
 
 import qualified Data.Map.Strict as Map
 import qualified System.OsPath as OsPath
 import qualified System.Directory.OsPath as OsPath
+import qualified System.Directory.OsPath.Streaming as OPS
+import qualified System.Directory.OsPath.Types as OPS
+import qualified Data.IORef as IORef
+import qualified Data.Set as S
 
 
 {- | Gets the list of @.cabal@ file paths that were used in the project.
@@ -89,51 +90,37 @@ subdirectories. It returns maximum 1 @.cabal@ file from each directory.
 -}
 findCabalFiles :: IO [FilePath]
 findCabalFiles = do
-    dir <- getCurrentDirectory
-    curDirCabal <- findCabalFileDir dir
-    dirs <- getSubdirsRecursive dir
-    subDirsCabals <- mapM findCabalFileDir dirs
-    pure $ catMaybes $ curDirCabal : subDirsCabals
-
--- | Find a @.cabal@ file in the given directory.
--- TODO: better error handling in stan.
-findCabalFileDir :: FilePath -> IO (Maybe FilePath)
-findCabalFileDir dir = do
-    dirContent <- listDirectory dir
-    let cabalFiles = filter isCabal dirContent
-    pure $ case cabalFiles of
-        []            -> Nothing
-        cabalFile : _ -> Just $ dir </> cabalFile
+    setRef <- IORef.newIORef S.empty -- stores the directories where we already found 1 cabal file
+    root <- OsPath.getCurrentDirectory
+    traverse OsPath.decodeFS =<<
+        OPS.listContentsRecFold
+           Nothing -- Depth limit
+            (\_ _ (OPS.Relative _dirRelPath) (OPS.Basename dirBasename)  _symlinkType _consDirToList traverseThisSubdir rest ->
+                 if visitCurrSubdirPred dirBasename -- if this condition is satisfied
+                 then traverseThisSubdir rest -- True -> then this subdir will be traversed
+                 else rest -- False -> else, this subdir will not be traversed
+                ) -- how to fold this directory and its children, given its path
+            (\_ _ (OPS.Relative path) (OPS.Basename fileBasename) _ft -> do
+                  let parentDir = OsPath.takeDirectory path
+                  set <- IORef.readIORef setRef
+                  if not (S.member parentDir set) && collectPred fileBasename -- if this condition is satisfied
+                  then do
+                        IORef.writeIORef setRef $  S.insert parentDir set -- we add the parentDir of this file, to prevent adding more than 1 .cabal file
+                        pure (Just path) -- True -> then this path will be added to the results (because @path@ is already relative, we no longer need @mkRel@)
+                  else pure Nothing -- False -> else, this path wont be added
+                )
+            (Identity root) -- (f a), list of roots to search in
   where
-    isCabal :: FilePath -> Bool
-    isCabal p = takeExtension p == ".cabal"
-
-getSubdirsRecursive :: FilePath -> IO [FilePath]
-getSubdirsRecursive fp = do
-    f <- OsPath.encodeFS fp
-    res <- getSubdirsRecursiveOs f
-    traverse OsPath.decodeFS res
-
-getSubdirsRecursiveOs :: OsPath.OsPath -> IO [OsPath.OsPath]
-getSubdirsRecursiveOs fp = do
-    all' <- filter nonGenDir <$> OsPath.listDirectory fp
-    dirs <- filterM OsPath.doesDirectoryExist (mkRel <$> all')
-    case dirs of
-        [] -> pure []
-        ds -> do
-            -- unsafeInterleaveIO is required here for performance reasons
-            next <- unsafeInterleaveIO $ foldMapA getSubdirsRecursiveOs ds
-            pure $ dirs ++ next
-  where
-    nonGenDir :: OsPath.OsPath -> Bool
-    nonGenDir d =
+    visitCurrSubdirPred :: OsPath.OsPath -> Bool
+    visitCurrSubdirPred d =
            d /= [OsPath.osp|dist|]
         && d /= [OsPath.osp|dist-newstyle|]
         && d /= [OsPath.osp|.stack-work|]
         && d /= [OsPath.osp|.git|]
 
-    mkRel :: OsPath.OsPath -> OsPath.OsPath
-    mkRel = (fp OsPath.</>)
+    collectPred :: OsPath.OsPath -> Bool
+    collectPred p =
+        OsPath.takeExtension p == [OsPath.osp|.cabal|]
 
 mergeParsedExtensions
     :: Either ExtensionsError ParsedExtensions
