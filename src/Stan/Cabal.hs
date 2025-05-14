@@ -7,6 +7,7 @@ Functions to work with cabal files and cabal extension maps.
 -}
 
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 module Stan.Cabal
     ( createCabalExtensionsMap
@@ -26,12 +27,18 @@ import System.Directory (doesFileExist, makeRelativeToCurrentDirectory)
 import Stan.Hie.Compat (HieFile (..))
 
 import qualified Data.Map.Strict as Map
+#if __GLASGOW_HASKELL__ < 906
+import System.IO.Unsafe (unsafeInterleaveIO)
+import qualified System.Directory as FilePath
+import qualified System.FilePath as FilePath
+#else
 import qualified System.OsPath as OsPath
 import qualified System.Directory.OsPath as OsPath
 import qualified System.Directory.OsPath.Streaming as OPS
 import qualified System.Directory.OsPath.Types as OPS
 import qualified Data.IORef as IORef
 import qualified Data.Set as S
+#endif
 
 
 {- | Gets the list of @.cabal@ file paths that were used in the project.
@@ -89,7 +96,60 @@ createCabalExtensionsMap isLoud cabalPath hies = case cabalPath of
 subdirectories. It returns maximum 1 @.cabal@ file from each directory.
 -}
 findCabalFiles :: IO [FilePath]
-findCabalFiles = do
+findCabalFiles =
+#if __GLASGOW_HASKELL__ < 906
+    findCabalFilesFilePath
+#else
+    findCabalFilesStreaming
+#endif
+
+#if __GLASGOW_HASKELL__ < 906
+findCabalFilesFilePath :: IO [FilePath]
+findCabalFilesFilePath = do
+    dir <- FilePath.getCurrentDirectory
+    curDirCabal <- findCabalFileFilePath dir
+    dirs <- getSubdirsRecursiveFilePath dir
+    subDirsCabals <- mapM findCabalFileFilePath dirs
+    pure $ catMaybes $ curDirCabal : subDirsCabals
+  where
+    -- | Find a @.cabal@ file in the given directory.
+    -- TODO: better error handling in stan.
+    findCabalFileFilePath :: FilePath -> IO (Maybe FilePath)
+    findCabalFileFilePath dir = do
+        dirContent <- FilePath.listDirectory dir
+        let cabalFiles = filter isCabal dirContent
+        pure $ case cabalFiles of
+            []            -> Nothing
+            cabalFile : _ -> Just $ dir FilePath.</> cabalFile
+      where
+        isCabal :: FilePath -> Bool
+        isCabal p = FilePath.takeExtension p == ".cabal"
+
+    getSubdirsRecursiveFilePath :: FilePath -> IO [FilePath]
+    getSubdirsRecursiveFilePath fp = do
+        all' <- filter nonGenDir <$> FilePath.listDirectory fp
+        dirs <- filterM FilePath.doesDirectoryExist (mkRel <$> all')
+        case dirs of
+            [] -> pure []
+            ds -> do
+                -- unsafeInterleaveIO is required here for performance reasons
+                next <- unsafeInterleaveIO $ foldMapA getSubdirsRecursiveFilePath ds
+                pure $ dirs ++ next
+      where
+        nonGenDir :: FilePath -> Bool
+        nonGenDir d =
+               d /= "dist"
+            && d /= "dist-newstyle"
+            && d /= ".stack-work"
+            && d /= ".git"
+
+        mkRel :: FilePath -> FilePath
+        mkRel = (fp FilePath.</>)
+
+#else
+-- Fix for https://github.com/haskell/haskell-language-server/issues/4515
+findCabalFilesStreaming :: IO [FilePath]
+findCabalFilesStreaming = do
     setRef <- IORef.newIORef S.empty -- stores the directories where we already found 1 cabal file
     root <- OsPath.getCurrentDirectory
     traverse OsPath.decodeFS =<<
@@ -121,6 +181,7 @@ findCabalFiles = do
     collectPred :: OsPath.OsPath -> Bool
     collectPred p =
         OsPath.takeExtension p == [OsPath.osp|.cabal|]
+#endif
 
 mergeParsedExtensions
     :: Either ExtensionsError ParsedExtensions
