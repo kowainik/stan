@@ -31,6 +31,12 @@ source-repository head
   type:                git
   location:            https://github.com/kowainik/stan.git
 
+flag directory-ospath-streaming
+  default: True
+  manual: False
+  description:
+    Whether to use directory-ospath-streaming. Should be false with 9.6 > ghc.
+
 common common-options
   build-depends:       base >= 4.13 && < 4.22 && (< 4.16.3.0 || >= 4.17)
                        -- ^^ .hie files don't contain enough type
@@ -163,7 +169,7 @@ library
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
-  if impl(ghc >= 9.6)
+  if flag(directory-ospath-streaming)
     build-depends:
                      directory-ospath-streaming ^>= 0.2
 

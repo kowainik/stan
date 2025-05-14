@@ -6,8 +6,10 @@ Maintainer: Kowainik <xrom.xkov@gmail.com>
 Functions to work with cabal files and cabal extension maps.
 -}
 
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE CPP #-}
+#ifdef MIN_VERSION_directory_ospath_streaming
+{-# LANGUAGE QuasiQuotes #-}
+#endif
 
 module Stan.Cabal
     ( createCabalExtensionsMap
@@ -27,7 +29,7 @@ import System.Directory (doesFileExist, makeRelativeToCurrentDirectory)
 import Stan.Hie.Compat (HieFile (..))
 
 import qualified Data.Map.Strict as Map
-#if __GLASGOW_HASKELL__ < 906
+#ifndef MIN_VERSION_directory_ospath_streaming
 import System.IO.Unsafe (unsafeInterleaveIO)
 import qualified System.Directory as FilePath
 import qualified System.FilePath as FilePath
@@ -36,7 +38,6 @@ import qualified System.OsPath as OsPath
 import qualified System.Directory.OsPath as OsPath
 import qualified System.Directory.OsPath.Streaming as OPS
 import qualified System.Directory.OsPath.Types as OPS
-import qualified Data.IORef as IORef
 import qualified Data.Set as S
 #endif
 
@@ -97,13 +98,13 @@ subdirectories. It returns maximum 1 @.cabal@ file from each directory.
 -}
 findCabalFiles :: IO [FilePath]
 findCabalFiles =
-#if __GLASGOW_HASKELL__ < 906
+#ifndef MIN_VERSION_directory_ospath_streaming
     findCabalFilesFilePath
 #else
     findCabalFilesStreaming
 #endif
 
-#if __GLASGOW_HASKELL__ < 906
+#ifndef MIN_VERSION_directory_ospath_streaming
 findCabalFilesFilePath :: IO [FilePath]
 findCabalFilesFilePath = do
     dir <- FilePath.getCurrentDirectory
@@ -150,7 +151,7 @@ findCabalFilesFilePath = do
 -- Fix for https://github.com/haskell/haskell-language-server/issues/4515
 findCabalFilesStreaming :: IO [FilePath]
 findCabalFilesStreaming = do
-    setRef <- IORef.newIORef S.empty -- stores the directories where we already found 1 cabal file
+    setRef <- newIORef S.empty -- stores the directories where we already found 1 cabal file
     root <- OsPath.getCurrentDirectory
     traverse OsPath.decodeFS =<<
         OPS.listContentsRecFold
@@ -162,10 +163,10 @@ findCabalFilesStreaming = do
                 ) -- how to fold this directory and its children, given its path
             (\_ _ (OPS.Relative path) (OPS.Basename fileBasename) _ft -> do
                   let parentDir = OsPath.takeDirectory path
-                  set <- IORef.readIORef setRef
+                  set <- readIORef setRef
                   if not (S.member parentDir set) && collectPred fileBasename -- if this condition is satisfied
                   then do
-                        IORef.writeIORef setRef $  S.insert parentDir set -- we add the parentDir of this file, to prevent adding more than 1 .cabal file
+                        writeIORef setRef $  S.insert parentDir set -- we add the parentDir of this file, to prevent adding more than 1 .cabal file
                         pure (Just path) -- True -> then this path will be added to the results (because @path@ is already relative, we no longer need @mkRel@)
                   else pure Nothing -- False -> else, this path wont be added
                 )
