@@ -12,3 +12,8 @@ extra-deps:
 - trial-0.0.0.0@sha256:eaefa22bf10b04a9149ef0231cfd5e42ff47534221d4cf4ad3d7653090c54d23,4410
 - trial-optparse-applicative-0.0.0.0@sha256:3ca376f1361a3b623a52b8db8e178cdca5f2e6e3954d217b874a9af823ab6c06,2540
 - trial-tomland-0.0.0.0@sha256:5dc32bd4003dc84565170e316576eb7a0c1cea3e8b8b3815d5f509b4a40577fd,2541
+- directory-ospath-streaming-0.2.2@sha256:8931b9ce6e63bf6202dc0c992ae3e6f2ad8e7f4b6eb69994ac6d512c6c9c0f77,3410
+
+flags:
+  directory-ospath-streaming:
+    os-string: false
