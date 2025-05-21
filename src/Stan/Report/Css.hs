@@ -15,7 +15,7 @@ module Stan.Report.Css
 
 import Prelude hiding (div, rem, (&), (**))
 
-import Clay hiding (brown, cols, grid, border, borderRight, borderTop, borderLeft, borderBottom)
+import Clay hiding ((%), brown, cols, grid, border, borderRight, borderTop, borderLeft, borderBottom)
 import qualified Clay
 
 import qualified Clay.Media as M
