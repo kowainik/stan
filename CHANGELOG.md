@@ -3,6 +3,17 @@
 `stan` uses [PVP Versioning][1].
 The change log is available [on GitHub][2].
 
+## 0.2.1.0
+
+* Fix high memory usage in finding Cabal files
+
+  See:
+  https://github.com/kowainik/stan/pull/586#issuecomment-2906713949
+
+  Thanks to @0rphee
+
+* Support `clay-0.16`
+
 ## 0.2.0.0
 
 * Add the following inspections:
