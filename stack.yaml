@@ -1,19 +1,8 @@
-snapshot: lts-23.0 # GHC 9.8.4
+snapshot: lts-24.0 # GHC 9.10.2
 
 extra-deps:
-- ansi-wl-pprint-0.6.9@sha256:fb737bc96e2aef34ad595d54ced7a73f648c521ebcb00fe0679aff45ccd49212,2448
-- ansi-terminal-1.0.2@sha256:1f90bb88e670ce63fbf2c9216d50857f2419582f1c6791e542c3eab97ecfd364,2897
-- ansi-terminal-types-0.11.5@sha256:f78440dfd95c4509e88855ac7cc2d9566ddf956a92c1290404cac93ad1a1b00a,1482
 - dir-traverse-0.2.3.0@sha256:adcc128f201ff95131b15ffe41365dc99c50dc3fa3a910f021521dc734013bfa,2137
-- extensions-0.1.0.1@sha256:131270f3dd3adfa96e48259a200b7303c4f8211f54bff168fb8020dfef2aaec7,5269
-- hedgehog-1.4@sha256:9860ab34ab3951d9515c71b777d8c9c47610aae7339933e17d26ad9a4afa5618,4754
-- hspec-hedgehog-0.1.1.0
-- optparse-applicative-0.17.1.0@sha256:cb5f5f0dc9749846fc0e3df0041a8efee6368cc1cff07336acd4c3b02a951ed6,5147
+- extensions-0.1.0.2
 - trial-0.0.0.0@sha256:eaefa22bf10b04a9149ef0231cfd5e42ff47534221d4cf4ad3d7653090c54d23,4410
 - trial-optparse-applicative-0.0.0.0@sha256:3ca376f1361a3b623a52b8db8e178cdca5f2e6e3954d217b874a9af823ab6c06,2540
 - trial-tomland-0.0.0.0@sha256:5dc32bd4003dc84565170e316576eb7a0c1cea3e8b8b3815d5f509b4a40577fd,2541
-- directory-ospath-streaming-0.2.2@sha256:8931b9ce6e63bf6202dc0c992ae3e6f2ad8e7f4b6eb69994ac6d512c6c9c0f77,3410
-
-flags:
-  directory-ospath-streaming:
-    os-string: false
