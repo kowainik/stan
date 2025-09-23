@@ -193,8 +193,8 @@ library target
                      , scientific
                      , text
                      , unordered-containers
-                     , plutus-tx ^>=1.29
-                     , plutus-ledger-api ^>=1.29
+                     , plutus-tx ^>=1.54
+                     , plutus-ledger-api ^>=1.54
 
   exposed-modules:     Target.AntiPattern
                          Target.AntiPattern.Stan0206
