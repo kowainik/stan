@@ -17,7 +17,7 @@ import PlutusTx (UnsafeFromData(unsafeFromBuiltinData))
 
 -- Place for future imports
 import PlutusLedgerApi.V1 (PubKeyHash(..),Credential(..),ScriptHash(..))
---
+{-# ANN module ("onchain-contract" :: String) #-}
 --
 --
 --

@@ -171,6 +171,10 @@ library
                      , trial ^>= 0.0.0.0
                      , trial-optparse-applicative ^>= 0.0.0.0
                      , trial-tomland ^>= 0.0.0.0
+                     , haskell-src-exts
+                     -- This should be removed after the research is done
+                     , pretty-show
+                     , pretty-simple
   if flag(directory-ospath-streaming)
     build-depends:
                      directory-ospath-streaming ^>= 0.2
@@ -235,9 +239,6 @@ test-suite stan-test
                      , tomland
                      , trial
                      , unordered-containers
-                     -- This should be removed after the reserach is done
-                     , pretty-show
-                     , pretty-simple
 
   ghc-options:         -threaded
                        -rtsopts

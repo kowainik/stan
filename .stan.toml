@@ -1,5 +1,29 @@
+#[[remove]]
+#directory = "target/"
+
 [[remove]]
-directory = "target/"
+directory = "src/"
+
+[[remove]]
+directory = "app/"
+
+[[remove]]
+directory = "test/"
+
+[[remove]]
+directory = "target/Target/AntiPattern/"
+
+[[remove]]
+file = "target/Target/AntiPattern.hs"
+
+[[remove]]
+file = "target/Target/Partial.hs"
+
+[[remove]]
+file = "target/Target/Infinite.hs"
+
+[[remove]]
+file = "target/Target/Style.hs"
 
 [[check]]
 type = "Exclude"

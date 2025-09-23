@@ -53,5 +53,8 @@ tags
 .dir-locals.el
 TAGS
 
+# debugging
+output.txt
+
 # other
 .DS_Store
