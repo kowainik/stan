@@ -22,7 +22,7 @@ index-state:
 packages:
     .
 
-source-repository-package
-  type: git
-  location: https://github.com/bogdan-manole/extensions
-  tag: 439a3333d616a67783e2e22cf364ead9b18062ac
+-- source-repository-package
+--   type: git
+--   location: https://github.com/bogdan-manole/extensions
+--   tag: 439a3333d616a67783e2e22cf364ead9b18062ac

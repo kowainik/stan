@@ -1,23 +1,23 @@
 module Target.PlutusTx where
 
-import Data.Foldable (forM_, for_)
-import System.FilePath ((</>))
-
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.HashMap.Strict as HM
-import qualified Data.HashSet as HS
-import qualified Data.List as List
-import qualified Data.Text as Text
-
 import qualified PlutusTx as Tx
-import qualified PlutusTx.Maybe as Maybe
-import qualified PlutusTx.Prelude as Tx
 import qualified PlutusTx.AssocMap as AssocMap
-import PlutusTx (UnsafeFromData(unsafeFromBuiltinData))
+import qualified PlutusTx.Maybe as Maybe
 
 -- Place for future imports
-import PlutusLedgerApi.V1 (PubKeyHash(..),Credential(..),ScriptHash(..))
+import PlutusLedgerApi.V1 (Credential (..), PubKeyHash (..), ScriptHash (..))
 {-# ANN module ("onchain-contract" :: String) #-}
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
+--
 --
 --
 --
