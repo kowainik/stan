@@ -173,7 +173,7 @@ library
                      , trial-tomland ^>= 0.0.0.0
   if flag(directory-ospath-streaming)
     build-depends:
-                     directory-ospath-streaming ^>= 0.2
+                     directory-ospath-streaming >= 0.2 && < 0.4
 
 executable stan
   import:              common-options
