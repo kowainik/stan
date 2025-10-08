@@ -34,7 +34,7 @@ assocMap = AssocMap.unsafeFromList mempty
 
 unsafeFromBuiltinData :: Integer
 unsafeFromBuiltinData =
-  Tx.unsafeFromBuiltinData (error "we don't care")
+  Tx.unsafeFromBuiltinData (error "tbd")
 
 usageOfPTxMaybe :: Integer
 usageOfPTxMaybe = let
@@ -45,22 +45,22 @@ pubKeyHashEq :: Bool
 pubKeyHashEq = pubKeyHash == pubKeyHash
   where
     pubKeyHash :: PubKeyHash
-    pubKeyHash = error "we don't care"
+    pubKeyHash = error "tbd"
 
 scriptHashEq :: Bool
 scriptHashEq = scriptHash == scriptHash
   where
     scriptHash :: ScriptHash
-    scriptHash = error "we don't care"
+    scriptHash = error "tbd"
 
 credentialHashEq :: Bool
 credentialHashEq = credentialHash == credentialHash
   where
     credentialHash :: Credential
-    credentialHash = error "we don't care"
+    credentialHash = error "tbd"
 
 credentialHashLe :: Bool
 credentialHashLe = credentialHash < credentialHash
   where
     credentialHash :: Credential
-    credentialHash = error "we don't care"
+    credentialHash = error "tbd"
