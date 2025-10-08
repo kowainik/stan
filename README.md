@@ -18,6 +18,7 @@ Plu-Stan is a [Plinth](https://github.com/input-output-hk/plutus) **ST**atic **A
     - [Building & Running](#building--running)
     - [Running tests](#running-tests)
     - [Haskell language server integration](#haskell-language-server-integration)
+  - [Contributing](#contributing)
 ## What this tool is about
 
 [[Back to the Table of Contents] ↑](#table-of-contents)
@@ -121,3 +122,14 @@ These are two examples of configuration for VSCode and Neovim:
     },
 }
 ```
+
+## Contributing
+
+[[Back to the Table of Contents] ↑](#table-of-contents)
+
+We welcome contributions of all kinds — from bug reports and documentation updates to new features and rule implementations.
+
+Before contributing, please read our [**Contributing Guidelines**](./CONTRIBUTING.md) for details on:
+- How to raise and manage issues  
+- Commit message and PR standards  
+- Testing and review process
