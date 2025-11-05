@@ -35,7 +35,7 @@ jobs:
           - "9.4.8"
           - "9.6.7"
           - "9.8.4"
-          - "9.10.2"
+          - "9.10.3"
           - "9.12.2"
 
         exclude:
@@ -99,14 +99,14 @@ jobs:
       run: |
         cabal run stan
 
-  # As at 2025-07-14, the GitHub-hosted runner for ubuntu-latest comes with
+  # As at 2025-11-05, the GitHub-hosted runner for ubuntu-latest comes with
   # Stack 3.7.1 and GHC 9.12.2.
   stack:
     name: stack / ghc ${{ matrix.ghc }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: ["9.10.2"] # The version specified in the stack.yaml file
+        ghc: ["9.10.3"] # The version specified in the stack.yaml file
         cache-bust: ["2025-07-14"]
 
     steps:
