@@ -1,4 +1,4 @@
-snapshot: lts-24.18 # GHC 9.10.3
+snapshot: lts-24.11 # GHC 9.10.2
 
 extra-deps:
 - dir-traverse-0.2.3.0@sha256:adcc128f201ff95131b15ffe41365dc99c50dc3fa3a910f021521dc734013bfa,2137
