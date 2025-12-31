@@ -55,7 +55,7 @@ analysisSpec hieFiles = describe "Static Analysis" $ do
 analysisExtensionsSpec :: Analysis -> Spec
 analysisExtensionsSpec Analysis{..} = describe "Used extensions" $ do
     it "should correctly count total amount of used extensions" $
-        Set.size (fst analysisUsedExtensions) `shouldBe` 16
+        Set.size (fst analysisUsedExtensions) `shouldBe` 17
     it "should correctly count total amount of used safe extensions" $
         Set.size (snd analysisUsedExtensions) `shouldBe` 0
 
