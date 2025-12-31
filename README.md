@@ -48,6 +48,11 @@ So far, Plu-Stan implements the following rules:
 | PLU-STAN-02 | Usage of 'unsafeFromBuiltinData' can lead to unexpected behavior | Security    | High      |
 | PLU-STAN-03 | Usage of Optional types in on chain code. |           | Security    | Medium    |
 | PLU-STAN-04 | Usage of 'eq instance' on script hash, public key hash and payment credential | Security    | Medium    |
+| PLU-STAN-05 | Usage of higher-order helpers like 'all', 'any', and 'find' in on-chain code | Performance | Medium    |
+| PLU-STAN-06 | Multiple list traversals in on-chain code | Performance | Medium    |
+| PLU-STAN-07 | Guard syntax in on-chain code | Performance | Medium    |
+| PLU-STAN-08 | Non-strict let binding used multiple times | Performance | Medium    |
+| PLU-STAN-09 | valueOf in boolean conditions | Security    | Medium    |
 
 ## Usage
 [[Back to the Table of Contents] ↑](#table-of-contents)

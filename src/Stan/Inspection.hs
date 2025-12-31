@@ -116,6 +116,10 @@ data InspectionAnalysis
     | PatternMatchOn_
     -- | Replace multiple comparison operations with 'compare'
     | UseCompare
+    -- | Non-strict let binding used multiple times.
+    | NonStrictLetMultiUse
+    -- | 'valueOf' used in boolean comparisons.
+    | ValueOfInComparison
     deriving stock (Show, Eq)
 
 -- | Show 'Inspection' in a human-friendly format.

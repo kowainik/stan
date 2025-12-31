@@ -52,6 +52,11 @@ module Stan.Inspection.AntiPattern
     , plustan02
     , plustan03
     , plustan04
+    , plustan05
+    , plustan06
+    , plustan07
+    , plustan08
+    , plustan09
     -- * All inspections
     , antiPatternInspectionsMap
     ) where
@@ -65,7 +70,7 @@ import Stan.Inspection (Inspection (..), InspectionAnalysis (..), InspectionsMap
 import Stan.NameMeta (ghcPrimNameFrom, NameMeta (..), baseNameFrom, mkBaseFoldableMeta, mkBaseOldListMeta,
                       primTypeMeta, textNameFrom, unorderedNameFrom, _nameFrom, plutusTxNameFrom)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, app,
-                         namesToPatternAst, opApp, range)
+                         guardBranch, namesToPatternAst, opApp, range)
 import Stan.Pattern.Edsl (PatternBool (..))
 import Stan.Pattern.Type (PatternType, charPattern, foldableMethodsPatterns, foldableTypesPatterns,
                           listPattern, stringPattern, textPattern, (|->), (|::))
@@ -100,6 +105,11 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , plustan02
     , plustan03
     , plustan04
+    , plustan05
+    , plustan06
+    , plustan07
+    , plustan08
+    , plustan09
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -494,3 +504,171 @@ plustan04 = mkAntiPatternInspection (Id "PLU-STAN-04") "Usage of eq instance of 
         , nameMetaModuleName = ModuleName $ "PlutusLedgerApi.V1." <> moduleSuffix
         , nameMetaPackage    = "plutus-ledger-api"
         } |:: []
+
+plustan05 :: Inspection
+plustan05 = mkAntiPatternInspection (Id "PLU-STAN-05") "Higher-order helpers in on-chain code"
+    (FindAst $ anyNamesToPatternAst higherOrderNames)
+    & descriptionL .~ "Usage of higher-order helpers like 'all', 'any', and 'find' in on-chain code can lead to inefficient UPLC."
+    & solutionL .~
+        [ "Rewrite using a specialized recursive function"
+        , "Inline the predicate and avoid higher-order helpers"
+        ]
+    & severityL .~ Performance
+  where
+    higherOrderNames :: NonEmpty NameMeta
+    higherOrderNames =
+        "all" `plutusTxNameFrom` "PlutusTx.Prelude" :|
+        [ "any" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "find" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "all" `plutusTxNameFrom` "PlutusTx.List"
+        , "any" `plutusTxNameFrom` "PlutusTx.List"
+        , "find" `plutusTxNameFrom` "PlutusTx.List"
+        , "findIndices" `plutusTxNameFrom` "PlutusTx.List"
+        , "findIndex" `plutusTxNameFrom` "PlutusTx.List"
+        , "filter" `plutusTxNameFrom` "PlutusTx.List"
+        , "foldl" `plutusTxNameFrom` "PlutusTx.List"
+        , "foldr" `plutusTxNameFrom` "PlutusTx.List"
+        , "elem" `plutusTxNameFrom` "PlutusTx.List"
+        , "all" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "any" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "find" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "traverse_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "for_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "sequenceA_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "asum" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "concat" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "concatMap" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "foldMap" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "fold" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "foldl" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "toList" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "length" `plutusTxNameFrom` "PlutusTx.Foldable"
+        ]
+
+plustan06 :: Inspection
+plustan06 = mkAntiPatternInspection (Id "PLU-STAN-06") "Multiple list traversals in on-chain code"
+    (FindAst nestedTraversalPat)
+    & descriptionL .~ "Composing list traversals (e.g. map over filter) forces multiple passes over the data."
+    & solutionL .~
+        [ "Fuse the traversals into a single recursive function"
+        , "Use a specialized helper that combines the traversal logic"
+        ]
+    & severityL .~ Performance
+  where
+    nestedTraversalPat :: PatternAst
+    nestedTraversalPat = outer1 ||| outer2 ||| outer3
+
+    outer1, outer2, outer3 :: PatternAst
+    outer1 = applyPat traversal1Pat innerTraversalPat
+    outer2 = applyPat (applyPat traversal2Pat (?)) innerTraversalPat
+    outer3 = applyPat (applyPat (applyPat traversal3Pat (?)) (?)) innerTraversalPat
+
+    innerTraversalPat :: PatternAst
+    innerTraversalPat =
+        call1 traversal1Pat
+        ||| call2 traversal2Pat
+        ||| call3 traversal3Pat
+
+    traversal1Pat, traversal2Pat, traversal3Pat :: PatternAst
+    traversal1Pat = anyNamesToPatternAst traversalNames1
+    traversal2Pat = anyNamesToPatternAst traversalNames2
+    traversal3Pat = anyNamesToPatternAst traversalNames3
+
+    call1, call2, call3 :: PatternAst -> PatternAst
+    call1 f = applyPat f (?)
+    call2 f = applyPat (applyPat f (?)) (?)
+    call3 f = applyPat (applyPat (applyPat f (?)) (?)) (?)
+
+    applyPat :: PatternAst -> PatternAst -> PatternAst
+    applyPat f x = app f x ||| opApp f dollarOp x
+
+    dollarOp :: PatternAst
+    dollarOp = anyNamesToPatternAst dollarNameMetas
+
+    dollarNameMetas :: NonEmpty NameMeta
+    dollarNameMetas =
+#if __GLASGOW_HASKELL__ < 910
+        "$" `_nameFrom` "GHC.Base" :|
+#else
+        "$" `_nameFrom` "GHC.Internal.Base" :|
+#endif
+        [ "$" `plutusTxNameFrom` "PlutusTx.Prelude"
+        ]
+
+    traversalNames1 :: NonEmpty NameMeta
+    traversalNames1 =
+        "length" `plutusTxNameFrom` "PlutusTx.Foldable" :|
+        [ "toList" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "fold" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "asum" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "sequenceA_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "concat" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "concat" `plutusTxNameFrom` "PlutusTx.List"
+        ]
+
+    traversalNames2 :: NonEmpty NameMeta
+    traversalNames2 =
+        "map" `plutusTxNameFrom` "PlutusTx.List" :|
+        [ "map" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "filter" `plutusTxNameFrom` "PlutusTx.List"
+        , "filter" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "find" `plutusTxNameFrom` "PlutusTx.List"
+        , "findIndex" `plutusTxNameFrom` "PlutusTx.List"
+        , "findIndices" `plutusTxNameFrom` "PlutusTx.List"
+        , "elem" `plutusTxNameFrom` "PlutusTx.List"
+        , "all" `plutusTxNameFrom` "PlutusTx.List"
+        , "any" `plutusTxNameFrom` "PlutusTx.List"
+        , "concatMap" `plutusTxNameFrom` "PlutusTx.List"
+        , "find" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "findIndex" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "findIndices" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "elem" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "all" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "any" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "concatMap" `plutusTxNameFrom` "PlutusTx.Prelude"
+        , "all" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "any" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "find" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "traverse_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "for_" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "concatMap" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "foldMap" `plutusTxNameFrom` "PlutusTx.Foldable"
+        ]
+
+    traversalNames3 :: NonEmpty NameMeta
+    traversalNames3 =
+        "foldl" `plutusTxNameFrom` "PlutusTx.List" :|
+        [ "foldr" `plutusTxNameFrom` "PlutusTx.List"
+        , "foldl" `plutusTxNameFrom` "PlutusTx.Foldable"
+        , "foldr" `plutusTxNameFrom` "PlutusTx.Foldable"
+        ]
+
+plustan07 :: Inspection
+plustan07 = mkAntiPatternInspection (Id "PLU-STAN-07") "Guard syntax in on-chain code"
+    (FindAst guardBranch)
+    & descriptionL .~ "Guard syntax in on-chain code can generate inefficient UPLC."
+    & solutionL .~
+        [ "Rewrite guards using if-then-else"
+        , "Use lower-level conditional logic"
+        ]
+    & severityL .~ Performance
+
+plustan08 :: Inspection
+plustan08 = mkAntiPatternInspection (Id "PLU-STAN-08") "Non-strict let binding used multiple times"
+    NonStrictLetMultiUse
+    & descriptionL .~ "Non-strict let bindings used multiple times can be re-evaluated during execution."
+    & solutionL .~
+        [ "Make the binding strict using a bang pattern"
+        , "Refactor to share the recursion explicitly"
+        ]
+    & severityL .~ Performance
+
+plustan09 :: Inspection
+plustan09 = mkAntiPatternInspection (Id "PLU-STAN-09") "valueOf in boolean conditions"
+    ValueOfInComparison
+    & descriptionL .~ "Using 'valueOf' in comparisons can be unsafe if the token set is unbounded."
+    & solutionL .~
+        [ "Use a bounded token check or a stronger value-level comparison"
+        , "Consider 'valueEq' when comparing full values"
+        ]
+    & severityL .~ Warning
