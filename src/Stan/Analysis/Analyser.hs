@@ -15,8 +15,9 @@ import Extensions (ExtensionsResult)
 import GHC.LanguageExtensions.Type (Extension (Strict, StrictData))
 import Slist (Slist)
 
-import Stan.Analysis.Visitor (Visitor (..), VisitorState (..), addFixity, addObservation,
-                              addObservations, addOpDecl, getFinalObservations)
+import Stan.Analysis.Visitor (Visitor (..), VisitorState (..), addFixity, addFunToSpecialize,
+                              addObservation, addObservations, addOpDecl, addSpecializePragma,
+                              getFinalObservations)
 import Stan.Core.Id (Id)
 import Stan.Core.List (nonRepeatingPairs)
 import Stan.FileInfo (isExtensionDisabled)
@@ -25,12 +26,12 @@ import Stan.Hie (eqAst)
 import Stan.Hie.Compat (HieAST (..), HieFile (..), Identifier, NodeInfo (..), TypeIndex, nodeInfo)
 import Stan.Hie.MatchAst (hieMatchPatternAst)
 import Stan.Inspection (Inspection (..), InspectionAnalysis (..))
-import Stan.NameMeta (NameMeta, ghcPrimNameFrom)
+import Stan.NameMeta (NameMeta, baseNameFrom, ghcPrimNameFrom, nameFromIdentifier, namesFromAst)
 import Stan.Observation (Observations, mkObservation)
 import Stan.Pattern.Ast (Literal (..), PatternAst (..), anyNamesToPatternAst, case', constructor,
                          constructorNameIdentifier, dataDecl, fixity, fun, guardBranch, lambdaCase,
                          lazyField, literalPat, opApp, patternMatchArrow, patternMatchBranch,
-                         patternMatch_, rhs, tuple, typeSig)
+                         patternMatch_, rhs, specializePragma, tuple, typeSig)
 import Stan.Pattern.Edsl (PatternBool (..))
 
 import qualified Data.Map.Strict as Map
@@ -59,6 +60,7 @@ createVisitor hie exts inspections = Visitor $ \node ->
     forM_ inspections $ \Inspection{..} -> case inspectionAnalysis of
         FindAst patAst -> matchAst inspectionId patAst hie node
         Infix -> analyseInfix hie node
+        SpecializePragma -> analyseSpecializePragma hie node
         LazyField -> when
             (isExtensionDisabled StrictData exts && isExtensionDisabled Strict exts)
             (analyseLazyFields inspectionId hie node)
@@ -301,7 +303,7 @@ analyseInfix hie curNode = do
     matchInfix :: HieAST TypeIndex -> State VisitorState ()
     matchInfix node@Node{..} = when
         (hieMatchPatternAst hie node fixity)
-        (traverse_ addFixity $ concatMap nodeIds nodeChildren)
+        (traverse_ addFixity $ concatMap namesFromAst nodeChildren)
 
     -- add to state a singleton or empty list with the top-level
     -- operator definition:
@@ -317,19 +319,6 @@ analyseInfix hie curNode = do
             (traverse_ (uncurry addOpDecl))
         )
 
-    -- return AST node identifier names as a sized list of texts
-    nodeIds :: HieAST TypeIndex -> [Text]
-    nodeIds =
-        concatMap fixityName
-        . Map.keys
-        . nodeIdentifiers
-        . nodeInfo
-
-    fixityName :: Identifier -> [Text]
-    fixityName = \case
-        Left _ -> []
-        Right name -> [toText $ occNameString $ nameOccName name]
-
     extractOperatorName :: HieAST TypeIndex -> [(Text, RealSrcSpan)]
     extractOperatorName n@Node{..} =
         concatMap (topLevelOperatorName nodeSpan)
@@ -343,6 +332,57 @@ analyseInfix hie curNode = do
             let occName = nameOccName name
             -- return empty list if identifier name is not operator name
             in [(toText $ occNameString occName, srcSpan) | isSymOcc occName]
+
+{- | Analyse HIE AST to find all operators which lack specialize pragmas
+declaration (where appropriate).
+
+The algorithm is the following:
+
+1. Traverse AST and discover all top-level functions and @SPECIALIZE@ pragmas
+ in a single pass.
+2. Compare two resulting sets to find out functions without @SPECIALIZE@ pragmas.
+-}
+analyseSpecializePragma :: HieFile -> HieAST TypeIndex -> State VisitorState ()
+analyseSpecializePragma hie curNode = do
+    matchSpecializePragma curNode
+    matchFunToSpecialize curNode
+  where
+    -- adds to the state function names defined in a specialize pragma
+    -- @{-# SPECIALIZE foo :: _ #-}@
+    matchSpecializePragma :: HieAST TypeIndex -> State VisitorState ()
+    matchSpecializePragma node@Node{..} = when
+        (hieMatchPatternAst hie node specializePragma)
+        (traverse_ addSpecializePragma $ concatMap namesFromAst nodeChildren)
+
+    -- add to state a singleton or empty list with the function definition:
+    matchFunToSpecialize :: HieAST TypeIndex -> State VisitorState ()
+    matchFunToSpecialize node@Node{..} = when (hieMatchPatternAst hie node typeSig) $
+        case nodeChildren of
+            [] -> pass
+            [_] -> pass
+            name:rest -> when (findConstraint rest) $ whenJust
+                -- do nothing when cannot extract name
+                (viaNonEmpty head $ extractFunName name)
+                -- add each function from a list (should be singleton list)
+                (uncurry addFunToSpecialize)
+
+    extractFunName :: HieAST TypeIndex -> [(Text, RealSrcSpan)]
+    extractFunName Node{..} =
+        concatMap (map (, nodeSpan) . nameFromIdentifier)
+        $ Map.keys
+        $ nodeIdentifiers nodeInfo
+
+    findConstraint :: [HieAST TypeIndex] -> Bool
+    findConstraint [] = False
+    findConstraint (node@Node{..}:rest)
+        | hieMatchPatternAst hie node monadIO = True
+        | otherwise = findConstraint nodeChildren || findConstraint rest
+
+    monadIO :: PatternAst
+    monadIO = PatternAstNodeExact (one ("HsAppTy", "HsType"))
+        [ PatternAstName ("MonadIO" `baseNameFrom` "Control.Monad.IO.Class") (?)
+        , (?)
+        ]
 
 -- | Returns source spans of matched AST nodes.
 createMatch
