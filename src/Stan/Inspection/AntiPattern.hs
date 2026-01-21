@@ -57,6 +57,7 @@ module Stan.Inspection.AntiPattern
     , plustan07
     , plustan08
     , plustan09
+    , plustan10
     -- * All inspections
     , antiPatternInspectionsMap
     ) where
@@ -110,6 +111,7 @@ antiPatternInspectionsMap = fromList $ fmapToFst inspectionId
     , plustan07
     , plustan08
     , plustan09
+    , plustan10
     ]
 
 -- | Smart constructor to create anti-pattern 'Inspection'.
@@ -670,5 +672,15 @@ plustan09 = mkAntiPatternInspection (Id "PLU-STAN-09") "valueOf in boolean condi
     & solutionL .~
         [ "Use a bounded token check or a stronger value-level comparison"
         , "Consider 'valueEq' when comparing full values"
+        ]
+    & severityL .~ Warning
+
+plustan10 :: Inspection
+plustan10 = mkAntiPatternInspection (Id "PLU-STAN-10") "Unvalidated hashes from BuiltinData in equality comparisons"
+    UnsafeFromBuiltinDataInHashComparison
+    & descriptionL .~ "Using equality (==) to compare Address/ScriptHash/PubKeyHash/Credential values obtained via 'unsafeFromBuiltinData' (directly or through pattern binding) can create unsatisfiable constraints if ledger invariants are not enforced (e.g. hash length)."
+    & solutionL .~
+        [ "Validate ledger invariants on the underlying BuiltinData before using it in fulfillment criteria (e.g. check hash bytestring length is 28)"
+        , "Prefer constructing expected outputs and comparing them against actual outputs, or explicitly check structural and per-field integrity and ledger invariants"
         ]
     & severityL .~ Warning

@@ -206,6 +206,8 @@ library target
                        Target.Partial
                        Target.Style
                        Target.PlutusTx
+                       Target.ScriptContextBuilder
+                       Target.TestHelpers
 
 test-suite stan-test
   import:              common-options
