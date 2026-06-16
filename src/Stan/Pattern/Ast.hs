@@ -24,6 +24,7 @@ module Stan.Pattern.Ast
     , constructorNameIdentifier
     , dataDecl
     , fixity
+    , specializePragma
     , fun
     , guardBranch
     , lazyField
@@ -186,6 +187,15 @@ infixr 7 ***, +++, ???
 -}
 fixity :: PatternAst
 fixity = PatternAstNode $ one (mkNodeAnnotation "FixitySig" "FixitySig")
+
+{- | Pattern for the top-level specialize pragmas declaration:
+
+@
+{-# SPECIALIZE foo :: ... #-}
+@
+-}
+specializePragma :: PatternAst
+specializePragma = PatternAstNode $ one ("SpecSig", "Sig")
 
 {- | Pattern for the function type signature declaration:
 
